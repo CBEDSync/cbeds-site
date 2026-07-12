@@ -1,0 +1,11 @@
+# Python build cache
+__pycache__/
+*.pyc
+
+# Build artifacts / packaged copies
+*.zip
+
+# OS junk
+.DS_Store
+Thumbs.db
+desktop.ini

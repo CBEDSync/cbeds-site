@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CBEDSynergy | CBEDS</title>
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --blue:#156082;--green:#70B3AE;--green-bright:#86cdc7;--blue-deep:#0a2f40;--blue-deeper:#072330;
+    --ink:#122a34;--muted:#5c727b;--bg:#ffffff;--bg-soft:#f5f9fa;--line:#e4eef0;--maxw:1180px;
+    --display:-apple-system,BlinkMacSystemFont,"SF Pro Display","Helvetica Neue","Inter",Helvetica,Arial,sans-serif;
+    --body:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue","Inter",Helvetica,Arial,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{font-family:var(--body);color:var(--ink);background:var(--bg);line-height:1.65;-webkit-font-smoothing:antialiased}
+  a{color:inherit;text-decoration:none}
+  .wrap{max-width:var(--maxw);margin:0 auto;padding:0 26px}
+  h1,h2,h3,h4{font-family:var(--display);letter-spacing:-.02em}
+
+  header.nav{position:fixed;top:0;left:0;right:0;z-index:60;transition:background .3s,border-color .3s;border-bottom:1px solid transparent}
+  header.nav.solid{background:rgba(255,255,255,.92);backdrop-filter:blur(12px);border-color:var(--line)}
+  .nav-inner{display:flex;align-items:center;justify-content:space-between;height:76px}
+  .brand{display:flex;align-items:center;gap:12px}
+  .brand .mk{width:48px;height:48px;flex:0 0 auto;--a1:#9fe0d9;--a2:#7fc6cd;--a3:#5fadc2;--a4:#3f93b6;--ad:#bdeee9}
+  header.nav.solid .brand .mk{--a1:#70B3AE;--a2:#52979f;--a3:#337c91;--a4:#156082;--ad:#156082}
+  .brand .lock{display:flex;flex-direction:column;line-height:1.05}
+  .brand .wm{font-family:var(--display);font-weight:700;font-size:22px;letter-spacing:-.01em;color:#fff;transition:color .3s}
+  header.nav.solid .brand .wm{color:var(--blue)}
+  .brand .sub{font-size:10.5px;letter-spacing:.07em;text-transform:uppercase;color:rgba(255,255,255,.6);font-weight:500;margin-top:2px;transition:color .3s}
+  header.nav.solid .brand .sub{color:var(--muted)}
+  nav ul{display:flex;gap:34px;list-style:none;align-items:center}
+  nav a.lnk{font-size:15px;font-weight:500;color:rgba(255,255,255,.85);position:relative;padding:5px 0}
+  header.nav.solid nav a.lnk{color:var(--ink)}
+  nav a.lnk.active{color:var(--green-bright)}
+  header.nav.solid nav a.lnk.active{color:var(--blue)}
+  nav a.lnk.active::after{content:"";position:absolute;left:0;right:0;bottom:-3px;height:2px;background:var(--green);border-radius:2px}
+  .nav-cta{background:var(--green);color:var(--blue-deeper)!important;padding:10px 20px;border-radius:9px;font-weight:600;font-size:14px;font-family:var(--display)}
+
+  /* network hero */
+  .nethero{position:relative;height:100vh;min-height:680px;overflow:hidden;background:radial-gradient(120% 120% at 78% 18%,#10566f 0%,#0a2f40 46%,#072330 100%)}
+  #net{position:absolute;inset:0;width:100%;height:100%;display:block}
+  /* scrims keep the intro text (top) and legend (bottom) legible over the moving network */
+  .nethero::before{content:"";position:absolute;top:0;left:0;right:0;height:44%;z-index:2;pointer-events:none;background:linear-gradient(to bottom,rgba(7,35,48,.92) 0%,rgba(7,35,48,.58) 48%,transparent 100%)}
+  .nethero::after{content:"";position:absolute;bottom:0;left:0;right:0;height:22%;z-index:2;pointer-events:none;background:linear-gradient(to top,rgba(7,35,48,.85) 0%,transparent 100%)}
+  .net-intro{position:absolute;top:0;left:0;right:0;z-index:3;text-align:center;padding:120px 26px 0;pointer-events:none}
+  .net-intro .tag{font-family:var(--display);font-size:12.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--green-bright);font-weight:600}
+  .devpill{display:inline-block;font-family:var(--display);font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#06202c;background:var(--green-bright);border-radius:100px;padding:4px 11px;vertical-align:middle}
+  .devtag{display:inline-block;margin-left:6px;font-family:var(--display);font-size:9px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#06202c;background:var(--green);border-radius:5px;padding:1px 5px;vertical-align:middle}
+  .net-intro h1{font-size:clamp(34px,5vw,56px);color:#fff;margin:12px 0 14px}
+  .net-intro p{font-size:clamp(16px,1.8vw,19px);color:#bcd6dc;max-width:60ch;margin:0 auto}
+  .net-legend{position:absolute;bottom:26px;left:0;right:0;z-index:3;text-align:center;color:rgba(255,255,255,.6);font-size:13px;font-family:var(--display);letter-spacing:.02em;padding:0 26px}
+  .net-legend b{color:var(--green-bright);font-weight:600}
+  .tip{position:fixed;z-index:50;pointer-events:none;background:rgba(7,35,48,.95);border:1px solid rgba(134,205,199,.4);color:#eafffb;
+    font-family:var(--display);font-size:13px;font-weight:600;padding:7px 12px;border-radius:8px;opacity:0;transform:translate(-50%,-130%);transition:opacity .15s;white-space:nowrap}
+  .tip.show{opacity:1}
+
+  /* organisations section */
+  section{padding:96px 0}
+  .tag2{display:inline-block;font-family:var(--display);font-size:12.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--green);font-weight:600;margin-bottom:14px}
+  h2{font-size:clamp(26px,3.4vw,40px);color:var(--ink);margin-bottom:18px}
+  .lead{font-size:18px;color:var(--muted);max-width:64ch}
+  .org-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:40px}
+  .org{background:var(--bg-soft);border:1px solid var(--line);border-radius:14px;padding:22px;display:flex;align-items:center;justify-content:center;
+    text-align:center;font-family:var(--display);font-weight:600;color:var(--blue);min-height:96px;font-size:15px}
+  .join{margin-top:44px;background:radial-gradient(120% 140% at 50% 0%,#10566f,#072330);border-radius:22px;padding:54px 40px;text-align:center;color:#fff}
+  .join h3{font-size:clamp(24px,3vw,34px);margin-bottom:12px}
+  .join p{color:#c5dade;max-width:52ch;margin:0 auto 26px;font-size:17px}
+  .btn{font-family:var(--display);display:inline-block;background:var(--green);color:var(--blue-deeper);padding:14px 28px;border-radius:11px;font-weight:600}
+
+  footer{background:var(--blue-deeper);color:#88a6af;padding:48px 0;font-size:14px}
+  .foot-inner{display:flex;justify-content:space-between;align-items:center;gap:20px;flex-wrap:wrap}
+  .foot-brand{display:flex;align-items:center;gap:11px;color:#fff;font-family:var(--display);font-weight:700}
+  .foot-brand .mk{width:34px;height:34px;--a1:#9fe0d9;--a2:#7fc6cd;--a3:#5fadc2;--a4:#3f93b6;--ad:#bdeee9}
+  @media(max-width:860px){.org-grid{grid-template-columns:repeat(2,1fr)}nav ul{display:none}
+    .nethero::before{height:56%;background:linear-gradient(to bottom,rgba(7,35,48,.95) 0%,rgba(7,35,48,.7) 55%,transparent 100%)}}
+</style>
+</head>
+<body>
+
+<svg style="display:none" xmlns="http://www.w3.org/2000/svg">
+<symbol id="cbeds-mark" viewBox="0 0 100 100"><g fill="none" stroke-linecap="round"><ellipse cx="50" cy="62" rx="41" ry="16.4" stroke="var(--a4,#156082)" stroke-width="2.4" opacity="0.6"/><ellipse cx="50" cy="62" rx="31" ry="12.4" stroke="var(--a3,#337c91)" stroke-width="3.0" opacity="0.74"/><ellipse cx="50" cy="62" rx="21" ry="8.4" stroke="var(--a2,#52979f)" stroke-width="3.6" opacity="0.88"/><ellipse cx="50" cy="62" rx="11" ry="4.4" stroke="var(--a1,#70B3AE)" stroke-width="4.3" opacity="1.0"/></g><path d="M50 44 C54.5 49 54.5 56 50 56 C45.5 56 45.5 49 50 44 Z" fill="var(--ad,#156082)"/><path d="M50 24 C52.6 27 52.6 32 50 32 C47.4 32 47.4 27 50 24 Z" fill="var(--ad,#156082)"/></symbol>
+</svg>
+
+<header class="nav" id="nav">
+  <div class="wrap nav-inner">
+    <a class="brand" href="cbeds.html">
+      <svg class="mk"><use href="#cbeds-mark"/></svg>
+      <span class="lock"><span class="wm">CBEDS</span><span class="sub">Center for Built Environment Data Sharing</span></span>
+    </a>
+    <nav>
+      <ul>
+        <li><a class="lnk" href="cbeds.html">CBEDS</a></li>
+        <li><a class="lnk" href="cbedstory.html">CBEDStory</a></li>
+        <li><a class="lnk" href="cbedsync.html">CBEDSync</a></li>
+        <li><a class="lnk active" href="cbedsynergy.html">CBEDSynergy<span class="devtag">Dev</span></a></li>
+        <li><a class="lnk" href="cbedsense.html">CBEDSense<span class="devtag">Dev</span></a></li>
+        <li><a class="nav-cta" href="https://www.linkedin.com" target="_blank" rel="noopener">Join us &#8594;</a></li>
+      </ul>
+    </nav>
+  </div>
+</header>
+
+<section class="nethero">
+  <canvas id="net"></canvas>
+  <div class="net-intro">
+    <span class="tag">CBEDSynergy</span> <span class="devpill">In development</span>
+    <h1>A network that connects itself</h1>
+    <p>CBEDSynergy is where collaboration happens. CBEDS sits at the centre, the organisations around it form the network, connected to one another, not to us. We create the conditions; the connections are theirs.</p>
+  </div>
+  <div class="net-legend">Each dot is an organisation &middot; lines show connections between them &middot; <b>hover a dot to see who</b></div>
+</section>
+
+<div class="tip" id="tip"></div>
+
+<section>
+  <div class="wrap">
+    <span class="tag2">The Organisations</span>
+    <h2>Who is in the network</h2>
+    <p class="lead">A growing community of organisations sharing, aligning and building on one another's work across the built environment.</p>
+    <div class="org-grid" id="orgGrid"></div>
+    <div class="join">
+      <h3>Add your organisation</h3>
+      <p>If your organisation is working on data sharing in the built environment, there is a place for you in the network.</p>
+      <a class="btn" href="https://www.linkedin.com" target="_blank" rel="noopener">Join the network &#8594;</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap foot-inner">
+    <div class="foot-brand"><svg class="mk"><use href="#cbeds-mark"/></svg> CBEDS</div>
+    <div>Connecting the Built Environment Data Sharing ecosystem</div>
+  </div>
+</footer>
+
+<script>
+var nav=document.getElementById('nav');
+addEventListener('scroll',function(){nav.classList.toggle('solid',scrollY>40);});
+
+// ===== ORGANISATIONS (replace with the real list) =====
+var ORGS=[];
+for(var i=1;i<=32;i++){ORGS.push('Organisation '+(i<10?'0'+i:i));}
+// distribute across rings (inner -> outer)
+var RING_COUNTS=[5,7,9,11];
+
+var c=document.getElementById('net'), ctx=c.getContext('2d'), tip=document.getElementById('tip');
+var w,h2,dpr,cx,cy,base,rings=[],dots=[],edges=[],pulses=[],t=0;
+var RYF=0.42; // perspective flattening, matches the logo ripples
+function build(){
+  dpr=Math.min(devicePixelRatio||1,2);
+  w=c.clientWidth;h2=c.clientHeight;c.width=w*dpr;c.height=h2*dpr;ctx.setTransform(dpr,0,0,dpr,0,0);
+  cx=w*0.5;cy=h2*0.55;
+  base=Math.min(w*0.44,h2*0.66);
+  rings=[base*0.34,base*0.56,base*0.78,base*1.0];
+  dots=[];var k=0;
+  for(var r=0;r<rings.length;r++){
+    var n=RING_COUNTS[r];
+    for(var i=0;i<n;i++){
+      var a=(i/n)*Math.PI*2 + r*0.55;
+      dots.push({x:cx+Math.cos(a)*rings[r], y:cy+Math.sin(a)*rings[r]*RYF, rr:2.0+Math.random()*1.4, name:ORGS[k%ORGS.length]});
+      k++;
+    }
+  }
+  // static connections: each dot to its 2 nearest neighbours (never to the centre)
+  edges=[];var seen={};
+  for(var i=0;i<dots.length;i++){
+    var ds=[];
+    for(var j=0;j<dots.length;j++){if(j===i)continue;ds.push([Math.hypot(dots[i].x-dots[j].x,dots[i].y-dots[j].y),j]);}
+    ds.sort(function(p,q){return p[0]-q[0];});
+    for(var m=0;m<2;m++){var j=ds[m][1];var key=Math.min(i,j)+'-'+Math.max(i,j);if(!seen[key]){seen[key]=1;edges.push({a:Math.min(i,j),b:Math.max(i,j)});}}
+  }
+  pulses=[];
+}
+var mouse={x:null,y:null,cxp:0,cyp:0};
+c.addEventListener('mousemove',function(e){var r=c.getBoundingClientRect();mouse.x=e.clientX-r.left;mouse.y=e.clientY-r.top;mouse.cxp=e.clientX;mouse.cyp=e.clientY;});
+c.addEventListener('mouseleave',function(){mouse.x=mouse.y=null;});
+function drawDrop(dx,dy,k,stretch){
+  var glowR=base*0.05;
+  var g=ctx.createRadialGradient(dx,dy,0,dx,dy,glowR);
+  g.addColorStop(0,'rgba(134,205,199,'+(0.5*k).toFixed(3)+')');g.addColorStop(1,'rgba(134,205,199,0)');
+  ctx.fillStyle=g;ctx.beginPath();ctx.arc(dx,dy,glowR,0,7);ctx.fill();
+  var S=0.2;   // tiny: about the size of an organisation dot
+  ctx.save();ctx.translate(dx,dy);ctx.scale(S,S*stretch);
+  ctx.fillStyle='#eafffb';
+  ctx.beginPath();ctx.moveTo(0,-30);ctx.bezierCurveTo(18,-6,18,22,0,22);ctx.bezierCurveTo(-18,22,-18,-6,0,-30);ctx.closePath();ctx.fill();
+  ctx.restore();
+  ctx.fillStyle='rgba(159,224,217,'+(0.5+0.45*k).toFixed(2)+')';ctx.font='700 '+(base*0.022)+'px '+getComputedStyle(document.body).fontFamily;
+  ctx.textAlign='center';ctx.textBaseline='top';ctx.fillText('CBEDS',dx,dy+10);
+}
+function clamp01(v){return Math.max(0,Math.min(1,v));}
+function cdist(d){return Math.hypot(d.x-cx,(d.y-cy)/RYF);}
+function draw(){
+  t+=16;ctx.clearRect(0,0,w,h2);
+  var FALL=3000, REVEAL=1300;
+  var landed=t>=FALL;
+  var sp=Math.min(t/FALL,1), ease=sp*sp;
+  var introBottom=document.querySelector('.net-intro').getBoundingClientRect().bottom - c.getBoundingClientRect().top;
+  var startY=Math.min(cy-20, introBottom+38);
+  var dropY=startY+(cy-startY)*ease;
+  var stretch=landed?1:(1+0.45*sp);
+  var revealP=Math.min(Math.max(0,t-FALL)/REVEAL,1), rippleR=revealP*base*1.3;
+  // perspective ripple rings (the network)
+  for(var r=0;r<rings.length;r++){
+    ctx.strokeStyle='rgba(159,224,217,'+(0.17-r*0.03).toFixed(3)+')';ctx.lineWidth=1.3;
+    ctx.beginPath();ctx.ellipse(cx,cy,rings[r],rings[r]*RYF,0,0,Math.PI*2);ctx.stroke();
+  }
+  // splash ripple expanding from the landing
+  if(landed && revealP<1){ctx.strokeStyle='rgba(159,224,217,'+((1-revealP)*0.55).toFixed(3)+')';ctx.lineWidth=2;
+    ctx.beginPath();ctx.ellipse(cx,cy,rippleR,rippleR*RYF,0,0,Math.PI*2);ctx.stroke();}
+  var hi=-1;if(landed&&mouse.x!=null){var best=20;for(var i=0;i<dots.length;i++){var dd=Math.hypot(dots[i].x-mouse.x,dots[i].y-mouse.y);if(dd<best){best=dd;hi=i;}}}
+  // connecting lines light up as the ripple passes their organisations
+  for(var e=0;e<edges.length;e++){var A=dots[edges[e].a],B=dots[edges[e].b];
+    var la=landed?clamp01((rippleR-Math.max(cdist(A),cdist(B)))/(base*0.18)):0;
+    var lit=(edges[e].a===hi||edges[e].b===hi);
+    if(la<=0 && !lit) continue;
+    ctx.strokeStyle=lit?'rgba(159,224,217,0.7)':'rgba(134,205,199,'+(0.16*la).toFixed(3)+')';ctx.lineWidth=lit?1.5:0.9;
+    ctx.beginPath();ctx.moveTo(A.x,A.y);ctx.lineTo(B.x,B.y);ctx.stroke();}
+  // pulses travelling along the lines (data passing between organisations)
+  if(landed && revealP>0.25 && pulses.length<20 && Math.random()<0.16 && edges.length){var e=edges[(Math.random()*edges.length)|0];pulses.push({e:e,p:0,sp:0.004+Math.random()*0.006,dir:Math.random()<0.5?1:-1});}
+  for(var i=pulses.length-1;i>=0;i--){var pl=pulses[i];pl.p+=pl.sp;if(pl.p>=1){pulses.splice(i,1);continue;}
+    var A=dots[pl.e.a],B=dots[pl.e.b];var pp=pl.dir>0?pl.p:1-pl.p;var x=A.x+(B.x-A.x)*pp,y=A.y+(B.y-A.y)*pp;
+    var o=Math.sin(pl.p*Math.PI);
+    var pg=ctx.createRadialGradient(x,y,0,x,y,10);pg.addColorStop(0,'rgba(190,240,233,'+(0.9*o).toFixed(2)+')');pg.addColorStop(1,'rgba(190,240,233,0)');
+    ctx.fillStyle=pg;ctx.beginPath();ctx.arc(x,y,10,0,7);ctx.fill();
+    ctx.fillStyle='rgba(240,255,251,'+o.toFixed(2)+')';ctx.beginPath();ctx.arc(x,y,2.6,0,7);ctx.fill();}
+  // organisation dots light up as the ripple reaches them
+  for(var i=0;i<dots.length;i++){var d=dots[i],hov=(i===hi);
+    var la=landed?clamp01((rippleR-cdist(d))/(base*0.12)):0; var al=hov?1:Math.max(0.10,la);
+    var hg=ctx.createRadialGradient(d.x,d.y,0,d.x,d.y,hov?16:9);hg.addColorStop(0,'rgba(134,205,199,'+((hov?0.5:0.22)*Math.max(0.3,la)).toFixed(3)+')');hg.addColorStop(1,'rgba(134,205,199,0)');
+    ctx.fillStyle=hg;ctx.beginPath();ctx.arc(d.x,d.y,hov?16:9,0,7);ctx.fill();
+    ctx.globalAlpha=al;ctx.fillStyle=hov?'#f0fffb':'rgba(205,242,236,0.95)';ctx.beginPath();ctx.arc(d.x,d.y,hov?d.rr+2.2:d.rr+0.8,0,7);ctx.fill();ctx.globalAlpha=1;}
+  // the drop: falls in with its CBEDS label, then rests small 

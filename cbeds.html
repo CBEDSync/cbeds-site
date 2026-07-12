@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CBEDS | Connecting the Built Environment Data Sharing ecosystem</title>
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --blue:#156082;
+    --green:#70B3AE;
+    --green-bright:#86cdc7;
+    --blue-deep:#0a2f40;
+    --blue-deeper:#072330;
+    --ink:#122a34;
+    --muted:#5c727b;
+    --bg:#ffffff;
+    --bg-soft:#f5f9fa;
+    --line:#e4eef0;
+    --maxw:1180px;
+    --display:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text","Helvetica Neue","Inter",Helvetica,Arial,sans-serif;
+    --body:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue","Inter",Helvetica,Arial,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{font-family:var(--body);color:var(--ink);background:var(--bg);line-height:1.65;-webkit-font-smoothing:antialiased}
+  a{color:inherit;text-decoration:none}
+  .wrap{max-width:var(--maxw);margin:0 auto;padding:0 26px}
+  h1,h2,h3,h4,.display{font-family:var(--display);letter-spacing:-.02em}
+
+  /* ---------- NAV ---------- */
+  header.nav{position:fixed;top:0;left:0;right:0;z-index:60;transition:background .3s,box-shadow .3s,border-color .3s;border-bottom:1px solid transparent}
+  header.nav.solid{background:rgba(255,255,255,.9);backdrop-filter:blur(12px);border-color:var(--line);box-shadow:0 4px 24px rgba(10,47,64,.05)}
+  .nav-inner{display:flex;align-items:center;justify-content:space-between;height:76px}
+  .brand{display:flex;align-items:center;gap:12px}
+  .brand .mk{width:48px;height:48px;flex:0 0 auto;--a1:#9fe0d9;--a2:#7fc6cd;--a3:#5fadc2;--a4:#3f93b6;--ad:#bdeee9;transition:.3s}
+  header.nav.solid .brand .mk{--a1:#70B3AE;--a2:#52979f;--a3:#337c91;--a4:#156082;--ad:#156082}
+  .brand .lock{display:flex;flex-direction:column;line-height:1.05}
+  .brand .wm{font-family:var(--display);font-weight:700;font-size:22px;letter-spacing:-.01em;color:#fff;transition:color .3s}
+  .brand .sub{font-size:10.5px;letter-spacing:.07em;text-transform:uppercase;color:rgba(255,255,255,.62);font-weight:500;margin-top:2px;transition:color .3s}
+  header.nav.solid .brand .wm{color:var(--blue)}
+  header.nav.solid .brand .sub{color:var(--muted)}
+  nav ul{display:flex;gap:36px;list-style:none;align-items:center}
+  nav a.lnk{font-size:15px;font-weight:500;color:rgba(255,255,255,.85);position:relative;padding:5px 0;transition:color .25s}
+  header.nav.solid nav a.lnk{color:var(--ink)}
+  nav a.lnk:hover{color:var(--green-bright)}
+  header.nav.solid nav a.lnk:hover{color:var(--blue)}
+  nav a.lnk::after{content:"";position:absolute;left:0;right:100%;bottom:-3px;height:2px;background:var(--green);border-radius:2px;transition:right .25s}
+  nav a.lnk:hover::after,nav a.lnk.active::after{right:0}
+  .nav-cta{font-family:var(--display);background:var(--green);color:var(--blue-deeper)!important;padding:10px 20px;border-radius:9px;font-weight:600;font-size:14px;transition:transform .15s,box-shadow .2s}
+  .devtag{display:inline-block;margin-left:6px;font-family:var(--display);font-size:9px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#06202c;background:var(--green);border-radius:5px;padding:1px 5px;vertical-align:middle}
+  .nav-cta:hover{transform:translateY(-2px);box-shadow:0 10px 24px rgba(112,179,174,.4)}
+  .burger{display:none;background:none;border:0;cursor:pointer;flex-direction:column;gap:5px;padding:6px}
+  .burger span{width:24px;height:2px;background:#fff;display:block;transition:.3s}
+  header.nav.solid .burger span{background:var(--ink)}
+
+  /* ---------- HERO ---------- */
+  .hero{position:relative;min-height:100vh;display:flex;align-items:center;overflow:hidden;
+    background:radial-gradient(120% 120% at 78% 18%,#10566f 0%,#0a2f40 46%,#072330 100%)}
+  .hero-grid{position:absolute;inset:0;z-index:1;background-image:linear-gradient(rgba(255,255,255,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.04) 1px,transparent 1px);background-size:64px 64px;mask-image:radial-gradient(120% 100% at 60% 40%,#000 30%,transparent 85%);opacity:.5}
+  #graph{position:absolute;inset:0;width:100%;height:100%;z-index:2}
+  .hero-scrim{position:absolute;inset:0;z-index:3;pointer-events:none;
+    background:linear-gradient(90deg,rgba(7,35,48,.95) 0%,rgba(7,35,48,.85) 26%,rgba(7,35,48,.45) 50%,rgba(7,35,48,.05) 74%,rgba(7,35,48,0) 100%),
+               linear-gradient(to bottom,rgba(7,35,48,.5) 0%,transparent 18%,transparent 78%,rgba(7,35,48,.6) 100%)}
+  .hero-inner{position:relative;z-index:4;width:100%;padding:120px 0 80px}
+  .hero-copy{max-width:560px}
+  .eyebrow{display:inline-flex;align-items:center;gap:9px;font-family:var(--display);font-size:12.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--green-bright);font-weight:600;margin-bottom:26px;padding:7px 14px;border:1px solid rgba(134,205,199,.35);border-radius:100px;background:rgba(112,179,174,.08)}
+  .eyebrow .pulse{width:7px;height:7px;border-radius:50%;background:var(--green-bright);box-shadow:0 0 0 0 rgba(134,205,199,.6);animation:beat 2.2s infinite}
+  @keyframes beat{0%{box-shadow:0 0 0 0 rgba(134,205,199,.55)}70%{box-shadow:0 0 0 9px rgba(134,205,199,0)}100%{box-shadow:0 0 0 0 rgba(134,205,199,0)}}
+  .hero h1{font-size:clamp(34px,4.7vw,56px);line-height:1.05;font-weight:700;color:#fff;margin-bottom:24px}
+  .hero h1 .hl{color:var(--green-bright);position:relative;white-space:nowrap}
+  .hero p.lead{font-size:clamp(17px,1.7vw,20px);color:#bcd6dc;max-width:50ch;margin-bottom:36px}
+  .hero-actions{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:42px}
+  .btn{font-family:var(--display);display:inline-flex;align-items:center;gap:9px;padding:15px 28px;border-radius:11px;font-weight:600;font-size:15.5px;transition:transform .15s,background .2s,box-shadow .2s,border-color .2s}
+  .btn-primary{background:var(--green);color:var(--blue-deeper)}
+  .btn-primary:hover{transform:translateY(-2px);box-shadow:0 14px 32px rgba(112,179,174,.38)}
+  .btn-ghost{border:1.5px solid rgba(255,255,255,.28);color:#fff}
+  .btn-ghost:hover{border-color:var(--green-bright);background:rgba(255,255,255,.06)}
+  .chips{display:flex;flex-wrap:wrap;gap:8px}
+  .chips span{font-size:13px;color:#9fc1c9;border:1px solid rgba(255,255,255,.14);padding:6px 13px;border-radius:100px;background:rgba(255,255,255,.03)}
+  .scroll-hint{position:absolute;left:50%;bottom:26px;transform:translateX(-50%);z-index:4;color:rgba(255,255,255,.55);font-size:12px;letter-spacing:.18em;text-transform:uppercase;font-family:var(--display);display:flex;flex-direction:column;align-items:center;gap:8px}
+  .scroll-hint .ln{width:1px;height:34px;background:linear-gradient(rgba(255,255,255,.6),transparent);animation:drop 1.8s infinite}
+  @keyframes drop{0%{opacity:0;transform:scaleY(.3)}40%{opacity:1}100%{opacity:0;transform:translateY(10px) scaleY(.6)}}
+
+  /* ---------- SECTIONS ---------- */
+  section{padding:110px 0}
+  .section-soft{background:var(--bg-soft)}
+  .tag{display:inline-block;font-family:var(--display);font-size:12.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--blue);font-weight:600;margin-bottom:16px;position:relative;padding-left:30px}
+  .tag::before{content:"";position:absolute;left:0;top:50%;width:20px;height:2px;background:var(--green);transform:translateY(-50%)}
+  h2{font-size:clamp(28px,3.6vw,44px);line-height:1.1;font-weight:700;color:var(--ink);margin-bottom:22px}
+  .lead-txt{font-size:18.5px;color:var(--muted);max-width:68ch}
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:64px;align-items:center}
+  .stack p{margin-bottom:17px;font-size:17px;color:#3c545e}
+  .stack p:last-child{margin-bottom:0}
+
+  /* fragmentation visual */
+  .frag{position:relative;aspect-ratio:1/.92;border-radius:24px;background:linear-gradient(160deg,#0a2f40,#10566f);overflow:hidden;border:1px solid rgba(255,255,255,.06)}
+  .frag canvas{position:absolute;inset:0;width:100%;height:100%}
+  .frag .cap{position:absolute;left:26px;bottom:24px;z-index:2;color:#cfe6e8;font-size:14px;max-width:80%}
+  .frag .cap b{font-family:var(--display);color:#fff;display:block;font-size:18px;margin-bottom:3px}
+
+  /* vision & mission */
+  .vm-grid{display:grid;grid-template-columns:1fr 1fr;gap:28px}
+  .vm-card{position:relative;background:#fff;border:1px solid var(--line);border-radius:20px;padding:40px 36px;overflow:hidden;transition:transform .25s,box-shadow .25s}
+  .vm-card::after{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:linear-gradient(var(--green),var(--blue));transform:scaleY(0);transform-origin:top;transition:transform .35s}
+  .vm-card:hover{transform:translateY(-5px);box-shadow:0 24px 54px rgba(21,96,130,.13)}
+  .vm-card:hover::after{transform:scaleY(1)}
+  .vm-card .ic{width:54px;height:54px;border-radius:14px;background:linear-gradient(135deg,rgba(112,179,174,.18),rgba(21,96,130,.12));display:flex;align-items:center;justify-content:center;margin-bottom:22px;color:var(--blue)}
+  .vm-card h3{font-size:12.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--green);margin-bottom:12px}
+  .vm-card p{font-size:20px;line-height:1.5;color:var(--ink);font-weight:500;font-family:var(--display)}
+
+  /* approach steps */
+  .steps{display:grid;grid-template-columns:repeat(3,1fr);gap:26px;margin-top:50px}
+  .step{position:relative;background:#fff;border:1px solid var(--line);border-radius:20px;padding:34px 30px;transition:transform .25s,box-shadow .25s}
+  .step:hover{transform:translateY(-5px);box-shadow:0 22px 50px rgba(21,96,130,.12)}
+  .step .n{font-family:var(--display);font-size:15px;font-weight:700;color:var(--green);letter-spacing:.05em}
+  .step .bar{height:2px;background:var(--line);margin:16px 0 18px;position:relative;overflow:hidden}
+  .step .bar::after{content:"";position:absolute;left:0;top:0;height:100%;width:38%;background:var(--green)}
+  .step:nth-child(2) .bar::after{width:68%}
+  .step:nth-child(3) .bar::after{width:100%}
+  .step h4{font-size:21px;color:var(--blue);margin-bottom:10px}
+  .step p{font-size:15.5px;color:var(--muted)}
+  .pull{font-family:var(--display);border-left:4px solid var(--green);padding:10px 0 10px 26px;margin:46px auto 0;font-size:clamp(20px,2.4vw,26px);font-weight:600;color:var(--blue);max-width:46ch;text-align:left}
+
+  /* why grid */
+  .why-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:24px;margin-top:50px}
+  .why{position:relative;background:#fff;border:1px solid var(--line);border-radius:18px;padding:32px 28px;transition:transform .25s,box-shadow .25s}
+  .why:hover{transform:translateY(-6px);box-shadow:0 22px 50px rgba(21,96,130,.14)}
+  .why .ic{width:46px;height:46px;border-radius:12px;background:var(--bg-soft);display:flex;align-items:center;justify-content:center;color:var(--blue);margin-bottom:18px}
+  .why h4{font-size:18px;color:var(--ink);margin-bottom:9px;line-height:1.25}
+  .why p{font-size:15px;color:var(--muted)}
+
+  /* impact band */
+  .band{background:linear-gradient(135deg,var(--blue-deep),var(--blue));color:#fff;border-radius:26px;padding:60px;position:relative;overflow:hidden;text-align:center}
+  .band canvas{position:absolute;inset:0;width:100%;height:100%;opacity:.4}
+  .band .inner{position:relative;z-index:2}
+  .band p.big{font-family:var(--display);font-size:clamp(24px,3.2vw,38px);font-weight:600;line-height:1.3;max-width:24ch;margin:0 auto;color:#fff}
+  .band p.big em{font-style:normal;color:var(--green-bright)}
+
+  /* CTA */
+  .cta{position:relative;background:radial-gradient(120% 140% at 50% 0%,#10566f,#072330);color:#fff;text-align:center;border-radius:28px;padding:74px 40px;overflow:hidden}
+  .cta canvas{position:absolute;inset:0;width:100%;height:100%;opacity:.55}
+  .cta .inner{position:relative;z-index:2}
+  .cta h2{color:#fff}
+  .cta p{color:#c5dade;font-size:18.5px;max-width:52ch;margin:0 auto 32px}
+
+  footer{background:var(--blue-deeper);color:#88a6af;padding:54px 0;font-size:14.5px}
+  .foot-inner{display:flex;justify-content:space-between;align-items:center;gap:24px;flex-wrap:wrap}
+  .foot-brand{display:flex;align-items:center;gap:11px;color:#fff;font-family:var(--display);font-weight:700;font-size:19px}
+  .foot-brand .mk{width:40px;height:40px;--a1:#9fe0d9;--a2:#7fc6cd;--a3:#5fadc2;--a4:#3f93b6;--ad:#bdeee9}
+  .foot-links{display:flex;gap:26px}
+  .foot-links a:hover{color:var(--green-bright)}
+
+  .mini{font-family:var(--display);font-size:15px;color:var(--muted);background:var(--bg-soft);border:1px solid var(--line);border-radius:100px;padding:11px 22px}
+  .mini .k{color:var(--blue);font-weight:600;margin-right:6px}
+  .reveal{opacity:0;transform:translateY(30px);transition:opacity .8s cubic-bezier(.2,.7,.2,1),transform .8s cubic-bezier(.2,.7,.2,1)}
+  .reveal.in{opacity:1;transform:none}
+
+  @media(max-width:980px){
+    .hero-inner{padding:120px 0 70px}
+    #graph{opacity:.6}
+    .hero-scrim{background:linear-gradient(to bottom,rgba(7,35,48,.95) 0%,rgba(7,35,48,.82) 45%,rgba(7,35,48,.62) 100%)}
+    .two{grid-template-columns:1fr;gap:38px}
+    .steps{grid-template-columns:1fr}
+    .why-grid{grid-template-columns:1fr 1fr}
+    .vm-grid{grid-template-columns:1fr}
+    nav ul{display:none}
+    .burger{display:flex}
+    nav.open ul{display:flex;position:fixed;top:76px;left:0;right:0;flex-direction:column;background:#fff;border-bottom:1px solid var(--line);padding:22px 26px;gap:20px;box-shadow:0 20px 40px rgba(0,0,0,.12)}
+    nav.open ul a.lnk{color:var(--ink)}
+  }
+  @media(max-width:560px){.why-grid{grid-template-columns:1fr}.band,.cta{padding:46px 26px}
+    #graph{opacity:.5}
+    .hero-scrim{background:linear-gradient(to bottom,rgba(7,35,48,.96) 0%,rgba(7,35,48,.88) 50%,rgba(7,35,48,.7) 100%)}}
+</style>
+</head>
+<body>
+
+<!-- building-icon logo as inline symbol (used as-is) -->
+<svg style="display:none" xmlns="http://www.w3.org/2000/svg">
+<symbol id="cbeds-mark" viewBox="0 0 100 100"><g fill="none" stroke-linecap="round"><ellipse cx="50" cy="62" rx="41" ry="16.4" stroke="var(--a4,#156082)" stroke-width="2.4" opacity="0.6"/><ellipse cx="50" cy="62" rx="31" ry="12.4" stroke="var(--a3,#337c91)" stroke-width="3.0" opacity="0.74"/><ellipse cx="50" cy="62" rx="21" ry="8.4" stroke="var(--a2,#52979f)" stroke-width="3.6" opacity="0.88"/><ellipse cx="50" cy="62" rx="11" ry="4.4" stroke="var(--a1,#70B3AE)" stroke-width="4.3" opacity="1.0"/></g><path d="M50 44 C54.5 49 54.5 56 50 56 C45.5 56 45.5 49 50 44 Z" fill="var(--ad,#156082)"/><path d="M50 24 C52.6 27 52.6 32 50 32 C47.4 32 47.4 27 50 24 Z" fill="var(--ad,#156082)"/></symbol>
+</svg>
+
+<!-- ===== NAV ===== -->
+<header class="nav" id="nav">
+  <div class="wrap nav-inner">
+    <a class="brand" href="#top">
+      <svg class="mk"><use href="#cbeds-mark"/></svg>
+      <span class="lock">
+        <span class="wm">CBEDS</span>
+        <span class="sub">Center for Built Environment Data Sharing</span>
+      </span>
+    </a>
+    <nav id="mainnav">
+      <ul>
+        <li><a class="lnk active" href="cbeds.html">CBEDS</a></li>
+        <li><a class="lnk" href="cbedstory.html">CBEDStory</a></li>
+        <li><a class="lnk" href="cbedsync.html">CBEDSync</a></li>
+        <li><a class="lnk" href="cbedsynergy.html">CBEDSynergy<span class="devtag">Dev</span></a></li>
+        <li><a class="lnk" href="cbedsense.html">CBEDSense<span class="devtag">Dev</span></a></li>
+        <li><a class="nav-cta" href="https://www.linkedin.com" target="_blank" rel="noopener">Join us &#8594;</a></li>
+      </ul>
+    </nav>
+    <button class="burger" aria-label="Menu" onclick="document.getElementById('mainnav').classList.toggle('open')">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</header>
+
+<!-- ===== HERO ===== -->
+<section class="hero" id="top">
+  <div class="hero-grid"></div>
+  <canvas id="graph"></canvas>
+  <div class="hero-scrim"></div>
+  <div class="wrap hero-inner">
+    <div class="hero-copy">
+      <span class="eyebrow"><span class="pulse"></span>Center for Built Environment Data Sharing</span>
+      <h1>Connecting the Built Environment Data&nbsp;Sharing <span class="hl">ecosystem</span></h1>
+      <p class="lead"><strong style="color:#e7f4f3;font-weight:600">CBEDS</strong> makes the standards, tools and research that already power the built environment easier to find, link and build on, turning scattered effort into shared progress. This work is governed by <a href="https://www.ucl.ac.uk/bartlett/research-projects/2026/jun/centre-built-environment-data-sharing" target="_blank" rel="noopener" style="color:#86cdc7;font-weight:600;text-decoration:underline;text-underline-offset:2px">UCL academics</a>.</p>
+      <div class="hero-actions">
+        <a class="btn btn-primary" href="#approach">See how it works →</a>
+        <a class="btn btn-ghost" href="https://www.linkedin.com" target="_blank" rel="noopener">Join our LinkedIn</a>
+      </div>
+    </div>
+  </div>
+  <div class="scroll-hint"><span>Scroll</span><span class="ln"></span></div>
+</section>
+
+<!-- ===== WHAT IS CBEDS ===== -->
+<section id="about" style="padding:104px 0 96px">
+  <div class="wrap" style="text-align:center">
+    <span class="tag" style="padding-left:0;margin-bottom:18px" id="about-tag">What is CBEDS</span>
+    <p class="display reveal" style="font-size:clamp(24px,3.1vw,38px);line-height:1.32;font-weight:500;max-width:26ch;margin:0 auto 18px;color:var(--ink)">
+      CBEDS, the <span style="color:var(--blue)">Center for Built Environment Data Sharing</span>, coordinates the sector's data sharing ecosystem.
+    </p>
+    <p class="reveal" style="font-size:19px;line-height:1.6;color:var(--muted);max-width:64ch;margin:0 auto">
+      It spans the whole ecosystem, from standards, tools and ontologies to research, regulation and live projects, improving how existing efforts find, relate to and build on one another.
+    </p>
+  </div>
+</section>
+
+<!-- ===== CHALLENGE ===== -->
+<section class="section-soft" id="challenge" style="border-top:1px solid var(--line)">
+  <div class="wrap two">
+    <div class="stack reveal">
+      <span class="tag">The Challenge</span>
+      <h2>A complex system, pulling in every direction</h2>
+      <p>The built environment is an incredibly complex and emergent system. Collectively, we are being asked to address digital transformation, sustainability, circularity, AI adoption, and the implementation of digital twins. In response, the sector has created new tools, processes and initiatives to meet these challenges.</p>
+      <p>Thousands of standards, digital tools, research projects, industry initiatives, and data solutions already exist. But many operate in isolation, making it difficult to discover, understand, and connect existing efforts. This fragmentation creates duplication, limits knowledge sharing, and introduces interoperability barriers that reduce the value of otherwise successful solutions.</p>
+    </div>
+    <div class="reveal">
+      <div class="frag">
+        <canvas id="fragcanvas"></canvas>
+        <div class="cap"><b>Fragmented today</b>Great solutions exist, but they can't see, or reach, one another.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== VISION / MISSION ===== -->
+<section class="section-soft" id="vision">
+  <div class="wrap">
+    <span class="tag">Vision &amp; Mission</span>
+    <h2 style="margin-bottom:44px;max-width:18ch">What we are working towards</h2>
+    <div class="vm-grid">
+      <div class="vm-card reveal">
+        <div class="ic"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg></div>
+        <h3>Vision</h3>
+        <p>A built environment where data sharing initiatives are accessible, connected, and valued by all as a foundation for collaboration.</p>
+      </div>
+      <div class="vm-card reveal">
+        <div class="ic"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1.4" fill="currentColor" stroke="none"/></svg></div>
+        <h3>Mission</h3>
+        <p>CBEDS helps great work become visible, connected, and used across the ecosystem.</p>
+      </div>
+    </div>
+    <div class="pull">The objective is not to create another hub, but to strengthen the connections between existing efforts.</div>
+  </div>
+</section>
+
+<!-- ===== IMPACT BAND ===== -->
+<section style="padding:90px 0">
+  <div class="wrap">
+    <div class="band reveal">
+      <canvas id="bandcanvas"></canvas>
+      <div class="inner">
+        <span class="tag" style="color:var(--green-bright)">Why this matters</span>
+        <p class="big">The sector's most ambitious goals depend less on building new solutions, and more on enabling <em>existing ones to work together.</em></p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== APPROACH ===== -->
+<section id="approach">
+  <div class="wrap">
+    <div style="max-width:60ch">
+      <span class="tag">Our Approach</span>
+      <h2>An approach built for complexity</h2>
+      <p class="lead-txt">The built environment is a complex, emergent system, where cause and effect only become clear in hindsight. So CBEDS does not impose a fixed blueprint. We follow a probe, sense and respond approach, drawn from the Cynefin framework for complex problems: try small things, learn from what emerges, and build on what works.</p>
+    </div>
+    <div class="steps">
+      <div class="step reveal"><div class="n">01</div><div class="bar"></div><h4>Probe</h4><p>Run small, safe to fail experiments, workshops, pilots and mapping, to surface what already exists and what the sector genuinely needs.</p></div>
+      <div class="step reveal"><div class="n">02</div><div class="bar"></div><h4>Sense</h4><p>Read the patterns that emerge: how efforts relate, where they overlap, and where the fragmentation really lies.</p></div>
+      <div class="step reveal"><div class="n">03</div><div class="bar"></div><h4>Respond</h4><p>Amplify what works, strengthening connections, aligning efforts and reusing what is proven, rather than starting over.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== WHY GRID ===== -->
+<section class="section-soft" id="why">
+  <div class="wrap">
+    <span class="tag">The benefits</span>
+    <h2 style="max-width:22ch">CBEDS helps create the conditions for collective impact</h2>
+    <p class="lead-txt">Without visibility and coordination, progress remains fragmented and difficult to scale. By linking the work that is already out there, CBEDS:</p>
+    <div class="why-grid">
+      <div class="why reveal">
+        <div class="ic"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M3 6h18M6 12h12M9 18h6"/></svg></div>
+        <h4>Reduces duplication</h4><p>Less wasted effort by making current work easier to find.</p>
+      </div>
+      <div class="why reveal">
+        <div class="ic"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M8 7H6a4 4 0 0 0 0 8h2M16 7h2a4 4 0 0 1 0 8h-2M8 11h8"/></svg></div>
+        <h4>Improves interoperability</h4><p>Better knowledge sharing across tools and teams.</p>
+      </div>
+      <div class="why reveal">
+        <div class="ic"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M13 2 4 14h6l-1 8 9-12h-6l1-8Z"/></svg></div>
+        <h4>Accelerates innovation</h4><p>Faster progress through reuse and collaboration.</p>
+      </div>
+      <div class="why reveal">
+        <div class="ic"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M12 3 4 7v6c0 5 3.5 7.5 8 9 4.5-1.5 8-4 8-9V7l-8-4Z"/></svg></div>
+        <h4>Strengthens the foundation</h4><p>A firmer base for transformation across the sector.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== CTA ===== -->
+<section id="join" style="padding-bottom:120px">
+  <div class="wrap">
+    <div class="cta reveal">
+      <canvas id="ctacanvas"></canvas>
+      <div class="inner">
+        <h2 style="font-size:clamp(28px,3.8vw,46px);margin-bottom:18px">Turn isolated successes into a connected ecosystem</h2>
+        <p>CBEDS helps the built environment deliver greater collective impact. Visit and join our LinkedIn page to learn more and get involved.</p>
+        <a class="btn btn-primary" href="https://www.linkedin.com" target="_blank" rel="noopener">Join us on LinkedIn →</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== FOOTER ===== -->
+<footer>
+  <div class="wrap foot-inner">
+    <div class="foot-brand"><svg class="mk"><use href="#cbeds-mark"/></svg>
+      <span style="display:flex;flex-direction:column;line-height:1.1">CBEDS<small style="font-size:11px;font-weight:400;letter-spacing:.06em;text-transform:uppercase;color:#7e9da6;margin-top:2px">Center for Built Environment Data Sharing</small></span>
+    </div>
+    <div class="foot-links">
+      <a href="#top">CBEDS</a><a href="cbedstory.html">CBEDStory</a><a href="cbedsync.html">CBEDSync</a><a href="cbedsynergy.html">CBEDSynergy<span class="devtag">Dev</span></a><a href="cbedsense.html">CBEDSense<span class="devtag">Dev</span></a>
+    </div>
+    <div>&copy; <span id="yr"></span> CBEDS · Connecting the Built Environment Data Sharing ecosystem</div>
+  </div>
+</footer>
+
+<script>
+document.getElementById('yr').textContent=new Date().getFullYear();
+const nav=document.getElementById('nav');
+addEventListener('scroll',()=>{nav.classList.toggle('solid',scrollY>40);document.getElementById('mainnav').classList.remove('open');});
+
+/* ============ HERO DECENTRALISED KNOWLEDGE GRAPH ============ */
+(function(){
+  const c=document.getElementById('graph'),ctx=c.getContext('2d');
+  let w,h,dpr,t=0,thr=200,keep=null;
+  // the many different aspects of the built-environment data-sharing ecosystem
+  const labels=["BIM","IFC","Digital Twins","Digital Building Logbooks","Digital Product Passports","IoT","Material Passports","ESPR","CPR","ISO 19650","Working Groups","Ontologies","Linked Data","Research Projects","Regulations","Standards","Asset Data","Sensors","Geospatial","Classification","Open Data","Interoperability"];
+  let nodes=[],edges=[],pulses=[];
+  function inKeep(x,y){return keep && x>keep.x0 && x<keep.x1 && y>keep.y0 && y<keep.y1;}
+  function build(){
+    dpr=Math.min(devicePixelRatio||1,2);
+    w=c.clientWidth;h=c.clientHeight;c.width=w*dpr;c.height=h*dpr;ctx.setTransform(dpr,0,0,dpr,0,0);
+    // keep-out zone for the headline copy (desktop only)
+    keep = w>=980 ? {x0:0,x1:Math.min(w*0.46,640),y0:h*0.12,y1:h*0.9} : null;
+    thr=Math.hypot(w,h)*0.165;
+    const N=Math.min(labels.length, w<620?14:22);
+    nodes=[];
+    for(let i=0;i<N;i++){
+      let x,y,tries=0;
+      do{ x=40+Math.random()*(w-80); y=50+Math.random()*(h-100); tries++; }
+      while(inKeep(x,y)&&tries<40);
+      nodes.push({lab:labels[i],x,y,
+        vx:(Math.random()-.5)*0.085, vy:(Math.random()-.5)*0.085,  // very slow drift
+        r:2.6+Math.random()*1.7});
+    }
+  }
+  const mouse={x:null,y:null};
+  c.addEventListener('mousemove',e=>{const r=c.getBoundingClientRect();mouse.x=e.clientX-r.left;mouse.y=e.clientY-r.top;});
+  c.addEventListener('mouseleave',()=>{mouse.x=mouse.y=null;});
+  function physics(){
+    const mx=30;
+    for(const n of nodes){
+      n.x+=n.vx; n.y+=n.vy;
+      if(n.x<mx){n.x=mx;n.vx=Math.abs(n.vx);} if(n.x>w-mx){n.x=w-mx;n.vx=-Math.abs(n.vx);}
+      if(n.y<mx){n.y=mx;n.vy=Math.abs(n.vy);} if(n.y>h-mx){n.y=h-mx;n.vy=-Math.abs(n.vy);}
+      // gently steer out of the headline area
+      if(inKeep(n.x,n.y)){const push=(keep.x1-n.x);n.vx+=0.006+push*0.00002;}
+      const s=Math.hypot(n.vx,n.vy);if(s>0.14){n.vx*=0.14/s;n.vy*=0.14/s;}
+    }
+  }
+  function computeEdges(){
+    edges=[];
+    for(let i=0;i<nodes.length;i++){
+      const a=nodes[i];
+      // ensure each node keeps at least its 2 nearest neighbours (a true mesh, no hub)
+      const near=[];
+      for(let j=0;j<nodes.length;j++){ if(j===i)continue; const b=nodes[j]; near.push([j,Math.hypot(a.x-b.x,a.y-b.y)]); }
+      near.sort((p,q)=>p[1]-q[1]);
+      for(let k=0;k<near.length;k++){
+        const j=near[k][0], d=near[k][1];
+        if(j<=i) continue;                 // avoid duplicate pair
+        if(d<thr || k<2) edges.push({a:i,b:j,d});
+      }
+    }
+  }
+  function spawn(){if(pulses.length<12&&Math.random()<0.05&&edges.length){const e=edges[(Math.random()*edges.length)|0];pulses.push({e,p:0,sp:0.0026+Math.random()*0.003});}}
+  function draw(){
+    t+=16;ctx.clearRect(0,0,w,h);
+    physics();computeEdges();
+    let hi=-1;
+    if(mouse.x!=null){let best=44;nodes.forEach((n,i)=>{const d=Math.hypot(n.x-mouse.x,n.y-mouse.y);if(d<best){best=d;hi=i;}});}
+    // edges
+    for(const e of edges){
+      const a=nodes[e.a],b=nodes[e.b];
+      const lit=(hi===e.a||hi===e.b);
+      const o=lit?0.7:(1-Math.min(1,e.d/thr))*0.26+0.05;
+      ctx.strokeStyle=lit?'rgba(159,224,217,'+o+')':'rgba(150,205,210,'+o+')';
+      ctx.lineWidth=lit?1.4:0.9;
+      ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke();
+    }
+    // pulses
+    spawn();pulses.forEach(p=>p.p+=p.sp);pulses=pulses.filter(p=>p.p<1);
+    for(const pl of pulses){const a=nodes[pl.e.a],b=nodes[pl.e.b];if(!a||!b)continue;
+      const x=a.x+(b.x-a.x)*pl.p,y=a.y+(b.y-a.y)*pl.p;
+      ctx.fillStyle='rgba(185,240,233,'+(0.85*(1-Math.abs(pl.p-0.5)*1.5))+')';
+      ctx.beginPath();ctx.arc(x,y,2.1,0,7);ctx.fill();}
+    // nodes + labels
+    ctx.textBaseline='middle';
+    nodes.forEach((n,i)=>{
+      const hov=i===hi;
+      // soft halo
+      const hg=ctx.createRadialGradient(n.x,n.y,0,n.x,n.y,hov?22:13);
+      hg.addColorStop(0,'rgba(134,205,199,'+(hov?0.5:0.22)+')');hg.addColorStop(1,'rgba(134,205,199,0)');
+      ctx.fillStyle=hg;ctx.beginPath();ctx.arc(n.x,n.y,hov?22:13,0,7);ctx.fill();
+      ctx.fillStyle=hov?'#d6f7f1':'rgba(184,228,224,.95)';
+      ctx.beginPath();ctx.arc(n.x,n.y,hov?n.r+2:n.r,0,7);ctx.fill();
+      ctx.font=(hov?'600 12.5px ':'500 11.5px ')+'-apple-system,"Helvetica Neue",Inter,sans-serif';
+      ctx.fillStyle=hov?'#f0fffb':'rgba(208,233,233,.8)';
+      const right=n.x<=w-150;ctx.textAlign=right?'left':'right';
+      ctx.fillText(n.lab,n.x+(right?9:-9),n.y);
+    });
+    requestAnimationFrame(draw);
+  }
+  addEventListener('resize',build);build();draw();
+})();
+
+/* ============ small ambient networks (challenge / band / cta) ============ */
+function ambient(id,opt){
+  const c=document.getElementById(id);if(!c)return;const ctx=c.getContext('2d');
+  let w,h,dpr,pts=[];const cfg=Object.assign({count:28,maxDist:120,speed:.22,dot:'rgba(170,215,212,.6)',line:'120,185,180',lineOpacity:.22,scatter:false},opt);
+  function rs(){dpr=Math.min(devicePixelRatio||1,2);w=c.clientWidth;h=c.clientHeight;c.width=w*dpr;c.height=h*dpr;ctx.setTransform(dpr,0,0,dpr,0,0);
+    pts=Array.from({length:cfg.count},()=>({x:Math.random()*w,y:Math.random()*h,vx:(Math.random()-.5)*cfg.speed,vy:(Math.random()-.5)*cfg.speed,r:Math.random()*1.6+1}));}
+  function step(){ctx.clearRect(0,0,w,h);
+    for(const p of pts){p.x+=p.vx;p.y+=p.vy;if(p.x<0||p.x>w)p.vx*=-1;if(p.y<0||p.y>h)p.vy*=-1;}
+    if(!cfg.scatter){for(let i=0;i<pts.length;i++)for(let j=i+1;j<pts.length;j++){const a=pts[i],b=pts[j],d=Math.hypot(a.x-b.x,a.y-b.y);
+      if(d<cfg.maxDist){ctx.strokeStyle='rgba('+cfg.line+','+((1-d/cfg.maxDist)*cfg.lineOpacity)+')';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke();}}}
+    for(const p of pts){ctx.fillStyle=cfg.dot;ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,7);ctx.fill();}
+    requestAnimationFrame(step);}
+  addEventListener('resize',rs);rs();step();
+}
+/* challenge = scattered, mostly unconnected (fragmentation) */
+ambient('fragcanvas',{count:24,maxDist:55,speed:.18,dot:'rgba(190,225,222,.55)',lineOpacity:.16,scatter:false});
+ambient('bandcanvas',{count:30,maxDist:135,speed:.2,dot:'rgba(180,225,221,.5)',lineOpacity:.28});
+ambient('ctacanvas',{count:34,maxDist:140,speed:.2,dot:'rgba(170,220,216,.55)',lineOpacity:.3});
+
+/* reveal on scroll */
+const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e

@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CBEDSense | CBEDS</title>
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --blue:#156082;--green:#70B3AE;--green-bright:#86cdc7;--blue-deep:#0a2f40;--blue-deeper:#072330;
+    --ink:#122a34;--muted:#5c727b;--bg:#ffffff;--bg-soft:#f5f9fa;--line:#e4eef0;--maxw:1180px;
+    --display:-apple-system,BlinkMacSystemFont,"SF Pro Display","Helvetica Neue","Inter",Helvetica,Arial,sans-serif;
+    --body:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue","Inter",Helvetica,Arial,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{font-family:var(--body);color:var(--ink);background:var(--bg);line-height:1.65;-webkit-font-smoothing:antialiased}
+  a{color:inherit;text-decoration:none}
+  .wrap{max-width:var(--maxw);margin:0 auto;padding:0 26px}
+  h1,h2,h3,h4{font-family:var(--display);letter-spacing:-.02em}
+
+  header.nav{position:fixed;top:0;left:0;right:0;z-index:60;transition:background .3s,border-color .3s;border-bottom:1px solid transparent}
+  header.nav.solid{background:rgba(255,255,255,.92);backdrop-filter:blur(12px);border-color:var(--line)}
+  .nav-inner{display:flex;align-items:center;justify-content:space-between;height:76px}
+  .brand{display:flex;align-items:center;gap:12px}
+  .brand .mk{width:48px;height:48px;flex:0 0 auto;--a1:#9fe0d9;--a2:#7fc6cd;--a3:#5fadc2;--a4:#3f93b6;--ad:#bdeee9}
+  header.nav.solid .brand .mk{--a1:#70B3AE;--a2:#52979f;--a3:#337c91;--a4:#156082;--ad:#156082}
+  .brand .lock{display:flex;flex-direction:column;line-height:1.05}
+  .brand .wm{font-family:var(--display);font-weight:700;font-size:22px;letter-spacing:-.01em;color:#fff;transition:color .3s}
+  header.nav.solid .brand .wm{color:var(--blue)}
+  .brand .sub{font-size:10.5px;letter-spacing:.07em;text-transform:uppercase;color:rgba(255,255,255,.6);font-weight:500;margin-top:2px;transition:color .3s}
+  header.nav.solid .brand .sub{color:var(--muted)}
+  nav ul{display:flex;gap:34px;list-style:none;align-items:center}
+  nav a.lnk{font-size:15px;font-weight:500;color:rgba(255,255,255,.85);position:relative;padding:5px 0}
+  header.nav.solid nav a.lnk{color:var(--ink)}
+  nav a.lnk.active{color:var(--green-bright)}
+  header.nav.solid nav a.lnk.active{color:var(--blue)}
+  nav a.lnk.active::after{content:"";position:absolute;left:0;right:0;bottom:-3px;height:2px;background:var(--green);border-radius:2px}
+  .nav-cta{background:var(--green);color:var(--blue-deeper)!important;padding:10px 20px;border-radius:9px;font-weight:600;font-size:14px;font-family:var(--display)}
+
+  /* hero */
+  .hero{position:relative;min-height:74vh;overflow:hidden;background:radial-gradient(120% 120% at 78% 18%,#10566f 0%,#0a2f40 46%,#072330 100%);display:flex;align-items:center}
+  .chips{position:absolute;inset:0;z-index:1;overflow:hidden}
+  .chip{position:absolute;font-family:var(--display);font-size:13px;font-weight:600;color:rgba(159,224,217,.5);border:1px solid rgba(134,205,199,.22);border-radius:100px;padding:6px 14px;white-space:nowrap;animation:drift linear infinite}
+  @keyframes drift{0%{transform:translateY(20px);opacity:0}10%{opacity:1}90%{opacity:1}100%{transform:translateY(-60px);opacity:0}}
+  /* scrim keeps drifting chips from sitting behind the hero text */
+  .hero::after{content:"";position:absolute;inset:0;z-index:1;pointer-events:none;background:radial-gradient(115% 78% at 50% 46%,rgba(7,35,48,.9) 0%,rgba(7,35,48,.74) 34%,rgba(7,35,48,.28) 64%,transparent 100%)}
+  .hero-inner{position:relative;z-index:2;text-align:center;width:100%;padding:130px 26px 70px}
+  .hero .tag{font-family:var(--display);font-size:12.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--green-bright);font-weight:600}
+  .devpill{display:inline-block;font-family:var(--display);font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#06202c;background:var(--green-bright);border-radius:100px;padding:4px 11px;vertical-align:middle}
+  .devtag{display:inline-block;margin-left:6px;font-family:var(--display);font-size:9px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#06202c;background:var(--green);border-radius:5px;padding:1px 5px;vertical-align:middle}
+  .hero h1{font-size:clamp(34px,5vw,56px);color:#fff;margin:12px auto 14px;max-width:18ch}
+  .hero p{font-size:clamp(16px,1.8vw,19px);color:#bcd6dc;max-width:60ch;margin:0 auto}
+  .hero .cta-row{margin-top:28px;display:flex;gap:14px;justify-content:center;flex-wrap:wrap}
+  .btn{font-family:var(--display);display:inline-block;background:var(--green);color:var(--blue-deeper);padding:13px 26px;border-radius:11px;font-weight:600}
+  .btn.ghost{background:transparent;color:#fff;border:1px solid rgba(255,255,255,.3)}
+
+  section{padding:90px 0}
+  .tag2{display:inline-block;font-family:var(--display);font-size:12.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--green);font-weight:600;margin-bottom:14px}
+  h2{font-size:clamp(26px,3.4vw,40px);color:var(--ink);margin-bottom:16px}
+  .lead{font-size:18px;color:var(--muted);max-width:64ch}
+
+  /* feature cards */
+  .feats{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:42px}
+  .feat{background:var(--bg-soft);border:1px solid var(--line);border-radius:16px;padding:28px 24px}
+  .feat .ic{width:46px;height:46px;border-radius:12px;background:#e7f3f1;display:flex;align-items:center;justify-content:center;margin-bottom:16px}
+  .feat .ic svg{width:24px;height:24px;stroke:var(--blue);fill:none;stroke-width:1.8}
+  .feat h3{font-size:19px;color:var(--ink);margin-bottom:7px}
+  .feat p{color:var(--muted);font-size:14.5px}
+  .subhead{font-size:clamp(22px,2.6vw,28px);color:var(--ink);margin:64px 0 10px;padding-top:44px;border-top:1px solid var(--line)}
+
+  /* platform mock */
+  .platform{background:var(--bg-soft)}
+  .tabs{display:flex;gap:8px;margin:30px 0 24px;flex-wrap:wrap}
+  .tab{font-family:var(--display);font-weight:600;font-size:14.5px;color:var(--muted);background:#fff;border:1px solid var(--line);border-radius:100px;padding:10px 20px;cursor:pointer;transition:.2s}
+  .tab.on{background:var(--blue);color:#fff;border-color:var(--blue)}
+  .feed{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
+  .post{background:#fff;border:1px solid var(--line);border-radius:14px;padding:20px 22px;display:flex;flex-direction:column;gap:10px}
+  .post .top{display:flex;align-items:center;gap:11px}
+  .post .av{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#70B3AE,#156082);color:#fff;display:flex;align-items:center;justify-content:center;font-family:var(--display);font-weight:700;font-size:14px;flex:0 0 auto}
+  .post .who{font-family:var(--display);font-weight:600;font-size:14px;color:var(--ink)}
+  .post .meta{font-size:12px;color:#9fb1b6}
+  .post h4{font-size:17px;color:var(--ink)}
+  .post p{font-size:14px;color:var(--muted)}
+  .post .tags{display:flex;gap:7px;flex-wrap:wrap;margin-top:2px}
+  .post .t{font-family:var(--display);font-size:11.5px;font-weight:600;color:var(--blue);background:#eaf3f5;border-radius:100px;padding:4px 10px}
+  .post .foot{display:flex;align-items:center;justify-content:space-between;margin-top:6px;border-top:1px solid var(--line);padding-top:11px}
+  .post .react{display:flex;gap:16px;color:var(--muted);font-size:13px;font-family:var(--display);font-weight:600}
+  .feeds{font-family:var(--display);font-size:11.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--green);display:inline-flex;align-items:center;gap:6px}
+  .feeds i{width:7px;height:7px;border-radius:50%;background:var(--green)}
+  .hidden{display:none}
+
+  /* share form */
+  .sharesec{position:relative;overflow:hidden;background:radial-gradient(120% 130% at 80% 8%,#10566f 0%,#0a2f40 52%,#072330 100%)}
+  .sharesec #kgbg{position:absolute;inset:0;width:100%;height:100%;display:block;opacity:.55}
+  .sharesec .wrap{position:relative;z-index:2}
+  .sharesec .tag2{color:var(--green-bright)}
+  .sharesec h2{color:#fff}
+  .sharesec .lead{color:#bcd6dc}
+  .sharesec .shbtn{background:var(--green);color:var(--blue-deeper)}
+  .sharesec .shbtn:hover{background:#8cc9c4}
+  .sharehead{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;flex-wrap:wrap}
+  .shbtn{font-family:var(--display);font-weight:600;font-size:15px;background:var(--blue);color:#fff;border:none;border-radius:11px;padding:13px 24px;cursor:pointer;transition:.2s;white-space:nowrap}
+  .shbtn:hover{background:#0e4d68}
+  .formwrap{display:grid;grid-template-rows:0fr;transition:grid-template-rows .5s ease}
+  .formwrap.open{grid-template-rows:1fr;margin-top:30px}
+  .formwrap>.fwin{overflow:hidden}
+  .form{background:var(--bg-soft);border:1px solid var(--line);border-radius:18px;padding:30px}
+  .field{margin-bottom:22px}
+  .field>label{display:block;font-family:var(--display);font-weight:600;font-size:14.5px;color:var(--ink);margin-bottom:9px}
+  .field .hint{font-weight:400;color:var(--muted);font-size:13px}
+  .field input[type=text],.field input[type=url],.field textarea{width:100%;font-family:var(--body);font-size:15px;color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:12px 14px;background:#fff}
+  .field textarea{min-height:92px;resize:vertical}
+  .field input:focus,.field textarea:focus{outline:none;border-color:var(--green)}
+  .types{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+  .type{cursor:pointer;border:1px solid var(--line);border-radius:12px;padding:14px;background:#fff;transition:.2s;display:block}
+  .type:hover{border-color:var(--c)}
+  .type input{position:absolute;opacity:0;pointer-events:none}
+  .type .tn{font-family:var(--display);font-weight:700;font-size:15px;color:var(--ink);display:flex;align-items:center;gap:8px}
+  .type .tn::before{content:"";width:11px;height:11px;border-radius:50%;background:var(--c);flex:0 0 auto}
+  .type .td{font-size:12px;color:var(--muted);margin-top:6px;line-height:1.4}
+  .type.sel{border-color:var(--c);box-shadow:inset 0 0 0 1px var(--c)}
+  .chipsel{display:flex;flex-wrap:wrap;gap:8px}
+  .csc{font-family:var(--display);font-size:13px;font-weight:600;color:var(--blue);background:#fff;border:1px solid var(--line);border-radius:100px;padding:7px 14px;cursor:pointer;transition:.15s;user-select:none}
+  .csc.sel{background:var(--blue);color:#fff;border-color:var(--blue)}
+  .submit{font-family:var(--display);font-weight:600;font-size:15px;background:var(--green);color:var(--blue-deeper);border:none;border-radius:11px;padding:13px 30px;cursor:pointer}
+  .formnote{font-size:12.5px;color:#9fb1b6;margin-top:12px}
+  .done{display:none;background:#eef7f1;border:1px solid #bfe3cd;border-radius:18px;padding:30px;text-align:center}
+  .done.show{display:block}
+  .done h4{font-size:19px;color:var(--ink);margin-bottom:7px}
+  .done p{font-size:14.5px;color:var(--muted);max-width:46ch;margin:0 auto}
+  @media(max-width:720px){.types{grid-template-columns:repeat(2,1fr)}}
+
+  /* the space: ask + insight */
+  .ask{margin:30px 0 8px}
+  .askbar{display:flex;gap:10px;background:#fff;border:1px solid var(--line);border-radius:14px;padding:8px;box-shadow:0 6px 22px rgba(10,47,64,.06)}
+  .askbar input{flex:1;border:none;outline:none;font-family:var(--body);font-size:15.5px;color:var(--ink);padding:12px 14px;background:transparent}
+  .askbar button{font-family:var(--display);font-weight:600;font-size:15px;background:var(--blue);color:#fff;border:none;border-radius:10px;padding:12px 22px;cursor:pointer;white-space:nowrap;transition:.2s}
+  .askbar button:hover{background:#0e4d68}
+  .asknote{font-size:12.5px;color:#9fb1b6;margin:9px 4px 0}
+  .askres{margin-top:18px;display:grid;gap:10px}
+  .rhead{font-family:var(--display);font-weight:600;font-size:14px;color:var(--muted)}
+  .ritem{background:#fff;border:1px solid var(--line);border-radius:12px;padding:15px 18px;display:flex;gap:13px;align-items:flex-start;text-align:left}
+  .rkind{font-family:var(--display);font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#fff;border-radius:6px;padding:4px 8px;flex:0 0 auto;margin-top:2px}
+  .rkind.agent{background:#3a8fd6}.rkind.project{background:#2bb6a5}.rkind.output{background:#6cbf4d}
+  .ritem h4{font-size:15px;color:var(--ink);margin-bottom:3px}
+  .ritem p{font-size:13px;color:var(--muted)}
+  .rgo{display:block;text-align:right;margin-top:4px}
+  .rgo a{font-family:var(--display);font-size:13.5px;font-weight:600;color:var(--blue)}
+
+  .il{font-family:var(--display);font-size:11.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--green);margin-bottom:14px}
+  .spacegrid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+  .insight{background:radial-gradient(120% 140% at 50% 0,#10566f,#072330);color:#fff;border-radius:18px;padding:28px}
+  .insight .il{color:var(--green-bright)}
+  .insight h3{font-size:21px;margin-bottom:10px}
+  .insight p{font-size:14.5px;color:#cfe2e6;margin-bottom:8px}
+  .insight .istat{font-family:var(--display);font-weight:700;color:#fff}
+  .ilink{font-family:var(--display);font-weight:600;font-size:14px;color:var(--green-bright);margin-top:16px;display:inline-block}
+  .ichips{display:flex;flex-wrap:wrap;gap:7px;margin-top:15px}
+  .ichip{font-family:var(--display);font-size:12px;font-weight:600;color:#eafffb;background:rgba(255,255,255,.08);border:1px solid rgba(134,205,199,.3);border-radius:100px;padding:5px 12px}
+  .lpost{padding:14px 0;border-bottom:1px solid var(--line)}.lpost:last-child{border-bottom:none}
+
+  /* connect-back */
+  .flow{display:grid;grid-template-columns:1fr auto 1fr;gap:18px;align-items:center;margin-top:40px}
+  .fcard{border-radius:16px;padding:26px 22px;color:#fff;background:radial-gradient(120% 140% at 50% 0,#10566f,#072330)}
+  .fcard.sense{background:#fff;border:1px solid var(--line);color:var(--ink)}
+  .fcard .role{font-family:var(--display);font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--green);margin-bottom:7px}
+  .fcard.sense .role{color:var(--blue)}
+  .fcard h3{font-size:20px;margin-bottom:7px}
+  .fcard p{font-size:13.5px;color:#bcd6dc}.fcard.sense p{color:var(--muted)}
+  .arrows{display:flex;flex-direction:column;gap:24px;align-items:center;color:var(--green);font-size:22px;font-family:var(--display);font-weight:700}
+  .twocol{display:grid;grid-template-rows:1fr 1fr;gap:18px}
+
+  .join{margin-top:10px;background:radial-gradient(120% 140% at 50% 0%,#10566f,#072330);border-radius:22px;padding:54px 40px;text-align:center;color:#fff}
+  .join h3{font-size:clamp(24px,3vw,34px);margin-bottom:12px}
+  .join p{color:#c5dade;max-width:52ch;margin:0 auto 26px;font-size:17px}
+
+  footer{background:var(--blue-deeper);color:#88a6af;padding:48px 0;font-size:14px}
+  .foot-inner{display:flex;justify-content:space-between;align-items:center;gap:20px;flex-wrap:wrap}
+  .foot-brand{display:flex;align-items:center;gap:11px;color:#fff;font-family:var(--display);font-weight:700}
+  .foot-brand .mk{width:34px;height:34px;--a1:#9fe0d9;--a2:#7fc6cd;--a3:#5fadc2;--a4:#3f93b6;--ad:#bdeee9}
+  @media(max-width:860px){.feats,.feed{grid-template-columns:1fr}nav ul{display:none}.flow{grid-template-columns:1fr}.arrows{flex-direction:row}
+    .hero::after{background:radial-gradient(135% 82% at 50% 44%,rgba(7,35,48,.97) 0%,rgba(7,35,48,.88) 46%,rgba(7,35,48,.45) 76%,transparent 100%)}
+    .chip{opacity:.55}}
+</style>
+</head>
+<body>
+
+<svg style="display:none" xmlns="http://www.w3.org/2000/svg">
+<symbol id="cbeds-mark" viewBox="0 0 100 100"><g fill="none" stroke-linecap="round"><ellipse cx="50" cy="62" rx="41" ry="16.4" stroke="var(--a4,#156082)" stroke-width="2.4" opacity="0.6"/><ellipse cx="50" cy="62" rx="31" ry="12.4" stroke="var(--a3,#337c91)" stroke-width="3.0" opacity="0.74"/><ellipse cx="50" cy="62" rx="21" ry="8.4" stroke="var(--a2,#52979f)" stroke-width="3.6" opacity="0.88"/><ellipse cx="50" cy="62" rx="11" ry="4.4" stroke="var(--a1,#70B3AE)" stroke-width="4.3" opacity="1.0"/></g><path d="M50 44 C54.5 49 54.5 56 50 56 C45.5 56 45.5 49 50 44 Z" fill="var(--ad,#156082)"/><path d="M50 24 C52.6 27 52.6 32 50 32 C47.4 32 47.4 27 50 24 Z" fill="var(--ad,#156082)"/></symbol>
+</svg>
+
+<header class="nav" id="nav">
+  <div class="wrap nav-inner">
+    <a class="brand" href="cbeds.html">
+      <svg class="mk"><use href="#cbeds-mark"/></svg>
+      <span class="lock"><span class="wm">CBEDS</span><span class="sub">Center for Built Environment Data Sharing</span></span>
+    </a>
+    <nav>
+      <ul>
+        <li><a class="lnk" href="cbeds.html">CBEDS</a></li>
+        <li><a class="lnk" href="cbedstory.html">CBEDStory</a></li>
+        <li><a class="lnk" href="cbedsync.html">CBEDSync</a></li>
+        <li><a class="lnk" href="cbedsynergy.html">CBEDSynergy<span class="devtag">Dev</span></a></li>
+        <li><a class="lnk active" href="cbedsense.html">CBEDSense<span class="devtag">Dev</span></a></li>
+        <li><a class="nav-cta" href="https://www.linkedin.com" target="_blank" rel="noopener">Join us &#8594;</a></li>
+      </ul>
+    </nav>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="chips" id="chips"></div>
+  <div class="hero-inner">
+    <span class="tag">CBEDSense</span> <span class="devpill">In development</span>
+    <h1>Make sense of it, together</h1>
+    <p>CBEDSense is the open space where the community discusses topics, shares news and updates, and puts its work forward for others to see and review. It is how we make sense of what exists and what is happening, and what we learn here feeds straight into CBEDSync and CBEDSynergy.</p>
+    <div class="cta-row">
+      <a class="btn" href="#space">Explore the space</a>
+      <a class="btn ghost" href="#share">Share your work</a>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <span class="tag2">What you can do here</span>
+    <h2>One space, three ways to take part</h2>
+    <p class="lead">Sense making is a shared activity. CBEDSense brings the conversation, the signal and the work into one place.</p>
+    <div class="feats">
+      <div class="feat">
+        <div class="ic"><svg viewBox="0 0 24 24"><path d="M21 11.5a8.4 8.4 0 0 1-12 7.6L3 21l1.9-5.6A8.5 8.5 0 1 1 21 11.5z"/></svg></div>
+        <h3>Discuss topics</h3>
+        <p>Open threads on standards, methods and ideas. Ask questions, challenge assumptions and learn from across the ecosystem.</p>
+      </div>
+      <div class="feat">
+        <div class="ic"><svg viewBox="0 0 24 24"><path d="M3 11l18-7-7 18-2.5-7.5L3 11z"/></svg></div>
+        <h3>Share news &amp; updates</h3>
+        <p>Post what is happening: new releases, consultations, events and milestones, so the signal reaches the people who need it.</p>
+      </div>
+      <div class="feat">
+        <div class="ic"><svg viewBox="0 0 24 24"><path d="M4 4h16v12H4z"/><path d="M9 20h6M12 16v4"/></svg></div>
+        <h3>Showcase your work</h3>
+        <p>Add your projects, tools and outputs for the community to see, use and review. Good work becomes visible and reusable.</p>
+      </div>
+    </div>
+
+    <h3 class="subhead">And it does not stay here</h3>
+    <p class="lead">What surfaces, the questions, the signals and the work, flows into the other two roles.</p>
+    <div class="flow">
+      <div class="fcard sense">
+        <div class="role">Making sense</div>
+        <h3>CBEDSense</h3>
+        <p>Discussions, news and showcased work, the community making sense of what exists and what is happening.</p>
+      </div>
+      <div class="arrows"><span>&#8594;</span><span>&#8594;</span></div>
+      <div class="twocol">
+        <div class="fcard">
+          <div class="role" style="color:var(--green-bright)">Visibility</div>
+          <h3>CBEDSync</h3>
+          <p>Topics and work become nodes in the knowledge graph, making the ecosystem visible and connected.</p>
+        </div>
+        <div class="fcard">
+          <div class="role" style="color:var(--green-bright)">Collaboration</div>
+          <h3>CBEDSynergy</h3>
+          <p>People and organisations behind the work find one another and build the network.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="share" class="sharesec">
+  <canvas id="kgbg"></canvas>
+  <div class="wrap">
+    <div class="sharehead">
+      <div>
+        <span class="tag2">Add your work</span>
+        <h2 style="margin-bottom:10px">Put your work forward</h2>
+        <p class="lead">Tell us what you are sharing and where it fits, and we will help it find its place in the ecosystem.</p>
+      </div>
+      <button class="shbtn" id="shToggle">Share your work &#8594;</button>
+    </div>
+
+    <div class="formwrap" id="formwrap"><div class="fwin">
+      <form class="form" id="shForm">
+        <div class="field">
+          <label>Name <span class="hint">a clear title for what you are sharing</span></label>
+          <input type="text" name="name" required placeholder="e.g. Open IFC to linked data converter">
+        </div>
+        <div class="field">
+          <label>Submitted by <span class="hint">your name or organisation</span></label>
+          <input type="text" name="by" required placeholder="e.g. UCL research team">
+        </div>
+        <div class="field">
+          <label>Where does it fit? <span class="hint">this decides how it feeds the ecosystem</span></label>
+          <div class="types" id="types">
+            <label class="type" style="--c:#36c9b8"><input type="radio" name="type" value="Project"><span class="tn">Project</span><span class="td">Becomes a project node in CBEDSync</span></label>
+            <label class="type" style="--c:#86cf5e"><input type="radio" name="type" value="Output"><span class="tn">Output</span><span class="td">Becomes an output node in CBEDSync</span></label>
+            <label class="type" style="--c:#3a8fd6"><input type="radio" name="type" value="Agent"><span class="tn">Agent</span><span class="td">A person or organisation in CBEDSync</span></label>
+            <label class="type" style="--c:#70B3AE"><input type="radio" name="type" value="Post"><span class="tn">Post</span><span class="td">A post to the CBEDSynergy network</span></label>
+          </div>
+        </div>
+        <div class="field">
+          <label>Related CBEDSync aspects <span class="hint">pick any that apply</span></label>
+          <div class="chipsel" id="aspects"></div>
+        </div>
+        <div class="field">
+          <label>Description</label>
+          <textarea name="desc" placeholder="What is it, and what would you like from the community?"></textarea>
+        </div>
+        <div class="field" style="margin-bottom:0">
+          <label>Link <span class="hint">optional</span></label>
+          <input type="url" name="link" placeholder="https://">
+        </div>
+        <div style="margin-top:24px"><button type="submit" class="submit">Submit for review</button></div>
+        <p class="formnote">This is a preview, submissions are not sent yet.</p>
+      </form>
+      <div class="done" id="shDone">
+        <h4>Thanks, that is in!</h4>
+        <p id="doneMsg"></p>
+      </div>
+    </div></div>
+  </div>
+</section>
+
+<section id="space" class="platform">
+  <div class="wrap">
+    <span class="tag2">The space</span>
+    <h2>Make sense of the ecosystem</h2>
+    <p class="lead">Ask what you want to understand and get data to explore, see today's insight drawn from CBEDSync, and catch the latest from the community.</p>
+
+    <div class="ask">
+      <div class="askbar">
+        <input type="text" id="askInput" placeholder="Ask to make sense of something, e.g. digital product passports, who works on ontologies, BIM standards...">
+        <button id="askBtn">Explore &#8594;</button>
+      </div>
+      <div class="asknote">Searches the CBEDS knowledge base of 1,297 initiatives. AI assisted search is coming soon.</div>
+      <div class="askres" id="askRes"></div>
+    </div>
+
+    <div id="spaceMain" style="margin-top:34px"></div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap foot-inner">
+    <div class="foot-brand"><svg class="mk"><use href="#cbeds-mark"/></svg> CBEDS</div>
+    <div>Connecting the Built Environment Data Sharing ecosystem</div>
+  </div>
+</footer>
+
+<script src="cbedsync-data.js"></script>
+<script>
+// nav solidify on scroll
+var nav=document.getElementById('nav');
+function onScroll(){nav.classList.toggle('solid',window.scrollY>40);}
+window.addEventListener('scroll',onScroll,{passive:true});onScroll();
+
+// floating topic chips
+var topics=['BIM','IFC','Digital Twins','DPP','Material Passports','ESPR','CPR','ISO 19650','Ontologies','Linked Data','IoT','Digital Building Logbooks','Working Groups','Standards','Regulations','AI','Circular Economy','Semantic Interoperability','Research Centre','Steering Group','Funding Opportunities','Value','Engagement','Use Cases','Best Practice','Case Studies','Open Data','Data Governance','Knowledge Sharing','Sustainability','Carbon Data','Benchmarking','Skills & Training','Policy','Pilots','Publications','Events','Collaboration'];
+var chips=document.getElementById('chips');
+topics.forEach(function(t,i){
+  var c=document.createElement('div');c.className='chip';c.textContent=t;
+  c.style.left=(5+Math.random()*88)+'%';
+  c.style.top=(8+Math.random()*78)+'%';
+  var dur=(13+Math.random()*12).toFixed(1);
+  c.style.animationDuration=dur+'s';
+  c.style.animationDelay=(-Math.random()*dur)+'s';
+  chips.appendChild(c);
+});
+
+// knowledge-graph background behind the share section
+(function(){
+  var cv=document.getElementById('kgbg'),sec=document.getElementById('share');
+  if(!cv||!sec)return;
+  var ctx=cv.getContext('2d'),nodes=[],N=48,W=0,H=0;
+  function size(){W=cv.width=sec.offsetWidth;H=cv.height=sec.offsetHeight;}
+  function init(){nodes=[];for(var i=0;i<N;i++)nodes.push({x:Math.random()*W,y:Math.random()*H,vx:(Math.random()-.5)*.16,vy:(Math.random()-.5)*.16,r:Math.random()*2+1.4});}
+  function step(){
+    ctx.clearRect(0,0,W,H);
+    for(var i=0;i<N;i++){var a=nodes[i];a.x+=a.vx;a.y+=a.vy;if(a.x<0||a.x>W)a.vx*=-1;if(a.y<0||a.y>H)a.vy*=-1;
+      for(var j=i+1;j<N;j++){var b=nodes[j],dx=a.x-b.x,dy=a.y-b.y,d=Math.sqrt(dx*dx+dy*dy);
+        if(d<155){ctx.strokeStyle='rgba(134,205,199,'+(0.13*(1-d/155))+')';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke();}}}
+    for(var k=0;k<N;k++){var n=nodes[k];ctx.fillStyle='rgba(159,224,217,.6)';ctx.beginPath();ctx.arc(n.x,n.y,n.r,0,7);ctx.fill();}
+    requestAnimationFrame(step);
+  }
+  size();init();step();
+  window.__kgsize=size;
+  window.addEventListener('resize',function(){size();init();});
+})();
+
+// share-your-work form
+var fw=document.getElementById('formwrap'),shToggle=document.getElementById('shToggle');
+shToggle.addEventListener('click',function(){
+  var open=fw.classList.toggle('open');
+  shToggle.textContent=open?'Close form':'Share your work →';
+  if(window.__kgsize)setTimeout(window.__kgsize,560);
+  if(open)setTimeout(function(){fw.scrollIntoView({behavior:'smooth',block:'start'});},120);
+});
+// type radio cards
+var typeWrap=document.getElementById('types');
+typeWrap.addEventListener('change',function(){
+  typeWrap.querySelectorAll('.type').forEach(function(l){l.classList.toggle('sel',l.querySelector('input').checked);});
+});
+// aspect chips (the different aspects of CBEDSync)
+var aspects=['BIM','IFC','Digital Twins','DPP','Material Passports','ESPR','CPR','ISO 19650','Ontologies','Linked Data','IoT','Digital Building Logbooks','AI','Circular Economy','Semantic Interoperability'];
+var aWrap=document.getElementById('aspects');
+aspects.forEach(function(a){
+  var s=document.createElement('span');s.className='csc';s.textContent=a;
+  s.addEventListener('click',function(){s.classList.toggle('sel');});
+  aWrap.appendChild(s);
+});
+// submit
+var shForm=document.getElementById('shForm'),shDone=document.getElementById('shDone'),doneMsg=document.getElementById('doneMsg');
+shForm.addEventListener('submit',function(e){
+  e.preventDefault();
+  var name=shForm.name.value.trim()||'Your submission';
+  var typeEl=shForm.querySelector('input[name=type]:checked');
+  var type=typeEl?typeEl.value:'';
+  var picked=[].slice.call(aWrap.querySelectorAll('.csc.sel')).map(function(x){return x.textContent;});
+  var dest=(type==='Post')?'shared to the CBEDSynergy network':('added to CBEDSync as a'+(/^[AEIOU]/.test(type)?'n ':' ')+type.toLowerCase()+' node');
+  var asp=picked.length?(' It will be linked to: '+picked.join(', ')+'.'):'';
+  doneMsg.textContent='“'+name+'” will be reviewed and, once approved, '+dest+'.'+asp;
+  shForm.style.display='none';shDone.classList.add('show');
+});
+
+// ===== THE SPACE =====
+var DATA=window.CBEDS_DATA||{nodes:[],themes:[],techcat:{}};
+var NODES=DATA.nodes||[];
+function esc(s){return (s||'').replace(/[&<>]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;'}[c];});}
+function clip(s,n){s=s||'';return s.length>n?s.slice(0,n).replace(/\s+\S*$/,'')+'…':s;}
+
+// --- ask box: search the knowledge base ---
+var askInput=document.getElementById('askInput'),askBtn=document.getElementById('askBtn'),askRes=document.getElementById('askRes');
+function runAsk(){
+  var q=askInput.value.trim().toLowerCase();
+  if(!q){askRes.innerHTML='';return;}
+  var terms=q.split(/\s+/).filter(function(t){return t.length>2;});
+  var scored=[];
+  NODES.forEach(function(n){
+    var hay=((n.id||'')+' '+(n.desc||'')+' '+(n.tech||[]).join(' ')+' '+(n.themes||[]).join(' ')+' '+(n.sub||'')).toLowerCase();
+    var s=0;terms.forEach(function(t){if(hay.indexOf(t)>=0)s++; if((n.id||'').toLowerCase().indexOf(t)>=0)s+=2;});
+    if(s>0)scored.push([s,n]);
+  });
+  scored.sort(function(a,b){return b[0]-a[0];});
+  if(!scored.length){askRes.innerHTML='<div class="rhead">No matches yet. Try a topic like “digital twin”, “interoperability” or “BIM”.</div>';return;}
+  var top=scored.slice(0,6);
+  var html='<div class="rhead">'+scored.length+' related '+(scored.length===1?'item':'items')+' in CBEDSync, top matches:</div>';
+  top.forEach(function(p){var n=p[1];
+    html+='<div class="ritem"><span class="rkind '+n.kind+'">'+n.kind+'</span><div><h4>'+esc(n.id)+'</h4><p>'+esc(clip(n.desc,150))+'</p></div></div>';
+  });
+  html+='<div class="rgo"><a href="cbedsync.html">Open the full knowledge graph &#8594;</a></div>';
+  askRes.innerHTML=html;
+}
+askBtn.addEventListener('click',runAsk);
+askInput.addEventListener('keydown',function(e){if(e.key==='Enter')runAsk();});
+
+// --- main: latest posts if any, else today's CBEDSync analysis ---
+var posts=[]; // no community posts yet; when present, they show here
+var spaceMain=document.getElementById('spaceMain');
+
+function renderPosts(){
+  var h='<div class="il">Latest from the community</div><div class="feed">';
+  posts.forEach(function(p){
+    h+='<div class="post"><div class="top"><div class="av">'+esc(p.av)+'</div><div><div class="who">'+esc(p.who)+'</div><div class="meta">'+esc(p.meta)+'</div></div></div><h4>'+esc(p.title)+'</h4><p>'+esc(p.body)+'</p></div>';
+  });
+  h+='</div>';spaceMain.innerHTML=h;
+}
+
+function dayIndex(){return Math.floor(Date.now()/864e5);}
+function dateLabel(){return new Date().toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'});}
+function pick(arr,off){return arr[((dayIndex()+off)%arr.length+arr.length)%arr.length];}
+
+function renderInsight(){
+  var di=dayIndex();
+  // technology in focus, drawn from the richly populated tech tags
+  var tc={};NODES.forEach(function(n){(n.tech||[]).forEach(function(t){tc[t]=(tc[t]||0)+1;});});
+  var ranked=Object.keys(tc).sort(function(a,b){return tc[b]-tc[a];});
+  var topTech=ranked.slice(0,12);
+  var tech=topTech.length?topTech[di%topTech.length]:'Building Information Modelling (BIM)';
+  var users=NODES.filter(function(n){return (n.tech||[]).indexOf(tech)>=0;});
+  var bk={agent:0,project:0,output:0};users.forEach(function(n){bk[n.kind]=(bk[n.kind]||0)+1;});
+  // spotlight: a richly described initiative using this technology, rotating daily
+  var pool=users.filter(function(n){return n.desc&&n.desc.length>80;});
+  if(!pool.length)pool=NODES.filter(function(n){return n.desc&&n.desc.length>80;});
+  var spot=pool[(di*7)%pool.length];
+  // explore chips: other initiatives that use this technology
+  var chips=[];for(var i=0;i<5&&users.length;i++){chips.push(users[(di*13+i*101)%users.length].id);}
+  var C=DATA.counts||{};
+  var h=''+
+    '<div class="il">Today from CBEDSync &middot; '+dateLabel()+'</div>'+
+    '<div class="spacegrid">'+
+      '<div class="insight">'+
+        '<div class="il">Technology in focus</div>'+
+        '<h3>'+esc(tech)+'</h3>'+
+        '<p><span class="istat">'+users.length+'</span> initiatives work with this today: '+bk.agent+' organisations, '+bk.project+' projects and '+bk.output+' outputs.</p>'+
+        '<p>Across the whole graph that is '+(C.agent||0)+' organisations, '+(C.project||0)+' projects and '+(C.output||0)+' outputs connected in all.</p>'+
+        '<div class="ichips">'+chips.map(function(c){return '<span class="ichip">'+esc(clip(c,28))+'</span>';}).join('')+'</div>'+
+        '<a class="ilink" href="cbedsync.html">Explore in CBEDSync &#8594;</a>'+
+      '</div>'+
+      '<div class="insight">'+
+        '<div class="
