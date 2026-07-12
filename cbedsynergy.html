@@ -229,4 +229,17 @@ function draw(){
     var hg=ctx.createRadialGradient(d.x,d.y,0,d.x,d.y,hov?16:9);hg.addColorStop(0,'rgba(134,205,199,'+((hov?0.5:0.22)*Math.max(0.3,la)).toFixed(3)+')');hg.addColorStop(1,'rgba(134,205,199,0)');
     ctx.fillStyle=hg;ctx.beginPath();ctx.arc(d.x,d.y,hov?16:9,0,7);ctx.fill();
     ctx.globalAlpha=al;ctx.fillStyle=hov?'#f0fffb':'rgba(205,242,236,0.95)';ctx.beginPath();ctx.arc(d.x,d.y,hov?d.rr+2.2:d.rr+0.8,0,7);ctx.fill();ctx.globalAlpha=1;}
-  // the drop: falls in with its CBEDS label, then rests small 
+  // the drop: falls in with its CBEDS label, then rests small at the centre
+  drawDrop(cx,dropY,landed?1:0.45,stretch);
+  if(hi>=0){tip.textContent=dots[hi].name;tip.style.left=mouse.cxp+'px';tip.style.top=mouse.cyp+'px';tip.classList.add('show');c.style.cursor='pointer';}
+  else{tip.classList.remove('show');c.style.cursor='default';}
+  requestAnimationFrame(draw);
+}
+addEventListener('resize',build);build();draw();
+
+// org grid (placeholder list mirrors the dots)
+var grid=document.getElementById('orgGrid');
+ORGS.slice(0,16).forEach(function(o){var d=document.createElement('div');d.className='org';d.textContent=o;grid.appendChild(d);});
+</script>
+</body>
+</html>

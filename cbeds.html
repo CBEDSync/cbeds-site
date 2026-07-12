@@ -481,4 +481,8 @@ ambient('bandcanvas',{count:30,maxDist:135,speed:.2,dot:'rgba(180,225,221,.5)',l
 ambient('ctacanvas',{count:34,maxDist:140,speed:.2,dot:'rgba(170,220,216,.55)',lineOpacity:.3});
 
 /* reveal on scroll */
-const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e
+const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target);}}),{threshold:.14});
+document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+</script>
+</body>
+</html>

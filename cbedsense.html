@@ -498,4 +498,16 @@ function renderInsight(){
         '<a class="ilink" href="cbedsync.html">Explore in CBEDSync &#8594;</a>'+
       '</div>'+
       '<div class="insight">'+
-        '<div class="
+        '<div class="il">Spotlight</div>'+
+        '<h3>'+esc(clip(spot.id,60))+'</h3>'+
+        '<p>'+esc(clip(spot.desc,210))+'</p>'+
+        (spot.web?'<a class="ilink" href="'+esc(spot.web)+'" target="_blank" rel="noopener">Visit source &#8594;</a>':'<a class="ilink" href="cbedsync.html">See its connections &#8594;</a>')+
+      '</div>'+
+    '</div>';
+  spaceMain.innerHTML=h;
+}
+
+if(posts.length)renderPosts();else renderInsight();
+</script>
+</body>
+</html>
