@@ -45,8 +45,6 @@
   .chips{position:absolute;inset:0;z-index:1;overflow:hidden}
   .chip{position:absolute;font-family:var(--display);font-size:13px;font-weight:600;color:rgba(159,224,217,.5);border:1px solid rgba(134,205,199,.22);border-radius:100px;padding:6px 14px;white-space:nowrap;animation:drift linear infinite}
   @keyframes drift{0%{transform:translateY(20px);opacity:0}10%{opacity:1}90%{opacity:1}100%{transform:translateY(-60px);opacity:0}}
-  /* scrim keeps drifting chips from sitting behind the hero text */
-  .hero::after{content:"";position:absolute;inset:0;z-index:1;pointer-events:none;background:radial-gradient(115% 78% at 50% 46%,rgba(7,35,48,.9) 0%,rgba(7,35,48,.74) 34%,rgba(7,35,48,.28) 64%,transparent 100%)}
   .hero-inner{position:relative;z-index:2;text-align:center;width:100%;padding:130px 26px 70px}
   .hero .tag{font-family:var(--display);font-size:12.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--green-bright);font-weight:600}
   .devpill{display:inline-block;font-family:var(--display);font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#06202c;background:var(--green-bright);border-radius:100px;padding:4px 11px;vertical-align:middle}
@@ -181,9 +179,7 @@
   .foot-inner{display:flex;justify-content:space-between;align-items:center;gap:20px;flex-wrap:wrap}
   .foot-brand{display:flex;align-items:center;gap:11px;color:#fff;font-family:var(--display);font-weight:700}
   .foot-brand .mk{width:34px;height:34px;--a1:#9fe0d9;--a2:#7fc6cd;--a3:#5fadc2;--a4:#3f93b6;--ad:#bdeee9}
-  @media(max-width:860px){.feats,.feed{grid-template-columns:1fr}nav ul{display:none}.flow{grid-template-columns:1fr}.arrows{flex-direction:row}
-    .hero::after{background:radial-gradient(135% 82% at 50% 44%,rgba(7,35,48,.97) 0%,rgba(7,35,48,.88) 46%,rgba(7,35,48,.45) 76%,transparent 100%)}
-    .chip{opacity:.55}}
+  @media(max-width:860px){.feats,.feed{grid-template-columns:1fr}nav ul{display:none}.flow{grid-template-columns:1fr}.arrows{flex-direction:row}}
 </style>
 </head>
 <body>
