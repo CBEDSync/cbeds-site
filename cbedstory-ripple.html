@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CBEDStory | CBEDS</title>
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --blue:#156082;--green:#70B3AE;--green-bright:#86cdc7;--blue-deep:#0a2f40;--blue-deeper:#072330;
+    --ink:#122a34;--muted:#5c727b;--bg:#ffffff;--bg-soft:#f5f9fa;--line:#e4eef0;--maxw:1180px;
+    --probe:#3f8fa5;--sense:#d2962f;--respond:#156082;--output:#4f9e74;--track:#dfeaec;
+    --display:-apple-system,BlinkMacSystemFont,"SF Pro Display","Helvetica Neue","Inter",Helvetica,Arial,sans-serif;
+    --body:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue","Inter",Helvetica,Arial,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{font-family:var(--body);color:var(--ink);background:var(--bg);line-height:1.6;-webkit-font-smoothing:antialiased}
+  a{color:inherit;text-decoration:none}
+  .wrap{max-width:var(--maxw);margin:0 auto;padding:0 26px}
+  h1,h2,h3,h4{font-family:var(--display);letter-spacing:-.02em}
+
+  header.nav{position:fixed;top:0;left:0;right:0;z-index:60;transition:background .3s,border-color .3s;border-bottom:1px solid transparent}
+  header.nav.solid{background:rgba(255,255,255,.92);backdrop-filter:blur(12px);border-color:var(--line)}
+  .nav-inner{display:flex;align-items:center;justify-content:space-between;height:76px}
+  .brand{display:flex;align-items:center;gap:12px}
+  .brand .mk{width:46px;height:46px;flex:0 0 auto;--a1:#9fe0d9;--a2:#7fc6cd;--a3:#5fadc2;--a4:#3f93b6;--ad:#bdeee9}
+  header.nav.solid .brand .mk{--a1:#70B3AE;--a2:#52979f;--a3:#337c91;--a4:#156082;--ad:#156082}
+  .brand .lock{display:flex;flex-direction:column;line-height:1.05}
+  .brand .wm{font-family:var(--display);font-weight:700;font-size:22px;color:#fff;transition:color .3s}
+  header.nav.solid .brand .wm{color:var(--blue)}
+  .brand .sub{font-size:10.5px;letter-spacing:.07em;text-transform:uppercase;color:rgba(255,255,255,.6);font-weight:500;margin-top:2px;transition:color .3s}
+  header.nav.solid .brand .sub{color:var(--muted)}
+  nav ul{display:flex;gap:30px;list-style:none;align-items:center}
+  nav a.lnk{font-size:15px;font-weight:500;color:rgba(255,255,255,.85);position:relative;padding:5px 0}
+  header.nav.solid nav a.lnk{color:var(--ink)}
+  nav a.lnk.active{color:var(--green-bright)}
+  header.nav.solid nav a.lnk.active{color:var(--blue)}
+  nav a.lnk.active::after{content:"";position:absolute;left:0;right:0;bottom:-3px;height:2px;background:var(--green);border-radius:2px}
+  .nav-cta{background:var(--green);color:var(--blue-deeper)!important;padding:10px 20px;border-radius:9px;font-weight:600;font-size:14px;font-family:var(--display)}
+  .devtag{display:inline-block;margin-left:6px;font-family:var(--display);font-size:9px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#06202c;background:var(--green);border-radius:5px;padding:1px 5px;vertical-align:middle}
+  .burger{display:none;background:none;border:0;cursor:pointer;flex-direction:column;gap:5px;padding:6px}
+  .burger span{width:24px;height:2px;background:#fff;display:block}
+  header.nav.solid .burger span{background:var(--ink)}
+
+  /* ---------- intro ---------- */
+  .intro{position:relative;background:radial-gradient(120% 120% at 78% 18%,#10566f 0%,#0a2f40 46%,#072330 100%);padding:150px 0 92px;text-align:center;overflow:hidden}
+  .intro .wrap{position:relative;z-index:2}
+  .intro .tag{font-family:var(--display);font-size:12.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--green-bright);font-weight:600}
+  .intro h1{font-size:clamp(34px,5vw,56px);color:#fff;margin:14px auto 16px;max-width:20ch}
+  .intro p{font-size:18px;color:#bcd6dc;max-width:66ch;margin:0 auto}
+  .intro p b{color:#eafffb;font-weight:600}
+  .legend{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:26px}
+  .lg{display:inline-flex;align-items:center;gap:8px;font-family:var(--display);font-size:13px;font-weight:600;color:#eafffb;background:rgba(255,255,255,.06);border:1px solid rgba(134,205,199,.28);border-radius:100px;padding:7px 14px}
+  .lg i{width:10px;height:10px;border-radius:50%}
+  /* faint ripple rings behind the intro */
+  .intro-rip{position:absolute;top:16%;left:50%;transform:translateX(-50%);z-index:1;opacity:.5}
+  .intro-rip ellipse{fill:none;stroke:rgba(134,205,199,.16);stroke-width:1}
+  .scrollcue{position:absolute;bottom:22px;left:0;right:0;z-index:2;text-align:center;color:rgba(255,255,255,.55);font-family:var(--display);font-size:12.5px;letter-spacing:.08em;text-transform:uppercase}
+  .scrollcue span{display:block;font-size:18px;margin-top:4px;animation:bob 1.8s ease-in-out infinite}
+  @keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(5px)}}
+
+  /* ---------- story layout ---------- */
+  .story{display:grid;grid-template-columns:340px 1fr;gap:56px;align-items:start;margin:40px auto 20px}
+  .map{position:sticky;top:96px}
+  .ripwrap{position:relative}
+  .ripple{width:100%;height:auto;display:block;overflow:visible}
+  .ring{fill:none;stroke:var(--track);stroke-width:2.4;opacity:.55;transition:stroke .7s ease,opacity .7s ease,stroke-width .7s ease}
+  .ring.lit{opacity:1}
+  .ring.active{stroke-width:3.4}
+  .drop-core{transition:transform .4s ease}
+  .drop-core .splash{transform-box:fill-box;transform-origin:center;animation:beat 2.6s ease-in-out infinite}
+  @keyframes beat{0%,100%{transform:scale(1)}50%{transform:scale(1.16)}}
+  .pulse{fill:none;stroke-width:2.2;opacity:0}
+  .pulse.go{animation:rippleout 1.25s ease-out forwards}
+  @keyframes rippleout{0%{transform:scale(.12);opacity:.6}100%{transform:scale(1.06);opacity:0}}
+  .falling{transform-box:fill-box;transform-origin:center}
+  .falling.go{animation:falldrop .5s ease-in forwards}
+  @keyframes falldrop{0%{opacity:0;transform:translateY(-58px) scale(.7)}55%{opacity:1}100%{opacity:0;transform:translateY(0) scale(1)}}
+
+  /* stage list under the ripple */
+  .stages{margin-top:26px;display:flex;flex-direction:column;gap:2px}
+  .st{display:flex;align-items:center;gap:13px;padding:9px 10px;border-radius:12px;cursor:pointer;transition:background .25s;border:1px solid transparent}
+  .st:hover{background:var(--bg-soft)}
+  .st .num{width:30px;height:30px;flex:0 0 auto;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--display);font-weight:700;font-size:13px;color:var(--muted);background:#eef4f5;border:1.5px solid var(--line);transition:.35s}
+  .st b{font-family:var(--display);font-size:14.5px;color:var(--ink);font-weight:600;line-height:1.2}
+  .st small{display:block;color:var(--muted);font-size:12px;font-weight:400}
+  .st.lit .num{color:#fff;background:var(--stc,#70B3AE);border-color:var(--stc,#70B3AE)}
+  .st.active{background:var(--bg-soft);border-color:var(--line)}
+  .st.active .num{box-shadow:0 0 0 4px rgba(112,179,174,.22)}
+
+  /* ---------- cycles ---------- */
+  .col{min-width:0}
+  .chap{padding:26px 0 44px;opacity:0;transform:translateY(26px);transition:opacity .7s cubic-bezier(.2,.7,.2,1),transform .7s cubic-bezier(.2,.7,.2,1)}
+  .chap.in{opacity:1;transform:none}
+  .chead{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;margin-bottom:6px}
+  .cnum{font-family:var(--display);font-weight:700;font-size:13px;color:#fff;background:var(--cc,#70B3AE);border-radius:100px;padding:3px 12px}
+  .chead h2{font-size:clamp(24px,2.9vw,34px);color:var(--ink)}
+  .cmeta{font-family:var(--display);font-size:13px;font-weight:600;color:var(--muted)}
+  .steps{margin-top:18px;border-left:2px solid var(--line);padding-left:26px;display:flex;flex-direction:column;gap:20px}
+  .step{position:relative}
+  .step::before{content:"";position:absolute;left:-33px;top:3px;width:12px;height:12px;border-radius:50%;background:var(--sc);box-shadow:0 0 0 4px #fff}
+  .step .ptag{font-family:var(--display);font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--sc);margin-bottom:4px}
+  .step p{color:#33474f;font-size:15.5px}
+  .step.probe{--sc:var(--probe)} .step.sense{--sc:var(--sense)} .step.respond{--sc:var(--respond)}
+  .out{margin-top:20px;background:var(--bg-soft);border:1px solid var(--line);border-radius:16px;padding:22px 22px 20px;position:relative;overflow:hidden}
+  .out::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--output)}
+  .ol{font-family:var(--display);font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--output);margin-bottom:6px}
+  .out h4{font-size:19px;color:var(--ink);margin-bottom:6px}
+  .out p{color:var(--muted);font-size:14.5px}
+  .out img{width:100%;border-radius:10px;margin-top:14px;border:1px solid var(--line);cursor:zoom-in;display:block}
+  .out .links{display:flex;gap:18px;flex-wrap:wrap;margin-top:14px}
+  .out .links a{font-family:var(--display);font-weight:600;font-size:14px;color:var(--blue)}
+  .handoff{display:flex;align-items:center;gap:9px;margin-top:20px;font-family:var(--display);font-size:13.5px;font-weight:600;color:var(--green);opacity:.9}
+  .handoff .d{width:8px;height:8px;border-radius:50%;background:var(--green)}
+
+  /* ---------- three roles ---------- */
+  .roles{background:radial-gradient(120% 130% at 50% 0%,#10566f,#072330);border-radius:26px;padding:56px 40px;margin:20px 0 70px;text-align:center;color:#fff}
+  .roles .tag{font-family:var(--display);font-size:12.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--green-bright);font-weight:600}
+  .roles h2{font-size:clamp(26px,3.3vw,38px);margin:12px 0 10px}
+  .roles .sub{color:#c5dade;max-width:60ch;margin:0 auto 34px;font-size:17px}
+  .dirs{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;text-align:left}
+  .dir{background:rgba(255,255,255,.05);border:1px solid rgba(134,205,199,.24);border-radius:16px;padding:24px;transition:transform .2s,border-color .2s,background .2s}
+  .dir:hover{transform:translateY(-4px);border-color:var(--green-bright);background:rgba(255,255,255,.08)}
+  .drole{font-family:var(--display);font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--green-bright);margin-bottom:8px}
+  .ddev{color:#06202c;background:var(--green);border-radius:5px;padding:1px 6px;font-size:9px;margin-left:5px}
+  .dir h3{font-size:21px;margin-bottom:8px}
+  .dir p{color:#bcd6dc;font-size:14px;margin-bottom:14px}
+  .dgo{font-family:var(--display);font-weight:600;font-size:14px;color:var(--green-bright)}
+
+  footer{background:var(--blue-deeper);color:#88a6af;padding:48px 0;font-size:14px}
+  .foot-inner{display:flex;justify-content:space-between;align-items:center;gap:20px;flex-wrap:wrap}
+  .foot-brand{display:flex;align-items:center;gap:11px;color:#fff;font-family:var(--display);font-weight:700}
+  .foot-brand .mk{width:34px;height:34px;--a1:#9fe0d9;--a2:#7fc6cd;--a3:#5fadc2;--a4:#3f93b6;--ad:#bdeee9}
+
+  /* lightbox */
+  .lb{position:fixed;inset:0;background:rgba(7,35,48,.9);display:none;align-items:center;justify-content:center;z-index:100;padding:30px;cursor:zoom-out}
+  .lb.on{display:flex}
+  .lb img{max-width:94%;max-height:92%;border-radius:10px}
+
+  @media(max-width:900px){
+    .story{grid-template-columns:1fr;gap:10px}
+    .map{position:sticky;top:76px;z-index:40;background:rgba(255,255,255,.94);backdrop-filter:blur(8px);margin:0 -26px;padding:12px 26px 10px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:18px}
+    .ripwrap{width:120px;flex:0 0 auto}
+    .stages{margin-top:0;flex:1;gap:0}
+    .st{padding:5px 8px}
+    .st small{display:none}
+    .st:not(.active){display:none}   /* mobile: show only the current stage as a caption */
+    nav ul{display:none}.burger{display:flex}
+    nav.open ul{display:flex;position:fixed;top:76px;left:0;right:0;flex-direction:column;background:#fff;border-bottom:1px solid var(--line);padding:20px 26px;gap:18px;box-shadow:0 20px 40px rgba(0,0,0,.12)}
+    nav.open ul a.lnk{color:var(--ink)}
+    .dirs{grid-template-columns:1fr}
+    .roles{padding:44px 24px}
+  }
+</style>
+</head>
+<body>
+
+<svg style="display:none" xmlns="http://www.w3.org/2000/svg">
+<symbol id="cbeds-mark" viewBox="0 0 100 100"><g fill="none" stroke-linecap="round"><ellipse cx="50" cy="62" rx="41" ry="16.4" stroke="var(--a4,#156082)" stroke-width="2.4" opacity="0.6"/><ellipse cx="50" cy="62" rx="31" ry="12.4" stroke="var(--a3,#337c91)" stroke-width="3.0" opacity="0.74"/><ellipse cx="50" cy="62" rx="21" ry="8.4" stroke="var(--a2,#52979f)" stroke-width="3.6" opacity="0.88"/><ellipse cx="50" cy="62" rx="11" ry="4.4" stroke="var(--a1,#70B3AE)" stroke-width="4.3" opacity="1.0"/></g><path d="M50 44 C54.5 49 54.5 56 50 56 C45.5 56 45.5 49 50 44 Z" fill="var(--ad,#156082)"/><path d="M50 24 C52.6 27 52.6 32 50 32 C47.4 32 47.4 27 50 24 Z" fill="var(--ad,#156082)"/></symbol>
+</svg>
+
+<header class="nav" id="nav">
+  <div class="wrap nav-inner">
+    <a class="brand" href="cbeds.html">
+      <svg class="mk"><use href="#cbeds-mark"/></svg>
+      <span class="lock"><span class="wm">CBEDS</span><span class="sub">Center for Built Environment Data Sharing</span></span>
+    </a>
+    <nav id="mainnav">
+      <ul>
+        <li><a class="lnk" href="cbeds.html">CBEDS</a></li>
+        <li><a class="lnk active" href="cbedstory-ripple.html">CBEDStory</a></li>
+        <li><a class="lnk" href="cbedsync.html">CBEDSync</a></li>
+        <li><a class="lnk" href="cbedsynergy.html">CBEDSynergy<span class="devtag">Dev</span></a></li>
+        <li><a class="lnk" href="cbedsense.html">CBEDSense<span class="devtag">Dev</span></a></li>
+        <li><a class="nav-cta" href="https://www.linkedin.com/groups/13264190/" target="_blank" rel="noopener">Join us &#8594;</a></li>
+      </ul>
+    </nav>
+    <button class="burger" aria-label="Menu" onclick="document.getElementById('mainnav').classList.toggle('open')"><span></span><span></span><span></span></button>
+  </div>
+</header>
+
+<section class="intro">
+  <svg class="intro-rip" width="760" height="360" viewBox="0 0 760 360" aria-hidden="true">
+    <ellipse cx="380" cy="150" rx="60" ry="30"/><ellipse cx="380" cy="150" rx="130" ry="62"/>
+    <ellipse cx="380" cy="150" rx="205" ry="96"/><ellipse cx="380" cy="150" rx="285" ry="132"/><ellipse cx="380" cy="150" rx="368" ry="168"/>
+  </svg>
+  <div class="wrap">
+    <span class="tag">CBEDStory</span>
+    <h1>How we set out to support a complex ecosystem</h1>
+    <p>No single initiative can connect the built environment's data ecosystem alone. So we work in repeating cycles of <b>probe</b>, <b>sense</b> and <b>respond</b>. Each cycle sends a ripple further out &mdash; and every response drops the stone that starts the next.</p>
+    <div class="legend">
+      <span class="lg"><i style="background:var(--probe)"></i>Probe</span>
+      <span class="lg"><i style="background:var(--sense)"></i>Sense</span>
+      <span class="lg"><i style="background:var(--respond)"></i>Respond</span>
+      <span class="lg"><i style="background:var(--output)"></i>Output</span>
+    </div>
+  </div>
+  <div class="scrollcue">Scroll to begin<span>&#8595;</span></div>
+</section>
+
+<div class="wrap">
+  <div class="story">
+
+    <!-- LEFT: ripple map -->
+    <aside class="map">
+      <div class="ripwrap">
+        <svg class="ripple" viewBox="0 0 320 300" id="rip">
+          <g id="pulses"></g>
+          <ellipse class="ring" data-ring="4" cx="160" cy="150" rx="142" ry="71" style="--lc:#156082"></ellipse>
+          <ellipse class="ring" data-ring="3" cx="160" cy="150" rx="113" ry="56" style="--lc:#337c91"></ellipse>
+          <ellipse class="ring" data-ring="2" cx="160" cy="150" rx="84"  ry="42" style="--lc:#52979f"></ellipse>
+          <ellipse class="ring" data-ring="1" cx="160" cy="150" rx="55"  ry="27" style="--lc:#70B3AE"></ellipse>
+          <ellipse class="ring" data-ring="0" cx="160" cy="150" rx="26"  ry="13" style="--lc:#86cdc7"></ellipse>
+          <g class="drop-core">
+            <path class="falling" id="falling" d="M160 132 C164.5 137 164.5 144 160 144 C155.5 144 155.5 137 160 132 Z" fill="#156082"></path>
+            <ellipse class="splash" cx="160" cy="150" rx="6.5" ry="4" fill="#156082"></ellipse>
+          </g>
+        </svg>
+      </div>
+      <div class="stages" id="stages">
+        <div class="st" data-go="0" style="--stc:#86cdc7"><span class="num">0</span><span><b>Where it began</b><small>ambition &middot; failure &middot; success</small></span></div>
+        <div class="st" data-go="1" style="--stc:#70B3AE"><span class="num">1</span><span><b>Interoperability in practice</b><small>workshop 1 &middot; 52 experts</small></span></div>
+        <div class="st" data-go="2" style="--stc:#52979f"><span class="num">2</span><span><b>Collective impact</b><small>workshop 2 &middot; 46 leaders</small></span></div>
+        <div class="st" data-go="3" style="--stc:#337c91"><span class="num">3</span><span><b>Collaboration to scale</b><small>workshop 3 &middot; 27 collaborators</small></span></div>
+        <div class="st" data-go="4" style="--stc:#156082"><span class="num">&#8594;</span><span><b>Three roles of CBEDS</b><small>visibility &middot; collaboration &middot; sense</small></span></div>
+      </div>
+    </aside>
+
+    <!-- RIGHT: cycles -->
+    <div class="col">
+
+      <div class="chap" data-cycle="0" style="--cc:#86cdc7">
+        <div class="chead"><span class="cnum">Cycle 0</span><h2>Where it began</h2><span class="cmeta">ambition &middot; failure &middot; success</span></div>
+        <div class="steps">
+          <div class="step probe"><div class="ptag">Probe</div><p>Three separate journeys started us off: an ambition that academics should support industry, a failure in an unsuccessful proposal, and a success in a collaborative report &mdash; each asking the same question: how should interoperability in the built environment actually be approached?</p></div>
+          <div class="step sense"><div class="ptag">Sense</div><p>Interoperability cannot be treated in silos or as neat layers. The layers connect and influence one another, behaving as a system of systems.</p></div>
+          <div class="step respond"><div class="ptag">Respond</div><p>So we challenged the layered view and saw interoperability as a Venn diagram, where the layers overlap and feed into each other. We founded CBEDS to connect these aspects.</p></div>
+        </div>
+        <div class="out"><div class="ol">Output</div><h4>A reframed problem</h4><p>The realisation that set the direction for everything that followed.</p><img src="Slide1.JPG" alt="Interoperability as overlapping domains"></div>
+        <div class="handoff"><span class="d"></span>this response drops the next stone &#8595;</div>
+      </div>
+
+      <div class="chap" data-cycle="1" style="--cc:#70B3AE">
+        <div class="chead"><span class="cnum">Cycle 1</span><h2>Interoperability in practice</h2><span class="cmeta">April 2025 &middot; 52 experts</span></div>
+        <div class="steps">
+          <div class="step probe"><div class="ptag">Probe</div><p>With CBEDS established, the reframing had to be tested in the real world. In April 2025 we convened 52 experts to put interoperability to the test in practice.</p></div>
+          <div class="step sense"><div class="ptag">Sense</div><p>Across the conversations the same gaps and frictions surfaced again and again. We captured them as 30 recommendations spanning the full data lifecycle.</p></div>
+          <div class="step respond"><div class="ptag">Respond</div><p>Rather than leave them in a report, we published everything openly and turned the evidence into a live dashboard others could reuse.</p></div>
+        </div>
+        <div class="out"><div class="ol">Output</div><h4>30 recommendations &amp; an open dashboard</h4><p>A report and a live dataset for other researchers to build on.</p><img src="Slide2.JPG" alt="30 recommendations across five themes"><div class="links"><a href="#" target="_blank" rel="noopener">Report &#8594;</a><a href="#" target="_blank" rel="noopener">Dashboard &#8594;</a></div></div>
+        <div class="handoff"><span class="d"></span>this response drops the next stone &#8595;</div>
+      </div>
+
+      <div class="chap" data-cycle="2" style="--cc:#52979f">
+        <div class="chead"><span class="cnum">Cycle 2</span><h2>Collective impact</h2><span class="cmeta">January 2026 &middot; 46 leaders</span></div>
+        <div class="steps">
+          <div class="step probe"><div class="ptag">Probe</div><p>The open evidence drew in the people who set direction. In January 2026 we brought 46 working group leaders together to ask what was holding the sector back.</p></div>
+          <div class="step sense"><div class="ptag">Sense</div><p>A pattern emerged that no single initiative could see alone: a fragmentation loop. Effort was duplicated and energy lost because the sector shared no common vision.</p></div>
+          <div class="step respond"><div class="ptag">Respond</div><p>We responded by co-creating the missing piece &mdash; a shared vision and direction the community could align around.</p></div>
+        </div>
+        <div class="out"><div class="ol">Output</div><h4>A shared vision &amp; direction</h4><p>A common reference point the community can align around.</p><img src="Slide3.JPG" alt="System of systems framework"></div>
+        <div class="handoff"><span class="d"></span>this response drops the next stone &#8595;</div>
+      </div>
+
+      <div class="chap" data-cycle="3" style="--cc:#337c91">
+        <div class="chead"><span class="cnum">Cycle 3</span><h2>Collaboration to scale</h2><span class="cmeta">June 2026 &middot; 27 collaborators</span></div>
+        <div class="steps">
+          <div class="step probe"><div class="ptag">Probe</div><p>A shared vision only matters if people can act on it together. In June 2026 we gathered 27 collaborators to focus on collaboration and coordination.</p></div>
+          <div class="step sense"><div class="ptag">Sense</div><p>It became clear that connection does not scale on goodwill alone. It needs coordinating infrastructure to turn alignment into collective impact.</p></div>
+          <div class="step respond"><div class="ptag">Respond</div><p>So we built the means to keep the ecosystem connected and in sync &mdash; the CBEDSync knowledge graph and the network behind it.</p></div>
+        </div>
+        <div class="out"><div class="ol">Output</div><h4>CBEDSync &amp; the network</h4><p>The knowledge graph and connections that let existing efforts find one another.</p><div class="links"><a href="cbedsync.html">Open CBEDSync &#8594;</a><a href="cbedsynergy.html">See the network &#8594;</a></div></div>
+        <div class="handoff"><span class="d"></span>and these cycles now power the three roles &#8595;</div>
+      </div>
+
+      <div class="chap" data-cycle="4">
+        <div class="roles">
+          <span class="tag">Three roles of CBEDS</span>
+          <h2>One ecosystem, three roles</h2>
+          <p class="sub">Everything we learned now runs through three connected roles, each carrying the probe, sense, respond rhythm forward.</p>
+          <div class="dirs">
+            <a class="dir" href="cbedsync.html"><div class="drole">Visibility</div><h3>CBEDSync</h3><p>Making the ecosystem visible. The knowledge graph that lets existing initiatives, standards and projects find one another.</p><span class="dgo">Open &#8594;</span></a>
+            <a class="dir" href="cbedsynergy.html"><div class="drole">Collaboration<span class="ddev">Dev</span></div><h3>CBEDSynergy</h3><p>Building the network. Bringing people and organisations together so the ecosystem can work as one.</p><span class="dgo">Open &#8594;</span></a>
+            <a class="dir" href="cbedsense.html"><div class="drole">Making sense<span class="ddev">Dev</span></div><h3>CBEDSense</h3><p>Interoperability, value and engagement. Making sense of the built environment and connecting it to what Sync and Synergy enable.</p><span class="dgo">Open &#8594;</span></a>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<div class="lb" id="lb"><img alt="enlarged"></div>
+
+<footer>
+  <div class="wrap foot-inner">
+    <div class="foot-brand"><svg class="mk"><use href="#cbeds-mark"/></svg> CBEDS</div>
+    <div>Connecting the Built Environment Data Sharing ecosystem</div>
+  </div>
+</footer>
+
+<script>
+// nav solidify
+var navEl=document.getElementById('nav');
+addEventListener('scroll',function(){navEl.classList.toggle('solid',scrollY>40);},{passive:true});
+
+var rings=[].slice.call(document.querySelectorAll('.ring'));
+var stages=[].slice.call(document.querySelectorAll('.st'));
+var chaps=[].slice.call(document.querySelectorAll('.chap'));
+var pulses=document.getElementById('pulses');
+var falling=document.getElementById('falling');
+var ringByIdx={}; rings.forEach(function(r){ringByIdx[r.getAttribute('data-ring')]=r;});
+var current=-1;
+
+function ripple(i){
+  var r=ringByIdx[i]; if(!r)return;
+  var p=document.createElementNS('http://www.w3.org/2000/svg','ellipse');
+  p.setAttribute('class','pulse');p.setAttribute('cx',160);p.setAttribute('cy',150);
+  p.setAttribute('rx',r.getAttribute('rx'));p.setAttribute('ry',r.getAttribute('ry'));
+  p.style.stroke=r.style.getPropertyValue('--lc')||'#70B3AE';
+  p.style.transformBox='fill-box';p.style.transformOrigin='center';
+  pulses.appendChild(p); requestAnimationFrame(function(){p.classList.add('go');});
+  p.addEventListener('animationend',function(){p.remove();});
+  // drop a fresh stone
+  falling.classList.remove('go'); void falling.offsetWidth; falling.classList.add('go');
+}
+function setActive(i){
+  if(i===current)return;
+  var advancing=i>current; current=i;
+  rings.forEach(function(r){var k=+r.getAttribute('data-ring');r.classList.toggle('lit',k<=i);r.classList.toggle('active',k===i);
+    if(k<=i){r.style.stroke=r.style.getPropertyValue('--lc');}else{r.style.stroke='';}});
+  stages.forEach(function(s){var k=+s.getAttribute('data-go');s.classList.toggle('lit',k<=i);s.classList.toggle('active',k===i);});
+  if(advancing) ripple(i);
+}
+
+// which cycle is "reached": last chap whose top passes 55% viewport
+function onScroll(){
+  var line=innerHeight*0.55, idx=0;
+  for(var j=0;j<chaps.length;j++){ if(chaps[j].getBoundingClientRect().top<line) idx=j; }
+  setActive(idx);
+}
+addEventListener('scroll',onScroll,{passive:true});
+addEventListener('resize',onScroll);
+
+// reveal chapters
+var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target);}});},{threshold:.18});
+chaps.forEach(function(c){io.observe(c);});
+
+// click a stage to jump
+stages.forEach(function(s){s.addEventListener('click',function(){var t=chaps[+s.getAttribute('data-go')];if(t)t.scrollIntoView({behavior:'smooth',block:'start'});});});
+
+// lightbox
+var lb=document.getElementById('lb'),lbImg=lb.querySelector('img');
+document.querySelectorAll('.out img').forEach(function(im){im.addEventListener('click',function(){lbImg.src=im.src;lb.classList.add('on');});});
+lb.addEventListener('click',function(){lb.classList.remove('on');});
+
+setTimeout(onScroll,60);
+</script>
+</body>
+</html>
