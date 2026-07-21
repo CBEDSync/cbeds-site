@@ -1,0 +1,121 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7.5" markerHeight="7.5" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#7f8d94"/>
+    </marker>
+    <style>
+      .sys   { stroke:#1f2d33; }
+      .yellow{ fill:#fbf3d4; }
+      .green { fill:#cbead7; stroke:#3f8f6b; stroke-width:1.6; }
+      .pink  { fill:#f5d6df; stroke:#c17d92; stroke-width:1.6; }
+      .blue  { fill:#c4dfed; stroke:#5a93b5; stroke-width:1.6; }
+      .prob  { fill:#e8412a; stroke:#b62c1a; stroke-width:1.5; }
+      .lab   { fill:#122a34; font-size:15px; font-weight:700; text-anchor:middle; }
+      .sub   { fill:#33474f; font-size:12.5px; text-anchor:middle; }
+      .plab  { fill:#c62a17; font-size:14px; font-weight:700; }
+      .edge  { stroke:#7f8d94; stroke-width:1.6; fill:none; marker-end:url(#arrow); }
+      .elab  { fill:#3c545e; font-size:13px; text-anchor:middle; }
+      .title { font-size:25px; font-weight:700; }
+    </style>
+  </defs>
+
+  <rect x="0" y="0" width="1280" height="720" fill="#ffffff"/>
+
+  <!-- ============ EDGES (behind nodes) ============ -->
+  <!-- S3 needs to understand S1 -->
+  <line class="edge" x1="812" y1="152" x2="460" y2="168"/>
+  <text class="elab" x="640" y="130">needs to</text>
+  <text class="elab" x="640" y="147">understand</text>
+
+  <!-- S2 intended to address P1 -->
+  <line class="edge" x1="902" y1="214" x2="368" y2="238"/>
+  <text class="elab" x="742" y="205">intended to address</text>
+
+  <!-- S7 creates P1 -->
+  <line class="edge" x1="452" y1="272" x2="372" y2="244"/>
+  <text class="elab" x="405" y="290">creates</text>
+
+  <!-- S1 becomes S4 -->
+  <line class="edge" x1="252" y1="312" x2="304" y2="410"/>
+  <text class="elab" x="205" y="356">becomes</text>
+
+  <!-- S3/S2 becomes S4 -->
+  <line class="edge" x1="878" y1="256" x2="462" y2="466"/>
+  <text class="elab" x="702" y="372">becomes</text>
+
+  <!-- S7 competes with S4 -->
+  <line class="edge" x1="518" y1="344" x2="378" y2="414"/>
+  <text class="elab" x="416" y="360">competes with</text>
+
+  <!-- S4 may cause P2 -->
+  <line class="edge" x1="246" y1="472" x2="168" y2="478"/>
+  <text class="elab" x="206" y="452">may cause</text>
+
+  <!-- S4 collaborates with S5 -->
+  <line class="edge" x1="336" y1="532" x2="308" y2="560"/>
+  <text class="elab" x="176" y="548" text-anchor="start">collaborates with</text>
+
+  <!-- S6 sustains S4 -->
+  <line class="edge" x1="936" y1="546" x2="462" y2="480"/>
+  <text class="elab" x="706" y="498">sustains</text>
+
+  <!-- S6 needs to understand S5 -->
+  <line class="edge" x1="948" y1="602" x2="422" y2="620"/>
+  <text class="elab" x="700" y="580">needs to</text>
+  <text class="elab" x="700" y="597">understand</text>
+
+  <!-- S6 may need to develop or modify S3 -->
+  <line class="edge" x1="1090" y1="474" x2="1042" y2="270"/>
+  <text class="elab" x="1168" y="366">may need to</text>
+  <text class="elab" x="1168" y="383">develop or modify</text>
+
+  <!-- ============ NODES ============ -->
+  <!-- S1 Context System -->
+  <ellipse class="sys yellow" cx="250" cy="180" rx="206" ry="132" stroke-width="2"/>
+  <text class="lab" x="250" y="118">Context System (S1)</text>
+  <text class="sub" x="250" y="146">Fragmented BE digital landscape</text>
+  <text class="sub" x="250" y="166">P1: initiatives don't interoperate; duplication</text>
+  <circle class="prob" cx="352" cy="236" r="12"/>
+  <text class="plab" x="332" y="241" text-anchor="end">P1</text>
+
+  <!-- S3 Realization System -->
+  <ellipse class="sys yellow" cx="1035" cy="150" rx="222" ry="118" stroke-width="2"/>
+  <text class="lab" x="1035" y="96">Realization System (S3)</text>
+  <text class="sub" x="1035" y="120">Research, standards groups, funding,</text>
+  <text class="sub" x="1035" y="138">workshops</text>
+  <!-- S2 Intervention (nested) -->
+  <ellipse class="sys green" cx="1015" cy="200" rx="116" ry="60"/>
+  <text class="lab" x="1015" y="184" font-size="13.5">Intervention (S2)</text>
+  <text class="sub" x="1015" y="204">CBEDS</text>
+  <text class="sub" x="1015" y="221">collaboration framework</text>
+
+  <!-- Deployed-group envelope (unlabelled, matches source) -->
+  <ellipse class="sys yellow" cx="300" cy="548" rx="258" ry="166" stroke-width="2"/>
+  <!-- S4 Deployed -->
+  <ellipse class="sys green" cx="352" cy="470" rx="108" ry="60"/>
+  <text class="lab" x="352" y="454" font-size="14.5">Deployed (S4)</text>
+  <text class="sub" x="352" y="474">Collaboration in live</text>
+  <text class="sub" x="352" y="491">projects</text>
+  <!-- P2 -->
+  <circle class="prob" cx="152" cy="476" r="12"/>
+  <text class="plab" x="150" y="459" text-anchor="middle">P2</text>
+  <!-- S5 Collaborating -->
+  <ellipse class="sys green" cx="300" cy="616" rx="120" ry="52"/>
+  <text class="lab" x="300" y="602" font-size="14.5">Collaborating (S5)</text>
+  <text class="sub" x="300" y="622">NEN, DigiGO, EU,</text>
+  <text class="sub" x="300" y="639">municipalities</text>
+
+  <!-- S7 Competing -->
+  <ellipse class="sys pink" cx="545" cy="286" rx="108" ry="60"/>
+  <text class="lab" x="545" y="270" font-size="14.5">Competing (S7)</text>
+  <text class="sub" x="545" y="290">Go-it-alone /</text>
+  <text class="sub" x="545" y="307">proprietary / "AI"</text>
+
+  <!-- S6 Sustainment -->
+  <ellipse class="sys blue" cx="1086" cy="566" rx="152" ry="92"/>
+  <text class="lab" x="1086" y="544" font-size="14.5">Sustainment (S6)</text>
+  <text class="sub" x="1086" y="566">Governance, incentives,</text>
+  <text class="sub" x="1086" y="584">business models, public</text>
+  <text class="sub" x="1086" y="602">sector</text>
+
+</svg>

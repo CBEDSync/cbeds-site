@@ -1,6 +1,6 @@
 # CBEDS website
 
-Static site for **CBEDS — the Center for Built Environment Data Sharing**.
+Static site for **CBEDS — the Centre for Built Environment Data Sharing**.
 
 ## Pages
 - `cbeds.html` — homepage
