@@ -132,7 +132,8 @@
   #kgcanvas:active{cursor:grabbing}
   .kg-legend{position:absolute;left:14px;bottom:14px;display:flex;gap:14px;flex-wrap:wrap;font-family:var(--display);font-size:12px;color:#cfe2e6;background:rgba(6,32,44,.6);padding:8px 12px;border-radius:10px}
   .kg-legend i{width:10px;height:10px;border-radius:50%;display:inline-block;margin-right:5px;vertical-align:middle}
-  .kg-hint{position:absolute;right:14px;bottom:14px;font-size:12px;color:rgba(255,255,255,.45);font-family:var(--display)}
+  .kg-hint{position:absolute;left:14px;top:14px;font-size:12.5px;color:#bcd6dc;font-family:var(--display);background:rgba(6,32,44,.6);padding:8px 12px;border-radius:10px}
+  .kg-hint b{color:var(--green-bright);font-weight:600}
   .kg-only{position:absolute;right:14px;top:14px;z-index:4;display:none;align-items:center;gap:7px;background:rgba(6,32,44,.72);border:1px solid rgba(134,205,199,.42);color:#dbe9ec;font-family:var(--display);font-weight:600;font-size:12.5px;padding:8px 13px;border-radius:10px;cursor:pointer;transition:.15s}
   .kg-only:hover{background:rgba(6,32,44,.92)}
   .kg-only.on{background:var(--green);color:#06202c;border-color:var(--green)}
@@ -268,7 +269,7 @@
       <canvas id="kgcanvas"></canvas>
       <button class="kg-only" id="kgOnly" title="Show only the chatbot matches"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 5h18l-7 8v6l-4-2v-4z"/></svg><span>Only matches</span></button>
       <div class="kg-legend" id="kgLegend"></div>
-      <div class="kg-hint">scroll to zoom &middot; drag to pan &middot; click a node</div>
+      <div class="kg-hint"><b>Click</b> a node to explore &middot; <b>hover</b> to spotlight &middot; <b>scroll</b> to zoom &middot; <b>drag</b> to pan</div>
     </div>
     <div class="kg-right">
       <div class="kg-sec">Find an instance</div>
@@ -468,23 +469,75 @@ render();
 /* ============ FULL GRAPH OVERLAY ============ */
 document.getElementById('kgLegend').innerHTML=legendHTML().replace(/class="legend"/g,'');
 var kg=document.getElementById('kg'), kgInit=false;
-function openKG(node){kg.classList.add('open');document.body.style.overflow='hidden';requestAnimationFrame(function(){if(!kgInit){initKG();kgInit=true;}else{sizeKG();fitKG();}if(node){selectKG(node);centerOn(node);}});}
+function openKG(node){kg.classList.add('open');document.body.style.overflow='hidden';requestAnimationFrame(function(){if(!kgInit){initKG();kgInit=true;}else{sizeKG();}if(node){selectKG(node);}else{restoreBase();kgSel=null;kgFocus=null;fitKG();}});}
 document.getElementById('openKg').onclick=function(){openKG(null);};
 document.getElementById('kgClose').onclick=function(){kg.classList.remove('open');document.body.style.overflow='';};
 
 var kgc,kgx,Wc,Hc,layout={},edgesU=[],view={s:1,tx:0,ty:0},kgSel=null,kgHover=null,kgFocus=null,kgDepth=2,onlyHighlight=false;
 var kgFilter={agent:true,project:true,output:true,tech:true,theme:'',tech2:''};
+var degOf={}; NODES.forEach(function(n){degOf[n.id]=(adj[n.id]||[]).length;});
+var basePos={}, animId=null, curFocusIds=null, clusterMeta={}, kgD1Count=0, kgD1LabelSet={};   // basePos = default spiral home; kgD1LabelSet = which 1st-connection names to show
+function hashFrac(s){var h=2166136261;for(var i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619);}return ((h>>>0)%1000)/1000;}
+function computeLayout(){
+  var kinds=['agent','project','output','tech'];
+  var idxByKind={agent:0,project:0,output:0,tech:0};
+  var local={}, maxR={agent:1,project:1,output:1,tech:1};
+  NODES.forEach(function(n){
+    var i=idxByKind[n.kind]++; var step=n.kind==='tech'?60:30;
+    var r=step*Math.sqrt(i+1), a=(i+1)*2.39996;
+    local[n.id]={x:Math.cos(a)*r, y:Math.sin(a)*r};
+    if(r>maxR[n.kind]) maxR[n.kind]=r;
+  });
+  // place the four regions on a 2x2 grid, spaced so the biggest two never overlap
+  var cell=2*Math.max(maxR.agent,maxR.project,maxR.output,maxR.tech)+420;
+  var centers={agent:[0,0], output:[cell,0], project:[0,cell], tech:[cell,cell]};
+  clusterMeta={};
+  kinds.forEach(function(k){clusterMeta[k]={cx:centers[k][0],cy:centers[k][1],R:maxR[k]};});
+  NODES.forEach(function(n){var c=centers[n.kind];layout[n.id]={x:c[0]+local[n.id].x, y:c[1]+local[n.id].y};});
+  basePos={}; for(var id in layout) basePos[id]={x:layout[id].x,y:layout[id].y};
+}
+// snap every node back to its spiral home instantly (used when re-opening clean)
+function restoreBase(){for(var id in basePos){if(layout[id]){layout[id].x=basePos[id].x;layout[id].y=basePos[id].y;}}curFocusIds=null;}
+// radial arrangement for a selection: chosen node in the centre, neighbours on depth rings
+function radialFocusTargets(n){
+  var seen=computeFocus(n,kgDepth), byDepth={};
+  Object.keys(seen).forEach(function(id){var d=seen[id];(byDepth[d]=byDepth[d]||[]).push(id);});
+  // each depth fills its own annular ZONE: 1st connections in a close inner zone,
+  // 2nd in a wider band between two circles, 3rd wider still — nodes scattered within the band
+  var ZONE={1:[120,285],2:[325,525],3:[565,765]}, targets={}; targets[n.id]={x:0,y:0};
+  for(var d=1;d<=kgDepth;d++){var ids=byDepth[d]||[],m=ids.length,z=ZONE[Math.min(d,3)];ids.forEach(function(id,i){
+    var f=hashFrac(id), f2=hashFrac(id+'#');
+    var a=((i+(f-0.5)*0.85)/Math.max(1,m))*Math.PI*2 - Math.PI/2;         // spread around the ring with jitter
+    var rr=z[0]+(z[1]-z[0])*f2;                                            // random radius within the zone band
+    targets[id]={x:Math.cos(a)*rr, y:Math.sin(a)*rr*0.94};
+  });}
+  return targets;
+}
+var ZONE_CIRC=[300,540,780];   // faint guide circles that separate the depth zones
+function focusView(){var outer=[0,300,540,780][Math.min(kgDepth,3)];var s=Math.min(Wc,Hc)*0.82/(2*(outer+40));return {s:s,tx:Wc/2,ty:Hc/2};}
+function fitAllView(){var minx=1e9,miny=1e9,maxx=-1e9,maxy=-1e9;for(var id in basePos){var p=basePos[id];if(p.x<minx)minx=p.x;if(p.y<miny)miny=p.y;if(p.x>maxx)maxx=p.x;if(p.y>maxy)maxy=p.y;}var w=maxx-minx,h=maxy-miny;var s=Math.min(Wc/w,Hc/h)*0.82;return {s:s,tx:Wc/2-(minx+w/2)*s,ty:Hc/2-(miny+h/2)*s};}
+// eased tween of node positions (+ optional view) — used both into a selection and back out
+function animateTo(nodeTargets, vTarget, dur, onDone){
+  if(animId) cancelAnimationFrame(animId);
+  var startPos={}; for(var id in nodeTargets){var p=layout[id]||{x:0,y:0}; startPos[id]={x:p.x,y:p.y};}
+  var sv={s:view.s,tx:view.tx,ty:view.ty}, t0=null;
+  function frame(ts){
+    if(t0===null)t0=ts; var k=Math.min(1,(ts-t0)/dur); var e=k<0.5?2*k*k:1-Math.pow(-2*k+2,2)/2;
+    for(var id in nodeTargets){var a=startPos[id],b=nodeTargets[id],p=layout[id]||{};p.x=a.x+(b.x-a.x)*e;p.y=a.y+(b.y-a.y)*e;layout[id]=p;}
+    if(vTarget){view.s=sv.s+(vTarget.s-sv.s)*e;view.tx=sv.tx+(vTarget.tx-sv.tx)*e;view.ty=sv.ty+(vTarget.ty-sv.ty)*e;}
+    kgDraw();
+    if(k<1){animId=requestAnimationFrame(frame);}else{animId=null;if(onDone)onDone();}
+  }
+  animId=requestAnimationFrame(frame);
+}
+function nodeR(n){var dg=degOf[n.id]||0;var k=1+Math.min(1.5,Math.sqrt(dg)*0.16);return (n.kind==='tech'?4.4:3.2)*k*Math.max(0.6,Math.min(2.2,view.s*2.2));}
+function edgeDir(a,b){var es=adj[a]||[];for(var i=0;i<es.length;i++){if(es[i].id===b)return es[i].dir==='in'?[b,a]:[a,b];}return [a,b];}
+function kgArrow(x1,y1,x2,y2,color,tgtR){var ang=Math.atan2(y2-y1,x2-x1);var ex=x2-Math.cos(ang)*(tgtR+1.5),ey=y2-Math.sin(ang)*(tgtR+1.5);var s=6.5;kgx.fillStyle=color;kgx.beginPath();kgx.moveTo(ex,ey);kgx.lineTo(ex-Math.cos(ang-0.42)*s,ey-Math.sin(ang-0.42)*s);kgx.lineTo(ex-Math.cos(ang+0.42)*s,ey-Math.sin(ang+0.42)*s);kgx.closePath();kgx.fill();}
+function kgRoundRect(x,y,w,h,r){kgx.beginPath();kgx.moveTo(x+r,y);kgx.arcTo(x+w,y,x+w,y+h,r);kgx.arcTo(x+w,y+h,x,y+h,r);kgx.arcTo(x,y+h,x,y,r);kgx.arcTo(x,y,x+w,y,r);kgx.closePath();}
 function initKG(){
   kgc=document.getElementById('kgcanvas'); kgx=kgc.getContext('2d');
-  // deterministic cluster + spiral layout
-  var WORLD={agent:[1100,900],output:[3000,900],project:[1100,2000],tech:[3000,2000]};
-  var idxByKind={agent:0,project:0,output:0,tech:0};
-  var counts={agent:0,project:0,output:0,tech:0}; NODES.forEach(function(n){counts[n.kind]++;});
-  NODES.forEach(function(n){
-    var c=WORLD[n.kind], i=idxByKind[n.kind]++; var step=n.kind==='tech'?70:34;
-    var r=step*Math.sqrt(i+1), a=(i+1)*2.39996;
-    layout[n.id]={x:c[0]+Math.cos(a)*r, y:c[1]+Math.sin(a)*r};
-  });
+  // deterministic cluster + spiral layout (re-runnable so Reset restores it)
+  computeLayout();
   // unique edges
   var seen={};
   Object.keys(adj).forEach(function(a){adj[a].forEach(function(e){var k=a<e.id?a+'|'+e.id:e.id+'|'+a;if(!seen[k]){seen[k]=1;edgesU.push([a,e.id]);}});});
@@ -525,7 +578,7 @@ function initKG(){
   botMsg('Hi! Ask me things like “who works on Digital Twin?”, “show outputs about circularity”, or type any name. I’ll find and highlight them in the graph.');
 }
 function sizeKG(){var wrap=kgc.parentNode;Wc=wrap.clientWidth;Hc=wrap.clientHeight;var dpr=Math.min(devicePixelRatio||1,2);kgc.width=Wc*dpr;kgc.height=Hc*dpr;kgx.setTransform(dpr,0,0,dpr,0,0);}
-function fitKG(){var minx=1e9,miny=1e9,maxx=-1e9,maxy=-1e9;for(var id in layout){var p=layout[id];if(p.x<minx)minx=p.x;if(p.y<miny)miny=p.y;if(p.x>maxx)maxx=p.x;if(p.y>maxy)maxy=p.y;}var w=maxx-minx,h=maxy-miny;view.s=Math.min(Wc/w,Hc/h)*0.82;view.tx=Wc/2-(minx+w/2)*view.s;view.ty=Hc/2-(miny+h/2)*view.s;kgDraw();}
+function fitKG(){var v=fitAllView();view.s=v.s;view.tx=v.tx;view.ty=v.ty;kgDraw();}
 function zoomAt(mx,my,f){var wx=(mx-view.tx)/view.s,wy=(my-view.ty)/view.s;view.s*=f;view.s=Math.max(0.04,Math.min(4,view.s));view.tx=mx-wx*view.s;view.ty=my-wy*view.s;kgDraw();}
 function visible(n){ if(!kgFilter[n.kind])return false; if(kgFilter.theme&&n.kind!=='tech'&&(n.themes||[]).indexOf(kgFilter.theme)<0)return false; if(kgFilter.tech2){ if(n.kind==='tech'){if(n.id!==kgFilter.tech2)return false;} else if((n.tech||[]).map(function(x){return x.trim();}).indexOf(kgFilter.tech2)<0)return false;} return true; }
 function degAlpha(d){return d<=1?1:(d===2?0.55:0.3);}
@@ -533,37 +586,57 @@ function kgDraw(){
   if(!kgx)return; kgx.clearRect(0,0,Wc,Hc);
   var S=view.s,TX=view.tx,TY=view.ty;
   function X(x){return x*S+TX;} function Y(y){return y*S+TY;}
+  // hovering a node (with nothing selected) spotlights it + its direct neighbours
+  var hoverNb=null;
+  if(kgHover&&!kgSel){hoverNb={};hoverNb[kgHover.id]=1;(adj[kgHover.id]||[]).forEach(function(e){hoverNb[e.id]=1;});}
   kgx.lineWidth=1;
   if(kgSel&&kgFocus){
+    // faint concentric guide circles delineate the 1st / 2nd / 3rd connection zones
+    for(var ci=0;ci<kgDepth&&ci<3;ci++){var rr=ZONE_CIRC[ci]*view.s;kgx.strokeStyle='rgba(134,205,199,'+(0.13-ci*0.028)+')';kgx.lineWidth=1;kgx.beginPath();kgx.ellipse(view.tx,view.ty,rr,rr*0.94,0,0,7);kgx.stroke();}
     for(var i=0;i<edgesU.length;i++){var a=edgesU[i][0],b=edgesU[i][1];if(!(a in kgFocus)||!(b in kgFocus))continue;var na=byId[a],nb=byId[b];if(!na||!nb||!visible(na)||!visible(nb))continue;
       var hl=(a===kgSel.id||b===kgSel.id);var deg=Math.max(kgFocus[a],kgFocus[b]);
-      kgx.strokeStyle=hl?'rgba(159,224,217,0.85)':'rgba(134,205,199,'+(deg<=1?0.32:deg===2?0.18:0.10)+')';
-      kgx.beginPath();kgx.moveTo(X(layout[a].x),Y(layout[a].y));kgx.lineTo(X(layout[b].x),Y(layout[b].y));kgx.stroke();}
+      var col=hl?'rgba(159,224,217,0.9)':'rgba(134,205,199,'+(deg<=1?0.5:deg===2?0.3:0.16)+')';
+      var d=edgeDir(a,b),s0=layout[d[0]],t0=layout[d[1]];
+      kgx.strokeStyle=col;kgx.lineWidth=hl?1.9:1.1;
+      kgx.beginPath();kgx.moveTo(X(s0.x),Y(s0.y));kgx.lineTo(X(t0.x),Y(t0.y));kgx.stroke();
+      if(hl||deg<=1) kgArrow(X(s0.x),Y(s0.y),X(t0.x),Y(t0.y),col,nodeR(byId[d[1]]));
+    }
   } else {
-    kgx.strokeStyle='rgba(134,205,199,0.06)';kgx.beginPath();var cnt=0;
-    for(var i=0;i<edgesU.length&&cnt<6000;i++){var a=byId[edgesU[i][0]],b=byId[edgesU[i][1]];if(!a||!b||!visible(a)||!visible(b))continue;if(onlyHighlight&&highlightSet&&(!highlightSet[edgesU[i][0]]||!highlightSet[edgesU[i][1]]))continue;kgx.moveTo(X(layout[edgesU[i][0]].x),Y(layout[edgesU[i][0]].y));kgx.lineTo(X(layout[edgesU[i][1]].x),Y(layout[edgesU[i][1]].y));cnt++;}kgx.stroke();
+    kgx.strokeStyle=hoverNb?'rgba(134,205,199,0.05)':'rgba(134,205,199,0.13)';kgx.lineWidth=1;kgx.beginPath();var cnt=0;
+    for(var i=0;i<edgesU.length&&cnt<8000;i++){var a=edgesU[i][0],b=edgesU[i][1];var na=byId[a],nb=byId[b];if(!na||!nb||!visible(na)||!visible(nb))continue;if(onlyHighlight&&highlightSet&&(!highlightSet[a]||!highlightSet[b]))continue;if(hoverNb&&(a===kgHover.id||b===kgHover.id))continue;kgx.moveTo(X(layout[a].x),Y(layout[a].y));kgx.lineTo(X(layout[b].x),Y(layout[b].y));cnt++;}
+    kgx.stroke();
+    if(hoverNb){for(var i=0;i<edgesU.length;i++){var a=edgesU[i][0],b=edgesU[i][1];if(a!==kgHover.id&&b!==kgHover.id)continue;var na=byId[a],nb=byId[b];if(!na||!nb||!visible(na)||!visible(nb))continue;var d=edgeDir(a,b),s0=layout[d[0]],t0=layout[d[1]];kgx.strokeStyle='rgba(159,224,217,0.85)';kgx.lineWidth=1.6;kgx.beginPath();kgx.moveTo(X(s0.x),Y(s0.y));kgx.lineTo(X(t0.x),Y(t0.y));kgx.stroke();kgArrow(X(s0.x),Y(s0.y),X(t0.x),Y(t0.y),'rgba(159,224,217,0.9)',nodeR(byId[d[1]]));}}
   }
   for(var k=0;k<NODES.length;k++){var n=NODES[k];if(!visible(n))continue;
     if(kgSel&&kgFocus&&!(n.id in kgFocus))continue;            // hide unconnected when something is selected
     if(onlyHighlight&&highlightSet&&!highlightSet[n.id])continue; // show only chatbot matches
     var p=layout[n.id];var x=X(p.x),y=Y(p.y);
-    if(x<-30||x>Wc+30||y<-30||y>Hc+30)continue;
+    if(x<-40||x>Wc+40||y<-40||y>Hc+40)continue;
     var deg=(kgSel&&kgFocus)?kgFocus[n.id]:0;
     var hlset=highlightSet&&highlightSet[n.id];
     var alpha=1;
     if(kgSel&&kgFocus) alpha=degAlpha(deg);
     else if(highlightSet) alpha=hlset?1:0.12;
-    var isHover=kgHover&&kgHover.id===n.id;
-    var r=(n.kind==='tech'?5:3.4)*Math.max(0.6,Math.min(2.2,view.s*2.2));
-    if(kgSel&&n.id===kgSel.id) r*=1.8; if(isHover) r*=1.4;
+    else if(hoverNb) alpha=hoverNb[n.id]?1:0.16;
+    var isHover=kgHover&&kgHover.id===n.id;var isSel=kgSel&&n.id===kgSel.id;
+    var r=nodeR(n);
+    if(isSel) r*=1.7; if(isHover) r*=1.35;
     kgx.globalAlpha=alpha;
+    if(isHover||isSel){var hg=kgx.createRadialGradient(x,y,0,x,y,r*3.2);hg.addColorStop(0,kindColor(n.kind));hg.addColorStop(1,'rgba(6,32,44,0)');kgx.globalAlpha=alpha*0.3;kgx.fillStyle=hg;kgx.beginPath();kgx.arc(x,y,r*3.2,0,7);kgx.fill();kgx.globalAlpha=alpha;}
     kgx.fillStyle=kindColor(n.kind);kgx.beginPath();kgx.arc(x,y,r,0,7);kgx.fill();
-    if(hlset||isHover){kgx.globalAlpha=1;kgx.strokeStyle='#fff';kgx.lineWidth=2;kgx.stroke();}
+    if(hlset||isHover||isSel){kgx.globalAlpha=1;kgx.strokeStyle='#fff';kgx.lineWidth=2;kgx.stroke();}
     kgx.globalAlpha=1;
-    var showLabel = isHover || (kgSel&&n.id===kgSel.id) || (kgSel&&kgFocus&&deg===1) || (!kgSel&&(hlset||view.s>0.5));
+    // no labels in the idle overview — only on hover, on selection, or for chat-highlighted matches
+    // show a spread-out handful of 1st-connection names; reveal all of them once zoomed in
+    var showLabel = isHover||isSel||(kgSel&&kgFocus&&deg===1&&(kgD1LabelSet[n.id]||view.s>0.85))||(hoverNb&&hoverNb[n.id])||(!kgSel&&!hoverNb&&hlset);
     if(showLabel){
-      kgx.fillStyle='rgba(223,243,239,'+(alpha<1?(0.6+0.4*alpha):0.95)+')';kgx.font='11px '+getComputedStyle(document.body).fontFamily;kgx.textAlign='left';
-      kgx.fillText(n.id.length>26?n.id.slice(0,25)+'…':n.id, x+r+4, y+3.5);
+      var lab=n.id.length>28?n.id.slice(0,27)+'…':n.id;
+      kgx.font='600 11px '+getComputedStyle(document.body).fontFamily;kgx.textAlign='left';
+      var tw=kgx.measureText(lab).width;
+      kgx.globalAlpha=(alpha<1?0.5+0.5*alpha:1);
+      kgx.fillStyle='rgba(6,32,44,0.55)';kgRoundRect(x+r+3,y-7.5,tw+8,15,4);kgx.fill();
+      kgx.fillStyle='rgba(233,247,244,0.98)';kgx.fillText(lab,x+r+7,y+3.2);
+      kgx.globalAlpha=1;
     }
   }
 }
@@ -577,9 +650,19 @@ function computeFocus(n,depth){var f={};f[n.id]=0;var frontier=[n.id];for(var d=
 function selectKG(n){
   kgSel=n;highlightSet=null;kgHover=null;setOnlyBtn(false);
   kgFocus=computeFocus(n,kgDepth);
+  // pick a spread-out handful of 1st-connection names to label (rest reveal on hover / when zoomed in)
+  var d1=[];for(var _id in kgFocus){if(kgFocus[_id]===1)d1.push(_id);}
+  kgD1Count=d1.length; kgD1LabelSet={};
+  var _tgt=Math.min(d1.length,6), _st=d1.length/Math.max(1,_tgt);
+  for(var _t=0;_t<_tgt;_t++){kgD1LabelSet[d1[Math.floor(_t*_st)]]=1;}
   var box=document.getElementById('kgDepthBox');box.style.display='flex';
   [].forEach.call(box.querySelectorAll('button'),function(b){b.classList.toggle('on',+b.getAttribute('data-d')===kgDepth);});
-  renderKGInfo(n); renderKGConn(n); kgDraw();
+  renderKGInfo(n); renderKGConn(n);
+  // arrange this node + its neighbours into a centred radial layout, animated in
+  var targets=radialFocusTargets(n), newIds=Object.keys(targets);
+  if(curFocusIds){var ns={};newIds.forEach(function(id){ns[id]=1;});curFocusIds.forEach(function(id){if(!ns[id]&&basePos[id]&&layout[id]){layout[id].x=basePos[id].x;layout[id].y=basePos[id].y;}});}
+  curFocusIds=newIds;
+  animateTo(targets, focusView(), 520);
 }
 function renderKGInfo(n){
   var web=n.web&&/^https?:\/\//.test(n.web)?'<a href="'+n.web+'" target="_blank" rel="noopener" style="color:var(--green-bright)">Visit &#8594;</a>':'';
@@ -597,12 +680,12 @@ function renderKGConn(n){
   var h='<div class="kg-sec">Direct connections ('+nb.length+')</div>';
   nb.forEach(function(e){var t=byId[e.id];var lab=(e.dir==='in'?relLabelIn:relLabel)[e.t]||'Related';h+='<div class="kg-conn" data-id="'+esc(e.id)+'"><span class="dot" style="background:'+(t?kindColor(t.kind):'#b6c7cc')+'"></span><span style="color:#7fa6b0;font-size:10px;text-transform:uppercase;min-width:70px;font-weight:700">'+lab+'</span><span>'+esc(e.id)+'</span></div>';});
   box.innerHTML=h;
-  [].forEach.call(box.querySelectorAll('.kg-conn'),function(c){var t=byId[c.getAttribute('data-id')];if(t)c.onclick=function(){selectKG(t);centerOn(t);};});
+  [].forEach.call(box.querySelectorAll('.kg-conn'),function(c){var t=byId[c.getAttribute('data-id')];if(t)c.onclick=function(){selectKG(t);};});
 }
 function centerOn(n){var p=layout[n.id];view.tx=Wc/2-p.x*view.s;view.ty=Hc/2-p.y*view.s;kgDraw();}
 function setOnlyBtn(show){var b=document.getElementById('kgOnly');if(!b)return;b.style.display=show?'inline-flex':'none';if(!show){onlyHighlight=false;b.classList.remove('on');}}
 function resetKG(){
-  kgSel=null;highlightSet=null;kgFocus=null;kgHover=null;setOnlyBtn(false);
+  highlightSet=null;kgHover=null;setOnlyBtn(false);
   kgFilter={agent:true,project:true,output:true,tech:true,theme:'',tech2:''};
   [].forEach.call(document.querySelectorAll('#kgKindFilters .kgf-chip'),function(b){b.classList.remove('off');});
   var th=document.getElementById('kgTheme');if(th)th.value='';
@@ -611,7 +694,13 @@ function resetKG(){
   document.getElementById('kgDepthBox').style.display='none';
   document.getElementById('kgConn').style.display='none';
   document.getElementById('kgSelInfo').innerHTML='<div class="kg-sec">Selected</div><div style="color:#9fc1c9;font-size:13.5px">Search above or click a node to see its details and connections.</div>';
-  fitKG();
+  var moved=curFocusIds; curFocusIds=null;
+  kgSel=null;kgFocus=null;                       // back to overview
+  var vt=fitAllView();
+  if(moved&&moved.length){                        // animate the focus nodes home + zoom back out
+    var targets={};moved.forEach(function(id){if(basePos[id])targets[id]={x:basePos[id].x,y:basePos[id].y};});
+    animateTo(targets, vt, 520);
+  } else { view.s=vt.s;view.tx=vt.tx;view.ty=vt.ty; kgDraw(); }
 }
 
 /* chat (local search now; AI later) */
@@ -645,7 +734,7 @@ function respond(q){
   var top=res.slice(0,10).map(function(n){return '<a data-id="'+esc(n.id)+'">'+esc(n.id)+'</a> <span style="color:#7fa6b0">('+kindLabel[n.kind]+')</span>';}).join('<br>');
   botMsg(lead+'Found <b>'+res.length+'</b> (highlighted in the graph). Top:<br>'+top);
   var log=document.getElementById('chatLog');
-  [].forEach.call(log.querySelectorAll('.msg.bot:last-child a'),function(a){a.onclick=function(){var t=byId[a.getAttribute('data-id')];if(t){selectKG(t);centerOn(t);}};});
+  [].forEach.call(log.querySelectorAll('.msg.bot:last-child a'),function(a){a.onclick=function(){var t=byId[a.getAttribute('data-id')];if(t){selectKG(t);}};});
 }
 
 // smart search (right) + default selection
@@ -656,7 +745,7 @@ function respond(q){
       var m=NODES.filter(function(n){return n.id.toLowerCase().indexOf(q)>=0;}).slice(0,14);
       sg.innerHTML=m.map(function(n){return '<div data-id="'+esc(n.id)+'">'+esc(n.id)+'<span class="sg-k">'+kindLabel[n.kind]+'</span></div>';}).join('');
       sg.classList.toggle('show',m.length>0);
-      [].forEach.call(sg.children,function(d){d.onclick=function(){var t=byId[d.getAttribute('data-id')];if(t){if(!kgInit){initKG();kgInit=true;}selectKG(t);centerOn(t);}sg.classList.remove('show');si.value=t.id;};});};
+      [].forEach.call(sg.children,function(d){d.onclick=function(){var t=byId[d.getAttribute('data-id')];if(t){if(!kgInit){initKG();kgInit=true;}selectKG(t);}sg.classList.remove('show');si.value=t.id;};});};
     document.addEventListener('click',function(e){if(si&&!si.contains(e.target)&&sg&&!sg.contains(e.target))sg.classList.remove('show');});
   }
 })();
