@@ -564,7 +564,7 @@ function initKG(){
     else if(drag&&moved<5){pickKG(e);}
     drag=false;
   });
-  kgc.addEventListener('dblclick',function(e){ if(!nodeAt(e)) resetKG(); });
+  kgc.addEventListener('dblclick',function(e){ animateTo({}, kgSel?focusView():fitAllView(), 380); });  // double-click re-centres the selection (or the whole graph)
   window.addEventListener('resize',function(){if(kg.classList.contains('open')){sizeKG();kgDraw();}});
   // reset view
   document.getElementById('kgReset').onclick=resetKG;
