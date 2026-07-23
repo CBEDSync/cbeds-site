@@ -694,13 +694,12 @@ function resetKG(){
   document.getElementById('kgDepthBox').style.display='none';
   document.getElementById('kgConn').style.display='none';
   document.getElementById('kgSelInfo').innerHTML='<div class="kg-sec">Selected</div><div style="color:#9fc1c9;font-size:13.5px">Search above or click a node to see its details and connections.</div>';
-  var moved=curFocusIds; curFocusIds=null;
+  curFocusIds=null;
   kgSel=null;kgFocus=null;                       // back to overview
-  var vt=fitAllView();
-  if(moved&&moved.length){                        // animate the focus nodes home + zoom back out
-    var targets={};moved.forEach(function(id){if(basePos[id])targets[id]={x:basePos[id].x,y:basePos[id].y};});
-    animateTo(targets, vt, 520);
-  } else { view.s=vt.s;view.tx=vt.tx;view.ty=vt.ty; kgDraw(); }
+  // restore EVERY node to its starting cluster position, then fit the whole graph — exactly the start state
+  var vt=fitAllView(), targets={};
+  for(var id in basePos){targets[id]={x:basePos[id].x,y:basePos[id].y};}
+  animateTo(targets, vt, 520);
 }
 
 /* chat (local search now; AI later) */
