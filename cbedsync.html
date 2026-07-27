@@ -122,10 +122,14 @@
   .kg-close{background:rgba(255,255,255,.1);border:none;color:#fff;width:38px;height:38px;border-radius:10px;font-size:20px;cursor:pointer}
   .kg-reset{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.18);color:#dbe9ec;height:38px;padding:0 16px;border-radius:10px;font-size:13px;font-weight:600;font-family:var(--display);cursor:pointer}
   .kg-reset:hover{background:rgba(255,255,255,.18)}
-  .kg-body{flex:1;display:grid;grid-template-columns:248px 1fr 360px;grid-template-rows:1fr;min-height:0;height:100%}
+  .kg-body{flex:1;display:grid;grid-template-columns:var(--kg-left-w,248px) 7px 1fr 360px;grid-template-rows:1fr;min-height:0;height:100%}
   .kg-canvas-wrap{min-height:0;min-width:0}
   .kg-left,.kg-right{overflow:auto;padding:18px;color:#dbe9ec}
-  .kg-left{border-right:1px solid rgba(255,255,255,.08);background:#0a2f40}
+  .kg-left{border-right:1px solid rgba(255,255,255,.08);background:#0a2f40;min-width:0}
+  .kg-resizer{position:relative;cursor:col-resize;background:rgba(255,255,255,.04)}
+  .kg-resizer::after{content:"";position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:3px;height:36px;border-radius:3px;background:rgba(219,238,235,.3)}
+  .kg-resizer:hover,.kg-resizer.active{background:rgba(134,205,199,.3)}
+  .kg-resizer:hover::after,.kg-resizer.active::after{background:var(--green-bright)}
   .kg-right{border-left:1px solid rgba(255,255,255,.08);background:#0a2f40;display:flex;flex-direction:column}
   .kg-canvas-wrap{position:relative;background:radial-gradient(120% 120% at 50% 40%,#0e4a63,#06202c)}
   #kgcanvas{width:100%;height:100%;display:block;cursor:grab}
@@ -178,7 +182,7 @@
   .foot-inner{display:flex;justify-content:space-between;align-items:center;gap:20px;flex-wrap:wrap}
   .foot-brand{display:flex;align-items:center;gap:11px;color:#fff;font-family:var(--display);font-weight:700}
   .foot-brand .mk{width:34px;height:34px;--a1:#9fe0d9;--a2:#7fc6cd;--a3:#5fadc2;--a4:#3f93b6;--ad:#bdeee9}
-  @media(max-width:920px){.ex-grid{grid-template-columns:1fr}nav ul{display:none}.results{max-height:none}.kg-body{grid-template-columns:1fr}}
+  @media(max-width:920px){.ex-grid{grid-template-columns:1fr}nav ul{display:none}.results{max-height:none}.kg-body{grid-template-columns:1fr}.kg-resizer{display:none}}
 </style>
 </head>
 <body>
@@ -265,6 +269,7 @@
         <div class="chat-note">Understands acronyms (DPP, BIM, DT…) &middot; searches the graph &middot; AI answers coming soon</div>
       </div>
     </div>
+    <div class="kg-resizer" id="kgResizer" title="Drag to resize"></div>
     <div class="kg-canvas-wrap">
       <canvas id="kgcanvas"></canvas>
       <button class="kg-only" id="kgOnly" title="Show only the chatbot matches"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 5h18l-7 8v6l-4-2v-4z"/></svg><span>Only matches</span></button>
@@ -472,6 +477,30 @@ var kg=document.getElementById('kg'), kgInit=false;
 function openKG(node){kg.classList.add('open');document.body.style.overflow='hidden';requestAnimationFrame(function(){if(!kgInit){initKG();kgInit=true;}else{sizeKG();}if(node){selectKG(node);}else{restoreBase();kgSel=null;kgFocus=null;fitKG();}});}
 document.getElementById('openKg').onclick=function(){openKG(null);};
 document.getElementById('kgClose').onclick=function(){kg.classList.remove('open');document.body.style.overflow='';};
+
+/* drag-resize the left panel */
+(function(){
+  var resizer=document.getElementById('kgResizer'), leftEl=document.getElementById('kgLeft');
+  var MIN=200,MAX=520;
+  var saved=parseInt(localStorage.getItem('kgLeftW'),10);
+  if(saved&&saved>=MIN&&saved<=MAX) kg.style.setProperty('--kg-left-w',saved+'px');
+  var dragging=false,startX=0,startW=0;
+  resizer.addEventListener('mousedown',function(e){
+    dragging=true;startX=e.clientX;startW=leftEl.getBoundingClientRect().width;
+    resizer.classList.add('active');document.body.style.userSelect='none';e.preventDefault();
+  });
+  window.addEventListener('mousemove',function(e){
+    if(!dragging)return;
+    var w=Math.max(MIN,Math.min(MAX,startW+(e.clientX-startX)));
+    kg.style.setProperty('--kg-left-w',w+'px');
+    if(kgInit){sizeKG();kgDraw();}
+  });
+  window.addEventListener('mouseup',function(){
+    if(!dragging)return;
+    dragging=false;resizer.classList.remove('active');document.body.style.userSelect='';
+    localStorage.setItem('kgLeftW',Math.round(leftEl.getBoundingClientRect().width));
+  });
+})();
 
 var kgc,kgx,Wc,Hc,layout={},edgesU=[],view={s:1,tx:0,ty:0},kgSel=null,kgHover=null,kgFocus=null,kgDepth=2,onlyHighlight=false;
 var kgFilter={agent:true,project:true,output:true,tech:true,theme:'',tech2:''};
