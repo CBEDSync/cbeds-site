@@ -172,6 +172,12 @@
   .msg.bot{background:rgba(255,255,255,.07);color:#e6f3f5;align-self:flex-start}
   .msg.user{background:var(--green);color:#06202c;align-self:flex-end;font-weight:600}
   .msg a{color:var(--green-bright);font-weight:600;cursor:pointer}
+  .narr p{margin:0 0 9px}
+  .narr p:last-child{margin-bottom:0}
+  .narr .nsec{font-family:var(--display);font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#7fa6b0;margin:13px 0 5px}
+  .narr .ent{color:var(--green-bright);font-weight:600;cursor:pointer;border-bottom:1px dotted rgba(134,205,199,.45)}
+  .narr .ent:hover{border-bottom-style:solid}
+  .narr .more{color:#7fa6b0}
   .chat-in{display:flex;gap:8px}
   .chat-in input{flex:1;background:#0e3e52;border:1px solid rgba(255,255,255,.15);color:#fff;border-radius:10px;padding:11px 12px;font-size:14px;font-family:var(--body)}
   .chat-in input:focus{outline:none;border-color:var(--green)}
@@ -266,7 +272,7 @@
         <div class="kg-sec">Ask the graph</div>
         <div class="chat-log" id="chatLog"></div>
         <div class="chat-in"><input id="chatIn" type="text" placeholder="e.g. what standards relate to DPP?"><button id="chatSend">Ask</button></div>
-        <div class="chat-note">Understands acronyms (DPP, BIM, DT…) &middot; searches the graph &middot; AI answers coming soon</div>
+        <div class="chat-note">Knows your acronyms (DPP, BIM, DT…) &middot; follows connections two hops out &middot; AI-written answers coming soon</div>
       </div>
     </div>
     <div class="kg-resizer" id="kgResizer" title="Drag to resize"></div>
@@ -337,7 +343,8 @@ function resolveTopic(s){
   var best=null,bl=0;
   TECH.forEach(function(t){var nm=t.id.toLowerCase().replace(/\s*\([^)]*\)/,'').trim();if(nm.length>3&&s.indexOf(nm)>=0&&nm.length>bl){best=t;bl=nm.length;}});
   if(best)return best;
-  for(var j=0;j<D.themes.length;j++){var first=D.themes[j].toLowerCase().split(' and ')[0].trim();if(first.length>6&&s.indexOf(first)>=0)return {theme:D.themes[j]};}
+  for(var j=0;j<D.themes.length;j++){var parts=D.themes[j].toLowerCase().split(' and ');
+    for(var p=0;p<parts.length;p++){var w=parts[p].trim();if(w.length>6&&s.indexOf(w)>=0)return {theme:D.themes[j]};}}
   var nm2=null;NODES.forEach(function(n){if(n.kind!=='tech'){var id=n.id.toLowerCase();if(id.length>5&&s.indexOf(id)>=0&&(!nm2||id.length>nm2.id.length))nm2=n;}});
   return nm2;
 }
@@ -604,7 +611,7 @@ function initKG(){
   // chat
   document.getElementById('chatSend').onclick=sendChat;
   document.getElementById('chatIn').addEventListener('keydown',function(e){if(e.key==='Enter')sendChat();});
-  botMsg('Hi! Ask me things like “who works on Digital Twin?”, “show outputs about circularity”, or type any name. I’ll find and highlight them in the graph.');
+  botMsg('Hi! Ask me anything — “who works on Digital Twin?”, “show outputs about circularity”, or just type a name. I’ll dig through the connections and tell you what I find.');
 }
 function sizeKG(){var wrap=kgc.parentNode;Wc=wrap.clientWidth;Hc=wrap.clientHeight;var dpr=Math.min(devicePixelRatio||1,2);kgc.width=Wc*dpr;kgc.height=Hc*dpr;kgx.setTransform(dpr,0,0,dpr,0,0);}
 function fitKG(){var v=fitAllView();view.s=v.s;view.tx=v.tx;view.ty=v.ty;kgDraw();}
@@ -735,34 +742,130 @@ function resetKG(){
 function botMsg(html){var d=document.createElement('div');d.className='msg bot';d.innerHTML=html;document.getElementById('chatLog').appendChild(d);document.getElementById('chatLog').scrollTop=1e9;}
 function userMsg(t){var d=document.createElement('div');d.className='msg user';d.textContent=t;document.getElementById('chatLog').appendChild(d);}
 function sendChat(){var inp=document.getElementById('chatIn');var q=inp.value.trim();if(!q)return;userMsg(q);inp.value='';respond(q);}
+/* --- narrative engine: retrieve a typed multi-hop subgraph, then tell its story ---
+   Technology links are flat tags, so the direct neighbourhood of a topic has no internal
+   structure. The sentences come from hop 2: project/output -> managedBy/producedBy -> agent. */
+function roleOf(n){
+  var s=n.sub||'';                                    // build.py truncates sub at 60 chars, so match by prefix
+  if(/^Academic/i.test(s))return 'academic';
+  if(/Regulator|Standard Bod/i.test(s))return 'standards';
+  if(/^Developers|^Industry|^Designers|^Consultant/i.test(s))return 'industry';
+  return 'other';
+}
+function byDeg(a,b){return (degOf[b.id]||0)-(degOf[a.id]||0);}
+function subgraphFromNodes(list,anchors){
+  var sg={anchors:anchors||[],agent:[],project:[],output:[],tech:[],chains:[],themes:{},ids:{}},seen={};
+  list.forEach(function(n){
+    if(!n||seen[n.id])return; seen[n.id]=1; sg[n.kind].push(n); sg.ids[n.id]=1;
+    (n.themes||[]).forEach(function(t){sg.themes[t]=(sg.themes[t]||0)+1;});
+  });
+  sg.project.concat(sg.output).forEach(function(x){
+    (adj[x.id]||[]).forEach(function(e){
+      if(e.dir!=='out'||(e.t!=='managedBy'&&e.t!=='producedBy'))return;
+      var ag=byId[e.id]; if(!ag||ag.kind!=='agent')return;
+      sg.chains.push({via:x,rel:e.t,agent:ag}); sg.ids[ag.id]=1;
+      if(!seen[ag.id]){seen[ag.id]=1;sg.agent.push(ag);}
+    });
+  });
+  ['agent','project','output','tech'].forEach(function(k){sg[k].sort(byDeg);});
+  (anchors||[]).forEach(function(a){sg.ids[a.id]=1;});
+  return sg;
+}
+function entLink(n){return '<a class="ent" data-id="'+esc(n.id)+'">'+esc(n.id)+'</a>';}
+function listPhrase(a){return a.length>1?a.slice(0,-1).join(', ')+' and '+a[a.length-1]:(a[0]||'');}
+function joinEnts(arr,max){
+  var s=listPhrase(arr.slice(0,max).map(entLink)),more=arr.length-max;
+  return more>0?s+' <span class="more">(+'+more+' more)</span>':s;
+}
+function countOf(n,w){return '<b>'+n+'</b> '+w+(n===1?'':'s');}
+var LENS_KEY={'organisations & experts':'agent',projects:'project',technologies:'tech'};
+var OUT_LABEL={Report:'report',Standard:'standard',Schema:'schema',Standalone:'software tool',Data:'dataset',Connecting:'connected system'};
+function composeNarrative(sg,tp){
+  var A=sg.agent,P=sg.project,O=sg.output,H=[],secs=[],lens=tp?tp[1]:null;
+  var bits=[];
+  if(A.length)bits.push('<b>'+A.length+'</b> organisation'+(A.length===1?'':'s')+' &amp; expert'+(A.length===1?'':'s'));
+  if(P.length)bits.push(countOf(P.length,'project'));
+  if(O.length)bits.push(countOf(O.length,'output'));
+  H.push('<p>'+(sg.anchors.length===1
+    ? 'Here’s what’s going on around '+entLink(sg.anchors[0])+' — '+listPhrase(bits)+'.'
+    : sg.anchors.length>1
+      ? 'Between them: '+listPhrase(bits)+'.'   // the note above already named the anchors
+      : 'Here’s what I found — '+listPhrase(bits)+'.')+'</p>');
+
+  if(A.length>=2){
+    var g={academic:[],industry:[],standards:[],other:[]},body='';
+    A.forEach(function(n){g[roleOf(n)].push(n);});
+    var one=function(a){return a.length===1;};      // keep the verb agreeing when a group has a single name
+    if(g.academic.length) body+='<p><b>On the research side,</b> '+joinEnts(g.academic,4)+(one(g.academic)?' is':' are')+' doing the heavy lifting.</p>';
+    if(g.industry.length) body+='<p><b>Out in industry,</b> '+joinEnts(g.industry,4)+(one(g.industry)?' is the one':' are the ones')+' actually building things.</p>';
+    if(g.standards.length) body+='<p><b>Writing the rules,</b> you’ve got '+joinEnts(g.standards,4)+'.</p>';
+    if(!body&&g.other.length) body='<p>'+joinEnts(g.other,5)+(one(g.other)?' is the name that keeps':' are the names that keep')+' coming up.</p>';
+    if(body) secs.push({k:'agent',t:'Who’s working on it',h:body});
+  }
+  if(P.length){
+    var runBy={}; sg.chains.forEach(function(c){if(c.via.kind==='project'&&!runBy[c.via.id])runBy[c.via.id]=c.agent;});
+    var ph=P.slice(0,4).map(function(p){var a=runBy[p.id];return entLink(p)+(a?' (run by '+entLink(a)+')':'');});
+    secs.push({k:'project',t:'What’s happening',h:'<p>'+(P.length===1?'There’s one project: ':'Projects worth a look: ')+ph.join('; ')+(P.length>4?'; <span class="more">+'+(P.length-4)+' more</span>':'')+'.</p>'});
+  }
+  if(O.length){
+    var bySub={}; O.forEach(function(o){var k=o.sub||'Output';bySub[k]=(bySub[k]||0)+1;});
+    var mix=Object.keys(bySub).sort(function(a,b){return bySub[b]-bySub[a];}).slice(0,3)
+      .map(function(k){return countOf(bySub[k],OUT_LABEL[k]||k.toLowerCase());});
+    var prodBy={}; sg.chains.forEach(function(c){if(c.via.kind==='output'&&!prodBy[c.via.id])prodBy[c.via.id]=c.agent;});
+    var pool=O;                                     // if the question named a type, lead with that type
+    if(tp&&!LENS_KEY[lens]){var f=O.filter(tp[0]);if(f.length&&f.length<O.length)pool=f;}
+    var named=pool.slice(0,3).map(function(o){var a=prodBy[o.id];return entLink(o)+(a?' (from '+entLink(a)+')':'');});
+    var h='<p>So far that’s produced '+listPhrase(mix)+'.</p>';
+    if(named.length)h+='<p>'+(pool!==O?'Here are the '+esc(lens)+': ':(named.length===1?'For example: ':'A few to start with: '))+named.join('; ')+'.</p>';
+    secs.push({k:'output',t:'What’s come out of it',h:h});
+  }
+  var th=Object.keys(sg.themes).sort(function(a,b){return sg.themes[b]-sg.themes[a];}).slice(0,3);
+  if(th.length) secs.push({k:'theme',t:'Why it matters',
+    h:'<p>Most of this sits under '+listPhrase(th.map(function(t){return '<b>'+esc(t.replace(' and ',' & ').trim())+'</b>';}))+'.</p>'});
+
+  var want=lens&&(LENS_KEY[lens]||'output');       // the question's own emphasis leads the story
+  for(var i=0;i<secs.length;i++){if(secs[i].k===want){secs.unshift(secs.splice(i,1)[0]);break;}}
+  secs.forEach(function(x){H.push('<div class="nsec">'+x.t+'</div>'+x.h);});
+  return '<div class="narr">'+H.join('')+'</div>';
+}
+function bindEnts(){
+  var last=document.getElementById('chatLog').lastChild; if(!last)return;
+  [].forEach.call(last.querySelectorAll('.ent'),function(a){
+    a.onclick=function(){var t=byId[a.getAttribute('data-id')];if(t)selectKG(t);};
+  });
+}
 function respond(q){
   var s=q.toLowerCase();
   var topics=resolveTopics(s);   // technologies / named entities (can be several)
-  var tp=typePred(s);
-  var lead='', base, res, centerNode=null;
+  var tp=typePred(s), sg=null, centerNode=null, note='';
   if(topics.length){
     var sets=topics.map(function(t){var st={};(adj[t.id]||[]).forEach(function(e){st[e.id]=1;});return st;});
-    base=NODES.filter(function(n){return sets.every(function(st){return st[n.id];});});
+    sg=subgraphFromNodes(NODES.filter(function(n){return sets.every(function(st){return st[n.id];});}),topics);
     centerNode=topics[0];
-    if(topics.length>1) lead='Connected to all of <b>'+topics.map(function(t){return esc(t.id);}).join('</b> + <b>')+'</b>. ';
-    else lead=(topics[0].kind==='tech'?'Reading that as <b>':'Around <b>')+esc(topics[0].id)+'</b>. ';
+    if(topics.length>1) note='Let’s see what <b>'+topics.map(function(t){return esc(t.id);}).join('</b> and <b>')+'</b> have in common.';
   } else {
     var topic=resolveTopic(s);
-    if(topic&&topic.theme){ base=NODES.filter(function(n){return (n.themes||[]).indexOf(topic.theme)>=0;}); lead='In the theme <b>'+esc(topic.theme.replace(' and ',' & '))+'</b>. '; }
-    else if(topic&&topic.id){ base=(adj[topic.id]||[]).map(function(e){return byId[e.id];}).filter(Boolean); base.push(topic); centerNode=topic; lead='Around <b>'+esc(topic.id)+'</b>. '; }
-    else base=NODES.filter(function(n){var hay=(n.id+' '+(n.desc||'')).toLowerCase();return hay.indexOf(s)>=0;});
+    if(topic&&topic.theme){
+      sg=subgraphFromNodes(NODES.filter(function(n){return (n.themes||[]).indexOf(topic.theme)>=0;}),[]);
+      note='I’ll take that as the <b>'+esc(topic.theme.replace(' and ',' & '))+'</b> theme.';
+    } else if(topic&&topic.id){
+      sg=subgraphFromNodes((adj[topic.id]||[]).map(function(e){return byId[e.id];}).filter(Boolean),[topic]);
+      centerNode=topic;
+    } else {
+      sg=subgraphFromNodes(NODES.filter(function(n){return (n.id+' '+(n.desc||'')).toLowerCase().indexOf(s)>=0;}),[]);
+    }
   }
-  if(tp){ res=base.filter(tp[0]); lead+='Showing <b>'+tp[1]+'</b>. '; } else res=base;
-  // dedupe
-  var seen={},out=[]; res.forEach(function(n){if(n&&!seen[n.id]){seen[n.id]=1;out.push(n);}}); res=out;
-  highlightSet={}; res.slice(0,500).forEach(function(n){highlightSet[n.id]=1;}); kgSel=null; kgFocus=null;
-  if(centerNode&&layout[centerNode.id]){centerOn(centerNode);} else kgDraw();
-  if(!res.length){setOnlyBtn(false);kgDraw();botMsg(lead+'I couldn’t find matches. Try an acronym (DPP, BIM, DT), a theme, or part of a name.');return;}
+  kgSel=null; kgFocus=null;
+  if(!(sg.agent.length+sg.project.length+sg.output.length+sg.tech.length)){
+    highlightSet=null; setOnlyBtn(false); kgDraw();
+    botMsg('Hmm, nothing came up for that. Try an acronym (DPP, BIM, DT), a theme, or just part of a name.');
+    return;
+  }
+  highlightSet=sg.ids;
+  if(centerNode&&layout[centerNode.id])centerOn(centerNode); else kgDraw();
   setOnlyBtn(true);
-  var top=res.slice(0,10).map(function(n){return '<a data-id="'+esc(n.id)+'">'+esc(n.id)+'</a> <span style="color:#7fa6b0">('+kindLabel[n.kind]+')</span>';}).join('<br>');
-  botMsg(lead+'Found <b>'+res.length+'</b> (highlighted in the graph). Top:<br>'+top);
-  var log=document.getElementById('chatLog');
-  [].forEach.call(log.querySelectorAll('.msg.bot:last-child a'),function(a){a.onclick=function(){var t=byId[a.getAttribute('data-id')];if(t){selectKG(t);}};});
+  botMsg((note?'<p style="margin:0 0 9px">'+note+'</p>':'')+composeNarrative(sg,tp));
+  bindEnts();
 }
 
 // smart search (right) + default selection

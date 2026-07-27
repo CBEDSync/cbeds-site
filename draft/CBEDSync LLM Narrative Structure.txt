@@ -1,0 +1,58 @@
+You should do the following:
+
+1- Retrieve Paths, Not Just Nodes: Query the graph for connected sub-chains (e.g., (Accenture)-[:CONTRIBUTES_TO]->(Project X)-[:HAS_OUTPUT]->(Standard Y)).
+
+2- Select one of these Narrative Templates based on the query or UI preferences:
+
+Archetype A: The Ecosystem Landscape (Sectors & Roles)
+Good for broad queries like "Who works on Digital Twin?". It groups agents into structural roles (Academia, Industry, Standards/Policy) to explain how they collaborate.
+Structure:
+Executive Summary: Overview of the active landscape.
+
+Academic & Research Leaders: Core institutions establishing theoretical foundations.
+
+Industrial & Enterprise Implementers: Commercial entities driving execution.
+
+Standards & Governance: Bodies setting frameworks and interoperability rules.
+
+Key Outputs/Intersections: Notable projects or outputs emerging from these overlaps.
+
+
+Archetype B: The Impact & Delivery Trail (Project-Centric)
+Best when highlighting tangible results, linking who is working on what and what they produced.
+Structure:
+
+The Core Challenge: Why this technology/field exists in the dataset.
+
+Active Initiatives: Key projects leading the charge.
+
+Key Players & Roles: Which agents drive these specific initiatives.
+
+Tangible Outcomes: What outputs, publications, or tools have been delivered.
+
+
+Archetype C: The Collaborative Web (Cross-Disciplinary Connections)
+Emphasizes the connections and network synergy between different node types.
+Structure:
+
+Anchor Node: The central entity or theme (e.g., Digital Twin).
+
+Primary Partnerships: Direct collaborations between academic and industrial agents.
+
+Enabling Technologies: Auxiliary tech bridging these agents together.
+
+Community Footprint: Organizations dedicated to skills, training, or deployment (e.g., Digital Twin Skills Academy).
+
+3- LLM Prompt:
+
+You are an expert storyteller analysing a Knowledge Graph dataset containing Agents, Projects, Outputs, and Technologies.
+
+Given the attached subgraph JSON, synthesize the relationships into a cohesive narrative. Do not simply list entities.
+
+Formatting should be
+1. Bold all graph entities when mentioned so they stand out (e.g., **Accenture**, **ISO**).
+2. Only reference entities and relations explicitly present in the retrieved graph context.
+3. Keep the tone professional, analytical, and informative.
+
+4- Structure the pipeline to be like this:
+[User Query] ➡️ [Graph DB Query] ➡️ [Multi-Hop Subgraph JSON] ➡️ [LLM Narrative Engine] ➡️ [Story Output]
