@@ -122,10 +122,10 @@
   .kg-close{background:rgba(255,255,255,.1);border:none;color:#fff;width:38px;height:38px;border-radius:10px;font-size:20px;cursor:pointer}
   .kg-reset{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.18);color:#dbe9ec;height:38px;padding:0 16px;border-radius:10px;font-size:13px;font-weight:600;font-family:var(--display);cursor:pointer}
   .kg-reset:hover{background:rgba(255,255,255,.18)}
-  .kg-body{flex:1;display:grid;grid-template-columns:var(--kg-left-w,248px) 7px 1fr 360px;grid-template-rows:1fr;min-height:0;height:100%}
+  .kg-body{flex:1;display:grid;grid-template-columns:var(--kg-left-w,300px) 7px 1fr 360px;grid-template-rows:1fr;min-height:0;height:100%}
   .kg-canvas-wrap{min-height:0;min-width:0}
   .kg-left,.kg-right{overflow:auto;padding:18px;color:#dbe9ec}
-  .kg-left{border-right:1px solid rgba(255,255,255,.08);background:#0a2f40;min-width:0}
+  .kg-left{border-right:1px solid rgba(255,255,255,.08);background:#0a2f40;min-width:0;display:flex;flex-direction:column}
   .kg-resizer{position:relative;cursor:col-resize;background:rgba(255,255,255,.04)}
   .kg-resizer::after{content:"";position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:3px;height:36px;border-radius:3px;background:rgba(219,238,235,.3)}
   .kg-resizer:hover,.kg-resizer.active{background:rgba(134,205,199,.3)}
@@ -134,9 +134,9 @@
   .kg-canvas-wrap{position:relative;background:radial-gradient(120% 120% at 50% 40%,#0e4a63,#06202c)}
   #kgcanvas{width:100%;height:100%;display:block;cursor:grab}
   #kgcanvas:active{cursor:grabbing}
-  .kg-legend{position:absolute;left:14px;bottom:14px;display:flex;gap:14px;flex-wrap:wrap;font-family:var(--display);font-size:12px;color:#cfe2e6;background:rgba(6,32,44,.6);padding:8px 12px;border-radius:10px}
+  .kg-legend{display:flex;gap:14px;flex-wrap:wrap;font-family:var(--display);font-size:12px;color:#cfe2e6;background:rgba(6,32,44,.6);padding:8px 12px;border-radius:10px}
   .kg-legend i{width:10px;height:10px;border-radius:50%;display:inline-block;margin-right:5px;vertical-align:middle}
-  .kg-hint{position:absolute;left:14px;top:14px;font-size:12.5px;color:#bcd6dc;font-family:var(--display);background:rgba(6,32,44,.6);padding:8px 12px;border-radius:10px}
+  .kg-hint{font-size:12.5px;color:#bcd6dc;font-family:var(--display);background:rgba(6,32,44,.6);padding:8px 12px;border-radius:10px}
   .kg-hint b{color:var(--green-bright);font-weight:600}
   .kg-only{position:absolute;right:14px;top:14px;z-index:4;display:none;align-items:center;gap:7px;background:rgba(6,32,44,.72);border:1px solid rgba(134,205,199,.42);color:#dbe9ec;font-family:var(--display);font-weight:600;font-size:12.5px;padding:8px 13px;border-radius:10px;cursor:pointer;transition:.15s}
   .kg-only:hover{background:rgba(6,32,44,.92)}
@@ -166,29 +166,40 @@
   .kg-depth{display:flex;gap:5px}
   .kg-depth button{font-family:var(--display);font-size:12px;font-weight:600;border:1px solid rgba(255,255,255,.18);background:transparent;color:#cfe2e6;border-radius:7px;padding:5px 11px;cursor:pointer}
   .kg-depth button.on{background:var(--green);color:#06202c;border-color:var(--green)}
-  .chat{margin-top:14px;flex:1;display:flex;flex-direction:column;min-height:200px;border-top:1px solid rgba(255,255,255,.08);padding-top:14px}
-  .chat-log{flex:1;overflow:auto;display:flex;flex-direction:column;gap:10px;margin-bottom:10px}
-  .msg{font-size:13.5px;line-height:1.5;padding:10px 12px;border-radius:12px;max-width:92%}
+  /* docked in the left panel, filling whatever height is left below the filters */
+  .chat{flex:1;display:flex;flex-direction:column;min-height:260px;margin-top:14px;border-top:1px solid rgba(255,255,255,.08);padding-top:14px}
+  .chat-log{flex:1;min-height:0;display:flex;flex-direction:column;gap:10px;margin-bottom:10px;overflow:auto}
+  .kg-overlays{position:absolute;left:14px;top:14px;z-index:3;display:flex;flex-direction:column;gap:8px;align-items:flex-start;max-width:calc(100% - 28px);pointer-events:none}
+  /* 12.5px over a ~400px panel gives ~57 characters per line — inside the readable 45–75 band */
+  .msg{font-size:12.5px;line-height:1.55;padding:10px 12px;border-radius:12px;max-width:96%}
   .msg.bot{background:rgba(255,255,255,.07);color:#e6f3f5;align-self:flex-start}
   .msg.user{background:var(--green);color:#06202c;align-self:flex-end;font-weight:600}
   .msg a{color:var(--green-bright);font-weight:600;cursor:pointer}
+  .narr{max-width:455px}   /* stops the measure exceeding ~75 characters when the panel is dragged wide */
   .narr p{margin:0 0 9px}
   .narr p:last-child{margin-bottom:0}
   .narr .nsec{font-family:var(--display);font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#7fa6b0;margin:13px 0 5px}
-  .narr .ent{color:var(--green-bright);font-weight:600;cursor:pointer;border-bottom:1px dotted rgba(134,205,199,.45)}
-  .narr .ent:hover{border-bottom-style:solid}
-  .narr .more{color:#7fa6b0}
-  .chat-in{display:flex;gap:8px}
-  .chat-in input{flex:1;background:#0e3e52;border:1px solid rgba(255,255,255,.15);color:#fff;border-radius:10px;padding:11px 12px;font-size:14px;font-family:var(--body)}
-  .chat-in input:focus{outline:none;border-color:var(--green)}
-  .chat-in button{background:var(--green);border:none;color:#06202c;border-radius:10px;padding:0 16px;font-weight:700;cursor:pointer;font-family:var(--display)}
+  .narr .ent{color:var(--green-bright);font-weight:700;cursor:pointer}
+  .narr .ent:hover{color:#fff}
+  .narr .more{color:#9fc1c9;cursor:pointer;border-bottom:1px dotted rgba(159,193,201,.5)}
+  .narr .more:hover{color:var(--green-bright);border-bottom-color:var(--green-bright)}
+  /* composer: one rounded field with the submit control inside it, right-aligned (ChatGPT/Claude/Perplexity pattern) */
+  .composer{display:flex;align-items:center;gap:8px;background:#0e3e52;border:1px solid rgba(255,255,255,.15);border-radius:14px;padding:5px 5px 5px 14px;transition:border-color .15s}
+  .composer:focus-within{border-color:var(--green)}
+  .composer input{flex:1;min-width:0;background:transparent;border:none;color:#fff;font-size:14px;font-family:var(--body);padding:9px 0}
+  .composer input:focus{outline:none}
+  .composer input::placeholder{color:#7fa6b0}
+  .send{flex:0 0 auto;width:34px;height:34px;border-radius:50%;border:none;background:var(--green);color:#06202c;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.15s}
+  .send:hover:not(:disabled){background:var(--green-bright)}
+  .send:disabled{opacity:.35;cursor:default}
+  .send svg{width:17px;height:17px}
   .chat-note{font-size:11px;color:#7fa6b0;margin-top:6px;font-family:var(--display)}
 
   footer{background:var(--blue-deeper);color:#88a6af;padding:46px 0;font-size:14px}
   .foot-inner{display:flex;justify-content:space-between;align-items:center;gap:20px;flex-wrap:wrap}
   .foot-brand{display:flex;align-items:center;gap:11px;color:#fff;font-family:var(--display);font-weight:700}
   .foot-brand .mk{width:34px;height:34px;--a1:#9fe0d9;--a2:#7fc6cd;--a3:#5fadc2;--a4:#3f93b6;--ad:#bdeee9}
-  @media(max-width:920px){.ex-grid{grid-template-columns:1fr}nav ul{display:none}.results{max-height:none}.kg-body{grid-template-columns:1fr}.kg-resizer{display:none}}
+  @media(max-width:920px){.ex-grid{grid-template-columns:1fr}nav ul{display:none}.results{max-height:none}.kg-body{grid-template-columns:1fr}.kg-resizer{display:none}.send{width:44px;height:44px}}
 </style>
 </head>
 <body>
@@ -271,7 +282,10 @@
       <div class="chat">
         <div class="kg-sec">Ask the graph</div>
         <div class="chat-log" id="chatLog"></div>
-        <div class="chat-in"><input id="chatIn" type="text" placeholder="e.g. what standards relate to DPP?"><button id="chatSend">Ask</button></div>
+        <div class="composer">
+          <input id="chatIn" type="text" placeholder="Ask the graph…" autocomplete="off">
+          <button class="send" id="chatSend" title="Ask" aria-label="Ask" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button>
+        </div>
         <div class="chat-note">Knows your acronyms (DPP, BIM, DT…) &middot; follows connections two hops out &middot; AI-written answers coming soon</div>
       </div>
     </div>
@@ -279,8 +293,10 @@
     <div class="kg-canvas-wrap">
       <canvas id="kgcanvas"></canvas>
       <button class="kg-only" id="kgOnly" title="Show only the chatbot matches"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 5h18l-7 8v6l-4-2v-4z"/></svg><span>Only matches</span></button>
-      <div class="kg-legend" id="kgLegend"></div>
-      <div class="kg-hint"><b>Click</b> a node to explore &middot; <b>hover</b> to spotlight &middot; <b>scroll</b> to zoom &middot; <b>drag</b> to pan</div>
+      <div class="kg-overlays">
+        <div class="kg-hint"><b>Click</b> a node to explore &middot; <b>hover</b> to spotlight &middot; <b>scroll</b> to zoom &middot; <b>drag</b> to pan</div>
+        <div class="kg-legend" id="kgLegend"></div>
+      </div>
     </div>
     <div class="kg-right">
       <div class="kg-sec">Find an instance</div>
@@ -488,7 +504,7 @@ document.getElementById('kgClose').onclick=function(){kg.classList.remove('open'
 /* drag-resize the left panel */
 (function(){
   var resizer=document.getElementById('kgResizer'), leftEl=document.getElementById('kgLeft');
-  var MIN=200,MAX=520;
+  var MIN=260,MAX=620;
   var saved=parseInt(localStorage.getItem('kgLeftW'),10);
   if(saved&&saved>=MIN&&saved<=MAX) kg.style.setProperty('--kg-left-w',saved+'px');
   var dragging=false,startX=0,startW=0;
@@ -609,9 +625,11 @@ function initKG(){
   // relationship depth control
   [].forEach.call(document.querySelectorAll('#kgDepthBox button'),function(b){b.onclick=function(){kgDepth=+b.getAttribute('data-d');if(kgSel)selectKG(kgSel);};});
   // chat
-  document.getElementById('chatSend').onclick=sendChat;
-  document.getElementById('chatIn').addEventListener('keydown',function(e){if(e.key==='Enter')sendChat();});
-  botMsg('Hi! Ask me anything — “who works on Digital Twin?”, “show outputs about circularity”, or just type a name. I’ll dig through the connections and tell you what I find.');
+  var ci=document.getElementById('chatIn'), cs=document.getElementById('chatSend');
+  cs.onclick=sendChat;
+  ci.addEventListener('keydown',function(e){if(e.key==='Enter')sendChat();});
+  ci.addEventListener('input',function(){cs.disabled=!ci.value.trim();});   // submit stays dimmed until there's a question
+  botMsg('Ask a question — “who works on Digital Twin?”, “show outputs about circularity”, or type any name. I follow the connections two hops out and summarise what the graph holds.');
 }
 function sizeKG(){var wrap=kgc.parentNode;Wc=wrap.clientWidth;Hc=wrap.clientHeight;var dpr=Math.min(devicePixelRatio||1,2);kgc.width=Wc*dpr;kgc.height=Hc*dpr;kgx.setTransform(dpr,0,0,dpr,0,0);}
 function fitKG(){var v=fitAllView();view.s=v.s;view.tx=v.tx;view.ty=v.ty;kgDraw();}
@@ -739,9 +757,9 @@ function resetKG(){
 }
 
 /* chat (local search now; AI later) */
-function botMsg(html){var d=document.createElement('div');d.className='msg bot';d.innerHTML=html;document.getElementById('chatLog').appendChild(d);document.getElementById('chatLog').scrollTop=1e9;}
+function botMsg(html){var d=document.createElement('div');d.className='msg bot';d.innerHTML=html;var l=document.getElementById('chatLog');l.appendChild(d);l.scrollTop=1e9;return d;}
 function userMsg(t){var d=document.createElement('div');d.className='msg user';d.textContent=t;document.getElementById('chatLog').appendChild(d);}
-function sendChat(){var inp=document.getElementById('chatIn');var q=inp.value.trim();if(!q)return;userMsg(q);inp.value='';respond(q);}
+function sendChat(){var inp=document.getElementById('chatIn');var q=inp.value.trim();if(!q)return;userMsg(q);inp.value='';document.getElementById('chatSend').disabled=true;respond(q);}
 /* --- narrative engine: retrieve a typed multi-hop subgraph, then tell its story ---
    Technology links are flat tags, so the direct neighbourhood of a topic has no internal
    structure. The sentences come from hop 2: project/output -> managedBy/producedBy -> agent. */
@@ -773,10 +791,17 @@ function subgraphFromNodes(list,anchors){
 }
 function entLink(n){return '<a class="ent" data-id="'+esc(n.id)+'">'+esc(n.id)+'</a>';}
 function listPhrase(a){return a.length>1?a.slice(0,-1).join(', ')+' and '+a[a.length-1]:(a[0]||'');}
-function joinEnts(arr,max){
-  var s=listPhrase(arr.slice(0,max).map(entLink)),more=arr.length-max;
-  return more>0?s+' <span class="more">(+'+more+' more)</span>':s;
+/* render the first `max` parts followed by a clickable "+N more" that expands to the full list */
+var MORE={},moreSeq=0;
+function expandable(parts,max,mode){
+  var join=function(a){return mode==='semi'?a.join('; '):listPhrase(a);};
+  if(parts.length<=max)return join(parts);
+  var id='m'+(++moreSeq); MORE[id]={parts:parts,mode:mode};
+  return '<span class="exp" data-exp="'+id+'">'+join(parts.slice(0,max))+
+         ' <a class="more" data-exp="'+id+'">(+'+(parts.length-max)+' more)</a></span>';
 }
+function joinEnts(arr,max){return expandable(arr.map(entLink),max,'list');}
+function yearOf(n){var m=(n.year||'').match(/\d{4}/);return m?+m[0]:0;}
 function countOf(n,w){return '<b>'+n+'</b> '+w+(n===1?'':'s');}
 var LENS_KEY={'organisations & experts':'agent',projects:'project',technologies:'tech'};
 var OUT_LABEL={Report:'report',Standard:'standard',Schema:'schema',Standalone:'software tool',Data:'dataset',Connecting:'connected system'};
@@ -787,25 +812,35 @@ function composeNarrative(sg,tp){
   if(P.length)bits.push(countOf(P.length,'project'));
   if(O.length)bits.push(countOf(O.length,'output'));
   H.push('<p>'+(sg.anchors.length===1
-    ? 'Here’s what’s going on around '+entLink(sg.anchors[0])+' — '+listPhrase(bits)+'.'
+    ? entLink(sg.anchors[0])+' connects to '+listPhrase(bits)+' in the graph.'
     : sg.anchors.length>1
-      ? 'Between them: '+listPhrase(bits)+'.'   // the note above already named the anchors
-      : 'Here’s what I found — '+listPhrase(bits)+'.')+'</p>');
+      ? 'They share '+listPhrase(bits)+'.'          // the note above already named the anchors
+      : 'That matches '+listPhrase(bits)+'.')+'</p>');
 
   if(A.length>=2){
     var g={academic:[],industry:[],standards:[],other:[]},body='';
     A.forEach(function(n){g[roleOf(n)].push(n);});
-    var one=function(a){return a.length===1;};      // keep the verb agreeing when a group has a single name
-    if(g.academic.length) body+='<p><b>On the research side,</b> '+joinEnts(g.academic,4)+(one(g.academic)?' is':' are')+' doing the heavy lifting.</p>';
-    if(g.industry.length) body+='<p><b>Out in industry,</b> '+joinEnts(g.industry,4)+(one(g.industry)?' is the one':' are the ones')+' actually building things.</p>';
-    if(g.standards.length) body+='<p><b>Writing the rules,</b> you’ve got '+joinEnts(g.standards,4)+'.</p>';
-    if(!body&&g.other.length) body='<p>'+joinEnts(g.other,5)+(one(g.other)?' is the name that keeps':' are the names that keep')+' coming up.</p>';
-    if(body) secs.push({k:'agent',t:'Who’s working on it',h:body});
+    if(g.academic.length) body+='<p><b>Universities and research institutes:</b> '+joinEnts(g.academic,4)+'.</p>';
+    if(g.industry.length) body+='<p><b>Industry and consultancies:</b> '+joinEnts(g.industry,4)+'.</p>';
+    if(g.standards.length) body+='<p><b>Standards bodies and regulators:</b> '+joinEnts(g.standards,4)+'.</p>';
+    if(!body&&g.other.length) body='<p>'+joinEnts(g.other,5)+'.</p>';
+    var span=[];                                     // name the mix before listing it
+    if(g.academic.length)span.push('research');
+    if(g.industry.length)span.push('industry');
+    if(g.standards.length)span.push('standards');
+    if(span.length>1) body='<p>The '+A.length+' organisations here span '+listPhrase(span)+'.</p>'+body;
+    if(body) secs.push({k:'agent',t:'Who is involved',h:body});
   }
   if(P.length){
     var runBy={}; sg.chains.forEach(function(c){if(c.via.kind==='project'&&!runBy[c.via.id])runBy[c.via.id]=c.agent;});
-    var ph=P.slice(0,4).map(function(p){var a=runBy[p.id];return entLink(p)+(a?' (run by '+entLink(a)+')':'');});
-    secs.push({k:'project',t:'What’s happening',h:'<p>'+(P.length===1?'There’s one project: ':'Projects worth a look: ')+ph.join('; ')+(P.length>4?'; <span class="more">+'+(P.length-4)+' more</span>':'')+'.</p>'});
+    var lead=P[0], la=runBy[lead.id];                // sg lists are sorted by degree, so P[0] is the best-connected
+    var h='<p>'+entLink(lead)+(la?', run by '+entLink(la)+',':'')+' is the most connected project here, with '+
+          countOf(degOf[lead.id]||0,'link')+' into the rest of the graph.</p>';
+    if(P.length>1){
+      var rest=P.slice(1).map(function(p){var a=runBy[p.id];return entLink(p)+(a?' ('+entLink(a)+')':'');});
+      h+='<p>Also under way: '+expandable(rest,3,'semi')+'.</p>';
+    }
+    secs.push({k:'project',t:'Projects under way',h:h});
   }
   if(O.length){
     var bySub={}; O.forEach(function(o){var k=o.sub||'Output';bySub[k]=(bySub[k]||0)+1;});
@@ -814,24 +849,38 @@ function composeNarrative(sg,tp){
     var prodBy={}; sg.chains.forEach(function(c){if(c.via.kind==='output'&&!prodBy[c.via.id])prodBy[c.via.id]=c.agent;});
     var pool=O;                                     // if the question named a type, lead with that type
     if(tp&&!LENS_KEY[lens]){var f=O.filter(tp[0]);if(f.length&&f.length<O.length)pool=f;}
-    var named=pool.slice(0,3).map(function(o){var a=prodBy[o.id];return entLink(o)+(a?' (from '+entLink(a)+')':'');});
-    var h='<p>So far that’s produced '+listPhrase(mix)+'.</p>';
-    if(named.length)h+='<p>'+(pool!==O?'Here are the '+esc(lens)+': ':(named.length===1?'For example: ':'A few to start with: '))+named.join('; ')+'.</p>';
-    secs.push({k:'output',t:'What’s come out of it',h:h});
+    var h='<p>The record so far: '+listPhrase(mix)+'.</p>';
+    var dated=pool.filter(yearOf).sort(function(a,b){return yearOf(b)-yearOf(a);}), top=dated[0];
+    if(top){var ta=prodBy[top.id];
+      h+='<p>The most recent is '+entLink(top)+' ('+esc(top.year)+(ta?', from '+entLink(ta):'')+').</p>';}
+    var restO=pool.filter(function(o){return !top||o.id!==top.id;})
+      .map(function(o){var a=prodBy[o.id];return entLink(o)+(o.year?' ('+esc(o.year)+')':'')+(a?' — '+entLink(a):'');});
+    var capped=restO.length>40;                      // very large sets stay browsable rather than dumping 500 links
+    if(restO.length) h+='<p>'+(pool!==O?'Other '+esc(lens):'Others')+' here'+(capped?' include':'')+': '+
+      expandable(restO.slice(0,40),3,'semi')+'.</p>';
+    secs.push({k:'output',t:'What has been published',h:h});
   }
   var th=Object.keys(sg.themes).sort(function(a,b){return sg.themes[b]-sg.themes[a];}).slice(0,3);
-  if(th.length) secs.push({k:'theme',t:'Why it matters',
-    h:'<p>Most of this sits under '+listPhrase(th.map(function(t){return '<b>'+esc(t.replace(' and ',' & ').trim())+'</b>';}))+'.</p>'});
+  if(th.length) secs.push({k:'theme',t:'Value themes',
+    h:'<p>Most of this work is tagged under '+listPhrase(th.map(function(t){return '<b>'+esc(t.replace(' and ',' & ').trim())+'</b>';}))+'.</p>'});
 
   var want=lens&&(LENS_KEY[lens]||'output');       // the question's own emphasis leads the story
   for(var i=0;i<secs.length;i++){if(secs[i].k===want){secs.unshift(secs.splice(i,1)[0]);break;}}
   secs.forEach(function(x){H.push('<div class="nsec">'+x.t+'</div>'+x.h);});
   return '<div class="narr">'+H.join('')+'</div>';
 }
-function bindEnts(){
-  var last=document.getElementById('chatLog').lastChild; if(!last)return;
-  [].forEach.call(last.querySelectorAll('.ent'),function(a){
+function bindEnts(root){
+  if(!root)return;
+  [].forEach.call(root.querySelectorAll('.ent'),function(a){
     a.onclick=function(){var t=byId[a.getAttribute('data-id')];if(t)selectKG(t);};
+  });
+  [].forEach.call(root.querySelectorAll('a.more'),function(a){
+    a.onclick=function(){
+      var id=a.getAttribute('data-exp'),d=MORE[id];if(!d)return;
+      var host=root.querySelector('span.exp[data-exp="'+id+'"]');if(!host)return;
+      host.innerHTML=(d.mode==='semi'?d.parts.join('; '):listPhrase(d.parts));
+      bindEnts(host);
+    };
   });
 }
 function respond(q){
@@ -842,12 +891,12 @@ function respond(q){
     var sets=topics.map(function(t){var st={};(adj[t.id]||[]).forEach(function(e){st[e.id]=1;});return st;});
     sg=subgraphFromNodes(NODES.filter(function(n){return sets.every(function(st){return st[n.id];});}),topics);
     centerNode=topics[0];
-    if(topics.length>1) note='Let’s see what <b>'+topics.map(function(t){return esc(t.id);}).join('</b> and <b>')+'</b> have in common.';
+    if(topics.length>1) note='Showing what <b>'+topics.map(function(t){return esc(t.id);}).join('</b> and <b>')+'</b> have in common.';
   } else {
     var topic=resolveTopic(s);
     if(topic&&topic.theme){
       sg=subgraphFromNodes(NODES.filter(function(n){return (n.themes||[]).indexOf(topic.theme)>=0;}),[]);
-      note='I’ll take that as the <b>'+esc(topic.theme.replace(' and ',' & '))+'</b> theme.';
+      note='Reading that as the <b>'+esc(topic.theme.replace(' and ',' & '))+'</b> theme.';
     } else if(topic&&topic.id){
       sg=subgraphFromNodes((adj[topic.id]||[]).map(function(e){return byId[e.id];}).filter(Boolean),[topic]);
       centerNode=topic;
@@ -858,14 +907,13 @@ function respond(q){
   kgSel=null; kgFocus=null;
   if(!(sg.agent.length+sg.project.length+sg.output.length+sg.tech.length)){
     highlightSet=null; setOnlyBtn(false); kgDraw();
-    botMsg('Hmm, nothing came up for that. Try an acronym (DPP, BIM, DT), a theme, or just part of a name.');
+    botMsg('No matches for that. Try an acronym (DPP, BIM, DT), a theme, or part of a name.');
     return;
   }
   highlightSet=sg.ids;
   if(centerNode&&layout[centerNode.id])centerOn(centerNode); else kgDraw();
   setOnlyBtn(true);
-  botMsg((note?'<p style="margin:0 0 9px">'+note+'</p>':'')+composeNarrative(sg,tp));
-  bindEnts();
+  bindEnts(botMsg((note?'<p style="margin:0 0 9px">'+note+'</p>':'')+composeNarrative(sg,tp)));
 }
 
 // smart search (right) + default selection
