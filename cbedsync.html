@@ -887,11 +887,32 @@ var OUT_LABEL={Report:'report',Standard:'standard',Schema:'schema',Standalone:'s
    trail     = what is being built and what has come out of it
    web       = what two or more topics have in common                            */
 var TRAIL_LENS={standards:1,schemas:1,reports:1,'tools / systems':1,outputs:1,projects:1};
+/* Routing runs in two passes. Wording decides when the question is explicit, but most
+   real questions are a bare name ("Digital Twin", "UCL") with no signal in them at all
+   — so the retrieved subgraph gets the casting vote rather than everything defaulting
+   to one shape. Note "share"/"link" are deliberately NOT web triggers: "data sharing"
+   and "linked data" are everywhere in this domain and would fire on almost anything. */
+function shapeSignals(sg){
+  var seen={},roles=0;
+  sg.agent.forEach(function(n){seen[roleOf(n)]=1;});
+  ['academic','industry','standards'].forEach(function(k){if(seen[k])roles++;});
+  return {a:sg.agent.length,p:sg.project.length,o:sg.output.length,roles:roles,
+          anchor:sg.anchors.length===1?sg.anchors[0].kind:null};
+}
 function pickShape(sg,tp,s){
   s=s||'';
-  if(sg.anchors.length>1||/\b(connect|connection|link|between|shared|share|common|overlap|bridge|both|versus|vs)\b/.test(s))return 'web';
-  if((tp&&TRAIL_LENS[tp[1]])||/\b(produce|produced|deliver|delivered|result|results|outcome|output|publish|published|built|made|standard|report|tool)\b/.test(s))return 'trail';
-  return 'landscape';
+  var lens=tp?tp[1]:null;
+  // 1 — the question asks outright
+  if(sg.anchors.length>1||/\b(in common|both|between|versus|vs|overlap\w*|bridge\w*|intersect\w*)\b/.test(s))return 'web';
+  if(lens&&TRAIL_LENS[lens])return 'trail';
+  if(lens==='organisations & experts')return 'landscape';
+  // "produce" spelled out rather than produc\w* — otherwise "Digital Product Passport" matches
+  if(/\b(produce[sd]?|producing|production|deliver\w*|publish\w*|outcome\w*|result\w*|achiev\w*|built|made)\b/.test(s))return 'trail';
+  // 2 — otherwise, whichever story the data actually supports
+  var f=shapeSignals(sg);
+  if(f.anchor==='agent'||f.anchor==='project')return 'trail';   // a body: the story is what it delivers
+  if(f.a>=4&&f.roles>=2)return 'landscape';                     // a real spread of sectors to describe
+  return (f.o+f.p)>0?'trail':'landscape';
 }
 // everything the shapes draw on, computed once
 function narrFacts(sg){
