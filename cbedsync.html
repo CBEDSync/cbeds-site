@@ -557,6 +557,13 @@ document.getElementById('kgClose').onclick=function(){kg.classList.remove('open'
 })();
 
 var kgc,kgx,Wc,Hc,layout={},edgesU=[],view={s:1,tx:0,ty:0},kgSel=null,kgHover=null,kgFocus=null,kgDepth=2,onlyHighlight=false;
+var entHover=null;   // set while the pointer is on an entity name outside the canvas
+// hovering a name anywhere in the UI spotlights its node exactly as hovering it on the canvas does
+function bindNodeHover(el,t){
+  if(!el||!t)return;
+  el.onmouseenter=function(){if(!kgInit)return;entHover=t;kgHover=t;kgDraw();};
+  el.onmouseleave=function(){if(!entHover)return;entHover=null;kgHover=null;kgDraw();};
+}
 var kgFilter={agent:true,project:true,output:true,tech:true,theme:'',tech2:''};
 var degOf={}; NODES.forEach(function(n){degOf[n.id]=(adj[n.id]||[]).length;});
 var basePos={}, animId=null, curFocusIds=null, clusterMeta={}, kgD1Count=0, kgD1LabelSet={};   // basePos = default spiral home; kgD1LabelSet = which 1st-connection names to show
@@ -640,6 +647,10 @@ function initKG(){
   window.addEventListener('mousemove',function(e){ if(!kg.classList.contains('open'))return;
     if(dragNode){var p=layout[dragNode.id];p.x+=(e.clientX-lx)/view.s;p.y+=(e.clientY-ly)/view.s;lx=e.clientX;ly=e.clientY;moved+=Math.abs(e.movementX)+Math.abs(e.movementY);kgDraw();}
     else if(drag){view.tx+=e.clientX-lx;view.ty+=e.clientY-ly;lx=e.clientX;ly=e.clientY;moved+=Math.abs(e.movementX)+Math.abs(e.movementY);kgDraw();}
+    else if(e.target!==kgc){                       // pointer is off the canvas
+      if(entHover)return;                          // an answer link owns the spotlight — leave it alone
+      if(kgHover){kgHover=null;kgDraw();}
+    }
     else{var h=nodeAt(e);if((h&&h.id)!==(kgHover&&kgHover.id)){kgHover=h;kgc.style.cursor=h?'pointer':'grab';kgDraw();}}
   });
   window.addEventListener('mouseup',function(e){
@@ -735,7 +746,7 @@ function nodeAt(e){var r=kgc.getBoundingClientRect();var mx=e.clientX-r.left,my=
 function pickKG(e){var n=nodeAt(e);if(n)selectKG(n);}
 function computeFocus(n,depth){var f={};f[n.id]=0;var frontier=[n.id];for(var d=1;d<=depth;d++){var nx=[];for(var i=0;i<frontier.length;i++){var nbs=adj[frontier[i]]||[];for(var j=0;j<nbs.length;j++){var id=nbs[j].id;if(byId[id]&&!(id in f)){f[id]=d;nx.push(id);}}}frontier=nx;}return f;}
 function selectKG(n){
-  kgSel=n;highlightSet=null;kgHover=null;setOnlyBtn(false);
+  kgSel=n;highlightSet=null;kgHover=null;entHover=null;setOnlyBtn(false);   // the hovered row is about to be re-rendered
   kgFocus=computeFocus(n,kgDepth);
   // pick a spread-out handful of 1st-connection names to label (rest reveal on hover / when zoomed in)
   var d1=[];for(var _id in kgFocus){if(kgFocus[_id]===1)d1.push(_id);}
@@ -767,7 +778,9 @@ function renderKGConn(n){
   var h='<div class="kg-sec">Direct connections ('+nb.length+')</div>';
   nb.forEach(function(e){var t=byId[e.id];var lab=(e.dir==='in'?relLabelIn:relLabel)[e.t]||'Related';h+='<div class="kg-conn" data-id="'+esc(e.id)+'"><span class="dot" style="background:'+(t?kindColor(t.kind):'#b6c7cc')+'"></span><span style="color:#7fa6b0;font-size:10px;text-transform:uppercase;min-width:70px;font-weight:700">'+lab+'</span><span>'+esc(e.id)+'</span></div>';});
   box.innerHTML=h;
-  [].forEach.call(box.querySelectorAll('.kg-conn'),function(c){var t=byId[c.getAttribute('data-id')];if(t)c.onclick=function(){selectKG(t);};});
+  [].forEach.call(box.querySelectorAll('.kg-conn'),function(c){var t=byId[c.getAttribute('data-id')];
+    if(t)c.onclick=function(){selectKG(t);};
+    bindNodeHover(c,t);});   // rows for entities outside the graph get no hover, same as no click
 }
 function centerOn(n){var p=layout[n.id];view.tx=Wc/2-p.x*view.s;view.ty=Hc/2-p.y*view.s;kgDraw();}
 function setOnlyBtn(show){var b=document.getElementById('kgOnly');if(!b)return;b.style.display=show?'inline-flex':'none';if(!show){onlyHighlight=false;b.classList.remove('on');}}
@@ -833,6 +846,7 @@ var GREETING='Ask a question — “who works on Digital Twin?”, “show outpu
 // wipe the transcript and put the graph back to its opening state
 function clearConversation(){
   chatEl().innerHTML='';
+  entHover=null;kgHover=null;              // the hovered link is being removed; mouseleave won't fire
   followBottom=true;lastScrollTop=0;
   resetKG();
   var inp=document.getElementById('chatIn');inp.value='';
@@ -1041,6 +1055,7 @@ function bindEnts(root){
   if(!root)return;
   [].forEach.call(root.querySelectorAll('.ent'),function(a){
     a.onclick=function(){var t=byId[a.getAttribute('data-id')];if(t)selectKG(t);};
+    bindNodeHover(a,byId[a.getAttribute('data-id')]);
   });
   [].forEach.call(root.querySelectorAll('a.more'),function(a){
     a.onclick=function(){
@@ -1144,6 +1159,7 @@ function askLLM(q,sg,tp,el,head,narr){
         if(sec&&known[sec.heading]&&sec.paragraph)paras[sec.heading]=mdToHtml(sec.paragraph);
       });
       if(!Object.keys(paras).length)return;
+      if(entHover){entHover=null;kgHover=null;}   // links are about to be replaced under the pointer
       el.innerHTML=head+renderNarrative(narr,paras)+
         '<div class="ai-note">Section notes written by Claude from the data shown</div>';
       bindEnts(el);
