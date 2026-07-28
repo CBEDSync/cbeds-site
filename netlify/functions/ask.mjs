@@ -46,44 +46,59 @@ function sameSite(req) {
   }
 }
 
-const SYSTEM = `You are writing short narrative answers for CBEDSync, the knowledge graph of the
+const SYSTEM = `You are writing short narrative glosses for CBEDSync, the knowledge graph of the
 UK built-environment data-sharing ecosystem, run by CBEDS at UCL.
 
-You will be given a user's question and a SUBGRAPH: the agents (organisations and
-experts), projects, outputs and value themes the site retrieved for that question,
-plus the managedBy / producedBy links between them.
+You will be given a user's question, a SUBGRAPH (the agents — organisations and
+experts — projects, outputs and value themes the site retrieved, plus the
+managedBy / producedBy links between them), and SECTIONS: the headings the site has
+already laid out, each with the facts it is about to list under that heading.
 
-Write a brief narrative that explains what the subgraph shows. The subgraph carries
-a "narrative_shape" field naming which of these to follow — use it unless the
-question plainly calls for another:
-
-- "landscape" — Ecosystem landscape, for broad "who works on X?" questions. Group
-  the agents by the role their listed type implies (universities and research
-  institutes, industry and consultancies, standards bodies and regulators), then
-  say where those groups meet: the best-connected project and the newest output.
-- "trail" — Impact and delivery trail, when the question is about results. Open on
-  what the work is for (its value themes), then the initiatives under way, then who
-  is named as running or producing them, then what has actually been published.
-- "web" — Collaborative web, when the question spans two or more topics. Centre on
-  what they have in common: which partners bridge them, which technologies run
-  through both, and the specific projects and outputs they share.
+Write ONE short paragraph for each section, in the order given. Each paragraph
+introduces its section: it says what the reader should take from those facts and
+why they hang together. The facts themselves are already on screen directly below
+your paragraph, so do not re-list them.
 
 Rules, in order of importance:
 
-1. Use ONLY entities and relationships present in the subgraph. Never introduce an
-   organisation, project, output, date or fact that is not in it. If the subgraph is
-   thin, say so plainly rather than padding.
+1. Use ONLY entities and relationships present in the subgraph and that section's
+   facts. Never introduce an organisation, project, output, date or number that is
+   not there. If a section is thin, say so plainly rather than padding.
 2. Wrap every entity name in **double asterisks**, spelled exactly as it appears in
-   the subgraph — the site turns these into clickable graph links, and a misspelling
-   silently breaks the link.
-3. When you single out an entity, say why it stands out using the data given
-   (most connected, most recent, produced by several partners). Never imply that
-   unnamed entities are inactive or less important.
-4. Keep it to 120–200 words in 2–4 short paragraphs. No headings, no bullet lists,
-   no preamble like "Here is" or "Based on the data".
-5. Tone: professional, plain and readable — a knowledgeable colleague explaining
+   the data — the site turns these into clickable graph links, and a misspelling
+   silently breaks the link. Two or three named entities per paragraph is plenty.
+3. **Hard limit: 50 words per paragraph.** Aim for 30–45. One or two sentences.
+4. Do not repeat the section heading, and do not open with "This section" or
+   "Here". Start with the substance.
+5. Each paragraph must say something the list below it does not — the pattern, the
+   significance, how the pieces relate. If you can only restate the list, write one
+   short sentence rather than padding to length.
+6. Tone: professional, plain and readable — a knowledgeable colleague explaining
    the landscape. Not marketing copy, not casual.
-6. British spelling ("organisation", "programme").`;
+7. British spelling ("organisation", "programme").
+
+Return one entry per section, echoing the heading back exactly as given.`;
+
+/* Structured output keeps the reply keyed to the headings the page already rendered. */
+const SCHEMA = {
+  type: "object",
+  properties: {
+    sections: {
+      type: "array",
+      items: {
+        type: "object",
+        properties: {
+          heading: { type: "string" },
+          paragraph: { type: "string" },
+        },
+        required: ["heading", "paragraph"],
+        additionalProperties: false,
+      },
+    },
+  },
+  required: ["sections"],
+  additionalProperties: false,
+};
 
 export default async (req) => {
   if (req.method !== "POST") {
@@ -111,7 +126,8 @@ export default async (req) => {
 
   const question = String(body?.question || "").slice(0, 500);
   const subgraph = body?.subgraph;
-  if (!question || !subgraph) {
+  const sections = Array.isArray(body?.sections) ? body.sections.slice(0, 8) : [];
+  if (!question || !subgraph || !sections.length) {
     return Response.json({ error: "bad_request" }, { status: 400 });
   }
 
@@ -120,7 +136,8 @@ export default async (req) => {
       model: "claude-opus-5",
       max_tokens: 4000, // caps thinking + prose together — thinking is on by default
       system: SYSTEM,
-      output_config: { effort: "low" }, // short scoped task; raise to "medium" for richer prose
+      // short scoped task; raise effort to "medium" for richer prose
+      output_config: { effort: "low", format: { type: "json_schema", schema: SCHEMA } },
       betas: ["server-side-fallback-2026-07-01"],
       fallbacks: "default",
       messages: [
@@ -128,7 +145,9 @@ export default async (req) => {
           role: "user",
           content:
             `Question: ${question}\n\n` +
-            `SUBGRAPH:\n${JSON.stringify(subgraph)}`,
+            `SUBGRAPH:\n${JSON.stringify(subgraph)}\n\n` +
+            `SECTIONS (write one paragraph for each, in this order):\n` +
+            JSON.stringify(sections),
         },
       ],
     });
@@ -145,8 +164,28 @@ export default async (req) => {
 
     if (!text) return Response.json({ error: "empty" }, { status: 502 });
 
+    let parsed;
+    try {
+      parsed = JSON.parse(text);
+    } catch {
+      return Response.json({ error: "bad_model_output" }, { status: 502 });
+    }
+    if (!parsed || !Array.isArray(parsed.sections)) {
+      return Response.json({ error: "bad_model_output" }, { status: 502 });
+    }
+
+    // belt-and-braces: the word cap is a prompt instruction, so clamp it here too
+    const out = parsed.sections
+      .filter((s) => s && typeof s.heading === "string" && typeof s.paragraph === "string")
+      .map((s) => ({
+        heading: s.heading.slice(0, 120),
+        paragraph: s.paragraph.trim().split(/\s+/).slice(0, 60).join(" "),
+      }));
+
+    if (!out.length) return Response.json({ error: "empty" }, { status: 502 });
+
     return Response.json(
-      { text },
+      { sections: out },
       { headers: { "cache-control": "no-store" } }
     );
   } catch (err) {
