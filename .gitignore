@@ -5,6 +5,10 @@ __pycache__/
 # Build artifacts / packaged copies
 *.zip
 
+# Node / Netlify function dependencies
+node_modules/
+.netlify/
+
 # OS junk
 .DS_Store
 Thumbs.db

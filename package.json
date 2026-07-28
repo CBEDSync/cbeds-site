@@ -1,0 +1,9 @@
+{
+  "name": "cbeds-site",
+  "private": true,
+  "description": "Dependencies for the CBEDSync ask-the-graph Netlify function. The website itself is static and needs no build step.",
+  "type": "module",
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.115.0"
+  }
+}

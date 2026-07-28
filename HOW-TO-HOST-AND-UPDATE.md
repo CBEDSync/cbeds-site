@@ -70,6 +70,37 @@ If you'd rather not both touch git, the simplest arrangement is: whoever owns th
 
 ---
 
+## Turning on AI-written answers (optional, one-time)
+
+"Ask the graph" on the CBEDSync page works with no setup — it writes answers from
+the graph itself. Adding an API key upgrades those answers to AI-written prose.
+
+**The key must never go in the website files.** Anything in an `.html` or `.js` file
+is public — visitors can read it, and it ends up in the GitHub repo. Instead the key
+lives in Netlify's settings, where only the site's own server code can see it.
+
+1. Create an API key at https://console.anthropic.com → **API keys**.
+2. While you're there, set a monthly spend limit (**Settings → Limits**). This is
+   your safety net — without it there is no cap on what the site can spend.
+3. In Netlify: **Site configuration → Environment variables → Add a variable**.
+   - Key: `ANTHROPIC_API_KEY`
+   - Value: paste the key from step 1
+4. **Deploys → Trigger deploy → Deploy site.**
+
+Ask a question on the CBEDSync page. You should see the answer appear instantly and
+then, a couple of seconds later, get rewritten into fuller prose with
+"Written by Claude from the graph above" underneath.
+
+**Costs** roughly 2–3p per question. If nothing is set up, or the key is removed, or
+the service is down, the page quietly falls back to the built-in answers — it never
+breaks.
+
+**One thing to change:** open `netlify/functions/ask.mjs` and add your real site
+address to the `ALLOWED_HOSTS` list near the top. Only pages on those addresses can
+use the key, which stops other websites from spending your credit.
+
+---
+
 ## Files in this project
 
 | File | What it is |
@@ -82,6 +113,8 @@ If you'd rather not both touch git, the simplest arrangement is: whoever owns th
 | `update-website.bat` / `.command` | one-click: rebuild + publish |
 | `cbedsync-data.backup.js` | a backup of the previous data file |
 | `Slide1-3.JPG`, `favicon.svg` | site images |
+| `netlify/functions/ask.mjs` | server code for AI answers — holds no key, reads it from Netlify |
+| `netlify.toml`, `package.json`, `package-lock.json` | settings so Netlify can run that server code |
 
 ## If something looks wrong
 - Ran the script but no change on the si
