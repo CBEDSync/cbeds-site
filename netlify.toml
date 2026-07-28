@@ -1,0 +1,9 @@
+[build]
+  publish = "."
+  # No build step — the site is static. Netlify installs the function's
+  # dependencies from package.json automatically.
+  command = ""
+
+[functions]
+  directory = "netlify/functions"
+  node_bundler = "esbuild"
