@@ -53,17 +53,20 @@ You will be given a user's question and a SUBGRAPH: the agents (organisations an
 experts), projects, outputs and value themes the site retrieved for that question,
 plus the managedBy / producedBy links between them.
 
-Write a brief narrative that explains what the subgraph shows. Choose whichever
-shape fits the question:
+Write a brief narrative that explains what the subgraph shows. The subgraph carries
+a "narrative_shape" field naming which of these to follow — use it unless the
+question plainly calls for another:
 
-- Ecosystem landscape — for broad "who works on X?" questions. Group the agents by
-  the role their listed type implies (universities and research institutes,
-  industry and consultancies, standards bodies and regulators) and say how those
-  groups meet.
-- Delivery trail — when the question is about results. Lead with the projects under
-  way and the outputs they produced, and name who is behind them.
-- Collaborative web — when the question spans two or more technologies. Centre on
-  what they share and who bridges them.
+- "landscape" — Ecosystem landscape, for broad "who works on X?" questions. Group
+  the agents by the role their listed type implies (universities and research
+  institutes, industry and consultancies, standards bodies and regulators), then
+  say where those groups meet: the best-connected project and the newest output.
+- "trail" — Impact and delivery trail, when the question is about results. Open on
+  what the work is for (its value themes), then the initiatives under way, then who
+  is named as running or producing them, then what has actually been published.
+- "web" — Collaborative web, when the question spans two or more topics. Centre on
+  what they have in common: which partners bridge them, which technologies run
+  through both, and the specific projects and outputs they share.
 
 Rules, in order of importance:
 
