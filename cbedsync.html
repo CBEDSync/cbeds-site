@@ -185,6 +185,8 @@
   .narr p{margin:0 0 9px}
   .narr p:last-child{margin-bottom:0}
   .narr .nsec{font-family:var(--display);font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#7fa6b0;margin:13px 0 5px}
+  /* the written gloss, marked so it reads as commentary rather than as data */
+  .narr .nsum{border-left:2px solid rgba(134,205,199,.4);padding-left:9px;margin:0 0 9px;color:#e6f3f5}
   .narr .ent{color:var(--green-bright);font-weight:700;cursor:pointer}
   .narr .ent:hover{color:#fff}
   .narr .more{color:#9fc1c9;cursor:pointer;border-bottom:1px dotted rgba(159,193,201,.5)}
@@ -1018,12 +1020,23 @@ function narrWeb(sg,tp,f){
   return secs;
 }
 
-function composeNarrative(sg,tp,shape){
-  var f=narrFacts(sg),H=['<p>'+leadCounts(sg)+'</p>'];
-  var secs=shape==='trail'?narrTrail(sg,tp,f):shape==='web'?narrWeb(sg,tp,f):narrLandscape(sg,tp,f);
-  secs.forEach(function(x){if(x.h)H.push('<div class="nsec">'+x.t+'</div>'+x.h);});
-  return '<div class="narr" data-shape="'+shape+'">'+H.join('')+'</div>';
+// build the sections once; render them with or without the per-section LLM paragraphs
+function buildNarrative(sg,tp,shape){
+  var f=narrFacts(sg);
+  var secs=(shape==='trail'?narrTrail:shape==='web'?narrWeb:narrLandscape)(sg,tp,f)
+    .filter(function(x){return x.h;});
+  return {lead:'<p>'+leadCounts(sg)+'</p>',secs:secs,shape:shape};
 }
+function renderNarrative(n,paras){
+  var H=[n.lead];
+  n.secs.forEach(function(x){
+    H.push('<div class="nsec">'+x.t+'</div>');
+    if(paras&&paras[x.t])H.push('<p class="nsum">'+paras[x.t]+'</p>');   // the written gloss leads, facts follow
+    H.push(x.h);
+  });
+  return '<div class="narr" data-shape="'+n.shape+'">'+H.join('')+'</div>';
+}
+function composeNarrative(sg,tp,shape){return renderNarrative(buildNarrative(sg,tp,shape));}
 function bindEnts(root){
   if(!root)return;
   [].forEach.call(root.querySelectorAll('.ent'),function(a){
@@ -1071,10 +1084,11 @@ function respond(q){
   // the template answer renders straight away, then the LLM prose replaces it if the
   // proxy is reachable — so the panel is never blank and never breaks when it isn't
   var shape=pickShape(sg,tp,s);                 // the question decides which story gets told
+  var narr=buildNarrative(sg,tp,shape);
   var head=(note?'<p style="margin:0 0 9px">'+note+'</p>':'');
-  var el=botMsg(head+composeNarrative(sg,tp,shape));
+  var el=botMsg(head+renderNarrative(narr));
   bindEnts(el);
-  askLLM(q,sg,tp,el,head,shape);
+  askLLM(q,sg,tp,el,head,narr);
 }
 
 /* ---- LLM narrative (via the Netlify proxy; the key never reaches the browser) ---- */
@@ -1095,35 +1109,43 @@ function llmPayload(sg,tp,shape){
   };
 }
 // **Name** -> clickable graph link when the name is a real node, plain bold when it isn't
-function renderLLM(text){
-  var html='';
-  text.split(/\n{2,}/).forEach(function(p){
-    var s=p.replace(/\n/g,' ').trim(); if(!s)return;
-    var out='',last=0,re=/\*\*([^*]+)\*\*/g,m;
-    while((m=re.exec(s))){
-      out+=esc(s.slice(last,m.index));
-      var t=byId[m[1].trim()];
-      out+=t?entLink(t):'<b>'+esc(m[1])+'</b>';
-      last=re.lastIndex;
-    }
-    out+=esc(s.slice(last));
-    html+='<p>'+out+'</p>';
-  });
-  return '<div class="narr">'+html+'</div>';
+function mdToHtml(s){
+  var out='',last=0,re=/\*\*([^*]+)\*\*/g,m;
+  s=String(s).replace(/\s+/g,' ').trim();
+  while((m=re.exec(s))){
+    out+=esc(s.slice(last,m.index));
+    var t=byId[m[1].trim()];
+    out+=t?entLink(t):'<b>'+esc(m[1])+'</b>';
+    last=re.lastIndex;
+  }
+  return out+esc(s.slice(last));
 }
-function askLLM(q,sg,tp,el,head,shape){
+function stripTags(html){var d=document.createElement('div');d.innerHTML=html;return d.textContent.replace(/\s+/g,' ').trim();}
+function askLLM(q,sg,tp,el,head,narr){
   if(llmOff||!window.fetch||location.protocol==='file:')return;   // offline / opened as a local file
   el.classList.add('writing');
   fetch(LLM_ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({question:q,subgraph:llmPayload(sg,tp,shape)})})
+    body:JSON.stringify({
+      question:q,
+      subgraph:llmPayload(sg,tp,narr.shape),
+      // the headings already on screen, each with the facts about to be listed under it
+      sections:narr.secs.map(function(x){return {heading:x.t,facts:stripTags(x.h).slice(0,500)};})
+    })})
     .then(function(r){
       if(r.status===404||r.status===403)llmOff=true;              // no proxy deployed — stop trying
       if(!r.ok)throw new Error(r.status);
       return r.json();
     })
     .then(function(d){
-      if(!d||!d.text)return;
-      el.innerHTML=head+renderLLM(d.text)+'<div class="ai-note">Written by Claude from the graph above</div>';
+      if(!d||!Array.isArray(d.sections)||!d.sections.length)return;
+      var paras={},known={};
+      narr.secs.forEach(function(x){known[x.t]=1;});
+      d.sections.forEach(function(sec){                            // ignore headings we didn't ask for
+        if(sec&&known[sec.heading]&&sec.paragraph)paras[sec.heading]=mdToHtml(sec.paragraph);
+      });
+      if(!Object.keys(paras).length)return;
+      el.innerHTML=head+renderNarrative(narr,paras)+
+        '<div class="ai-note">Section notes written by Claude from the data shown</div>';
       bindEnts(el);
       followReveal(revealMs(el));
     })
