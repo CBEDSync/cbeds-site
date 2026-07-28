@@ -122,7 +122,7 @@
   .kg-close{background:rgba(255,255,255,.1);border:none;color:#fff;width:38px;height:38px;border-radius:10px;font-size:20px;cursor:pointer}
   .kg-reset{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.18);color:#dbe9ec;height:38px;padding:0 16px;border-radius:10px;font-size:13px;font-weight:600;font-family:var(--display);cursor:pointer}
   .kg-reset:hover{background:rgba(255,255,255,.18)}
-  .kg-body{flex:1;display:grid;grid-template-columns:var(--kg-left-w,300px) 7px 1fr 360px;grid-template-rows:1fr;min-height:0;height:100%}
+  .kg-body{flex:1;display:grid;grid-template-columns:var(--kg-left-w,360px) 7px 1fr 360px;grid-template-rows:1fr;min-height:0;height:100%}
   .kg-canvas-wrap{min-height:0;min-width:0}
   .kg-left,.kg-right{overflow:auto;padding:18px;color:#dbe9ec}
   .kg-left{border-right:1px solid rgba(255,255,255,.08);background:#0a2f40;min-width:0;display:flex;flex-direction:column}
@@ -134,10 +134,10 @@
   .kg-canvas-wrap{position:relative;background:radial-gradient(120% 120% at 50% 40%,#0e4a63,#06202c)}
   #kgcanvas{width:100%;height:100%;display:block;cursor:grab}
   #kgcanvas:active{cursor:grabbing}
-  .kg-legend{display:flex;gap:14px;flex-wrap:wrap;font-family:var(--display);font-size:12px;color:#cfe2e6;background:rgba(6,32,44,.6);padding:8px 12px;border-radius:10px}
-  .kg-legend i{width:10px;height:10px;border-radius:50%;display:inline-block;margin-right:5px;vertical-align:middle}
-  .kg-hint{font-size:12.5px;color:#bcd6dc;font-family:var(--display);background:rgba(6,32,44,.6);padding:8px 12px;border-radius:10px}
-  .kg-hint b{color:var(--green-bright);font-weight:600}
+  /* hint = secondary text: 12px and muted (~6.9:1 on this background), so it reads as
+     guidance rather than competing with the graph. Keywords lift to near-white, not accent. */
+  .kg-hint{font-size:12px;font-weight:500;color:#9fc1c9;font-family:var(--display);background:rgba(6,32,44,.55);padding:7px 11px;border-radius:9px}
+  .kg-hint b{color:#dbe9ec;font-weight:600}
   .kg-only{position:absolute;right:14px;top:14px;z-index:4;display:none;align-items:center;gap:7px;background:rgba(6,32,44,.72);border:1px solid rgba(134,205,199,.42);color:#dbe9ec;font-family:var(--display);font-weight:600;font-size:12.5px;padding:8px 13px;border-radius:10px;cursor:pointer;transition:.15s}
   .kg-only:hover{background:rgba(6,32,44,.92)}
   .kg-only.on{background:var(--green);color:#06202c;border-color:var(--green)}
@@ -157,9 +157,10 @@
   .kg-sugg div{padding:9px 12px;font-size:13px;cursor:pointer;border-bottom:1px solid rgba(255,255,255,.06);color:#dbe9ec}
   .kg-sugg div:hover{background:rgba(255,255,255,.08)}
   .kg-sugg .sg-k{font-size:10px;text-transform:uppercase;color:#7fa6b0;margin-left:6px}
-  .kgf-chip{font-family:var(--display);font-size:12px;font-weight:600;padding:6px 11px;border-radius:100px;border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.06);color:#cfe2e6;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+  /* sized so all four type chips sit on one line at the default panel width */
+  .kgf-chip{font-family:var(--display);font-size:11.5px;font-weight:600;padding:6px 9px;border-radius:100px;border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.06);color:#cfe2e6;cursor:pointer;display:inline-flex;align-items:center;gap:5px;white-space:nowrap}
   .kgf-chip.off{opacity:.4;background:transparent}
-  .kg-left select,.kg-right select{background:#0e3e52;border:1px solid rgba(255,255,255,.15);color:#dbe9ec;font-size:13px;margin-bottom:10px}
+  .kg-left select,.kg-right select{background:#0e3e52;border:1px solid rgba(255,255,255,.15);color:#dbe9ec;font-size:12.5px;padding:9px 11px;margin-bottom:10px}
   .kg-card{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:15px 16px;margin-bottom:12px}
   .kg-depthbox{display:flex;align-items:center;justify-content:space-between;margin:14px 0 10px}
   .kg-dl{font-family:var(--display);font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#7fa6b0}
@@ -168,9 +169,14 @@
   .kg-depth button.on{background:var(--green);color:#06202c;border-color:var(--green)}
   /* docked in the left panel, filling whatever height is left below the filters */
   .chat{flex:1;display:flex;flex-direction:column;min-height:260px;margin-top:14px;border-top:1px solid rgba(255,255,255,.08);padding-top:14px}
+  .chat-head{display:flex;align-items:center;justify-content:space-between;gap:8px}
+  .kg-clear{font-family:var(--display);font-size:9.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+            color:#7fa6b0;background:transparent;border:1px solid rgba(255,255,255,.16);border-radius:6px;
+            padding:3px 8px;cursor:pointer;transition:.15s;flex:0 0 auto}
+  .kg-clear:hover{color:var(--green-bright);border-color:rgba(134,205,199,.5);background:rgba(134,205,199,.08)}
   .chat-log{flex:1;min-height:0;display:flex;flex-direction:column;gap:10px;margin-bottom:10px;overflow:auto}
   .kg-overlays{position:absolute;left:14px;top:14px;z-index:3;display:flex;flex-direction:column;gap:8px;align-items:flex-start;max-width:calc(100% - 28px);pointer-events:none}
-  /* 12.5px over a ~400px panel gives ~57 characters per line — inside the readable 45–75 band */
+  /* 12.5px over the default 360px panel keeps the prose inside the readable 45–75 char band */
   .msg{font-size:12.5px;line-height:1.55;padding:10px 12px;border-radius:12px;max-width:96%}
   .msg.bot{background:rgba(255,255,255,.07);color:#e6f3f5;align-self:flex-start}
   .msg.user{background:var(--green);color:#06202c;align-self:flex-end;font-weight:600}
@@ -183,9 +189,31 @@
   .narr .ent:hover{color:#fff}
   .narr .more{color:#9fc1c9;cursor:pointer;border-bottom:1px dotted rgba(159,193,201,.5)}
   .narr .more:hover{color:var(--green-bright);border-bottom-color:var(--green-bright)}
+  /* answers reveal top-to-bottom as they land */
+  @keyframes narrIn{from{opacity:0;transform:translateY(-7px)}to{opacity:1;transform:translateY(0)}}
+  .narr>*{animation:narrIn .34s cubic-bezier(.22,.61,.36,1) both}
+  .narr>*:nth-child(1){animation-delay:0s}      .narr>*:nth-child(2){animation-delay:.06s}
+  .narr>*:nth-child(3){animation-delay:.12s}    .narr>*:nth-child(4){animation-delay:.18s}
+  .narr>*:nth-child(5){animation-delay:.24s}    .narr>*:nth-child(6){animation-delay:.3s}
+  .narr>*:nth-child(7){animation-delay:.36s}    .narr>*:nth-child(8){animation-delay:.42s}
+  .narr>*:nth-child(9){animation-delay:.48s}    .narr>*:nth-child(10){animation-delay:.54s}
+  .narr>*:nth-child(n+11){animation-delay:.6s}
+  @media(prefers-reduced-motion:reduce){.narr>*{animation:none}}
   .msg.writing{position:relative}
   .msg.writing::after{content:"writing…";position:absolute;right:10px;bottom:4px;font-family:var(--display);font-size:10px;color:#7fa6b0;opacity:.9}
   .ai-note{font-family:var(--display);font-size:10px;letter-spacing:.04em;color:#7fa6b0;margin-top:10px}
+
+  /* themed scrollbars — the OS default breaks the dark palette */
+  .chat-log,.kg-left,.kg-right,.kg-sugg,.results{scrollbar-width:thin;scrollbar-color:rgba(134,205,199,.38) transparent}
+  .chat-log::-webkit-scrollbar,.kg-left::-webkit-scrollbar,.kg-right::-webkit-scrollbar,
+  .kg-sugg::-webkit-scrollbar,.results::-webkit-scrollbar{width:8px;height:8px}
+  .chat-log::-webkit-scrollbar-track,.kg-left::-webkit-scrollbar-track,.kg-right::-webkit-scrollbar-track,
+  .kg-sugg::-webkit-scrollbar-track,.results::-webkit-scrollbar-track{background:transparent}
+  .chat-log::-webkit-scrollbar-thumb,.kg-left::-webkit-scrollbar-thumb,.kg-right::-webkit-scrollbar-thumb,
+  .kg-sugg::-webkit-scrollbar-thumb,.results::-webkit-scrollbar-thumb{background:rgba(134,205,199,.32);border-radius:100px}
+  .chat-log::-webkit-scrollbar-thumb:hover,.kg-left::-webkit-scrollbar-thumb:hover,.kg-right::-webkit-scrollbar-thumb:hover,
+  .kg-sugg::-webkit-scrollbar-thumb:hover,.results::-webkit-scrollbar-thumb:hover{background:rgba(134,205,199,.6)}
+  .chat-log::-webkit-scrollbar-corner,.kg-left::-webkit-scrollbar-corner,.kg-right::-webkit-scrollbar-corner{background:transparent}
   /* composer: one rounded field with the submit control inside it, right-aligned (ChatGPT/Claude/Perplexity pattern) */
   .composer{display:flex;align-items:center;gap:8px;background:#0e3e52;border:1px solid rgba(255,255,255,.15);border-radius:14px;padding:5px 5px 5px 14px;transition:border-color .15s}
   .composer:focus-within{border-color:var(--green)}
@@ -279,11 +307,11 @@
   <div class="kg-body">
     <div class="kg-left" id="kgLeft">
       <div class="kg-sec">Filter the graph</div>
-      <div id="kgKindFilters" style="display:flex;flex-wrap:wrap;gap:7px;margin-bottom:12px"></div>
+      <div id="kgKindFilters" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px"></div>
       <select id="kgTheme"><option value="">All value themes</option></select>
       <select id="kgTech"><option value="">All technologies</option></select>
       <div class="chat">
-        <div class="kg-sec">Ask the graph</div>
+        <div class="kg-sec chat-head">Ask the graph<button class="kg-clear" id="chatClear" title="Clear the conversation and reset the graph view">Clear</button></div>
         <div class="chat-log" id="chatLog"></div>
         <div class="composer">
           <input id="chatIn" type="text" placeholder="Ask the graph…" autocomplete="off">
@@ -298,7 +326,6 @@
       <button class="kg-only" id="kgOnly" title="Show only the chatbot matches"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 5h18l-7 8v6l-4-2v-4z"/></svg><span>Only matches</span></button>
       <div class="kg-overlays">
         <div class="kg-hint"><b>Click</b> a node to explore &middot; <b>hover</b> to spotlight &middot; <b>scroll</b> to zoom &middot; <b>drag</b> to pan</div>
-        <div class="kg-legend" id="kgLegend"></div>
       </div>
     </div>
     <div class="kg-right">
@@ -498,7 +525,6 @@ function drawDepthGraph(n){
 render();
 
 /* ============ FULL GRAPH OVERLAY ============ */
-document.getElementById('kgLegend').innerHTML=legendHTML().replace(/class="legend"/g,'');
 var kg=document.getElementById('kg'), kgInit=false;
 function openKG(node){kg.classList.add('open');document.body.style.overflow='hidden';requestAnimationFrame(function(){if(!kgInit){initKG();kgInit=true;}else{sizeKG();}if(node){selectKG(node);}else{restoreBase();kgSel=null;kgFocus=null;fitKG();}});}
 document.getElementById('openKg').onclick=function(){openKG(null);};
@@ -598,8 +624,8 @@ function initKG(){
   Object.keys(adj).forEach(function(a){adj[a].forEach(function(e){var k=a<e.id?a+'|'+e.id:e.id+'|'+a;if(!seen[k]){seen[k]=1;edgesU.push([a,e.id]);}});});
   // filters UI
   var kf=document.getElementById('kgKindFilters');
-  [['agent','Agents'],['project','Projects'],['output','Outputs'],['tech','Technologies']].forEach(function(k){
-    var b=document.createElement('button');b.className='kgf-chip';b.innerHTML='<i style="width:9px;height:9px;border-radius:50%;background:'+kindColor(k[0])+';display:inline-block"></i>'+k[1];
+  [['agent','Agents'],['project','Projects'],['output','Outputs'],['tech','Tech']].forEach(function(k){   // 'Tech' so all four fit one line
+    var b=document.createElement('button');b.className='kgf-chip';b.innerHTML='<i style="width:8px;height:8px;border-radius:50%;background:'+kindColor(k[0])+';display:inline-block;flex:0 0 auto"></i>'+k[1];
     b.onclick=function(){kgFilter[k[0]]=!kgFilter[k[0]];b.classList.toggle('off',!kgFilter[k[0]]);kgDraw();};kf.appendChild(b);
   });
   var th=document.getElementById('kgTheme');D.themes.forEach(function(t){var o=document.createElement('option');o.value=t;o.textContent=t.replace(' and ',' & ').trim();th.appendChild(o);});th.onchange=function(){kgFilter.theme=this.value;kgDraw();};
@@ -632,7 +658,9 @@ function initKG(){
   cs.onclick=sendChat;
   ci.addEventListener('keydown',function(e){if(e.key==='Enter')sendChat();});
   ci.addEventListener('input',function(){cs.disabled=!ci.value.trim();});   // submit stays dimmed until there's a question
-  botMsg('Ask a question — “who works on Digital Twin?”, “show outputs about circularity”, or type any name. I follow the connections two hops out and summarise what the graph holds.');
+  document.getElementById('chatClear').onclick=clearConversation;
+  initChatScroll();
+  botMsg(GREETING);
 }
 function sizeKG(){var wrap=kgc.parentNode;Wc=wrap.clientWidth;Hc=wrap.clientHeight;var dpr=Math.min(devicePixelRatio||1,2);kgc.width=Wc*dpr;kgc.height=Hc*dpr;kgx.setTransform(dpr,0,0,dpr,0,0);}
 function fitKG(){var v=fitAllView();view.s=v.s;view.tx=v.tx;view.ty=v.ty;kgDraw();}
@@ -760,9 +788,55 @@ function resetKG(){
 }
 
 /* chat (local search now; AI later) */
-function botMsg(html){var d=document.createElement('div');d.className='msg bot';d.innerHTML=html;var l=document.getElementById('chatLog');l.appendChild(d);l.scrollTop=1e9;return d;}
-function userMsg(t){var d=document.createElement('div');d.className='msg user';d.textContent=t;document.getElementById('chatLog').appendChild(d);}
+/* ---- scrolling: follow the answer as it reveals, and hand control to the reader
+       the moment they scroll up. Scrolling back to the bottom re-arms following. ---- */
+var followBottom=true,lastScrollTop=0;
+function chatEl(){return document.getElementById('chatLog');}
+function initChatScroll(){
+  var l=chatEl();
+  l.addEventListener('scroll',function(){
+    var t=l.scrollTop;
+    // we only ever scroll DOWN programmatically, so a decrease is always the reader
+    if(t<lastScrollTop-1)followBottom=false;
+    else if(l.scrollHeight-t-l.clientHeight<40)followBottom=true;
+    lastScrollTop=t;
+  });
+}
+function revealMs(el){return 340+Math.min(el.querySelectorAll('.narr>*').length,11)*60+140;}
+// ease the scroll down for the length of the reveal, bailing out if the reader takes over
+var followSeq=0;
+function followReveal(ms){
+  var seq=++followSeq,l=chatEl(),from=l.scrollTop,t0=performance.now();   // seq cancels any in-flight follow
+  // tween across the whole reveal window so the scroll keeps pace with the text
+  // appearing, rather than racing to the bottom ahead of it
+  (function step(now){
+    if(!followBottom||seq!==followSeq)return;
+    var k=Math.min(1,(now-t0)/ms), target=l.scrollHeight-l.clientHeight;
+    var e=k<0.5?2*k*k:1-Math.pow(-2*k+2,2)/2;
+    var y=from+(target-from)*e;
+    if(y>l.scrollTop){l.scrollTop=y;lastScrollTop=l.scrollTop;}
+    if(k<1)requestAnimationFrame(step);
+  })(t0);
+  // rAF is throttled in background tabs, so guarantee the landing separately
+  setTimeout(function(){
+    if(!followBottom||seq!==followSeq)return;
+    l.scrollTop=l.scrollHeight-l.clientHeight;lastScrollTop=l.scrollTop;
+  },ms+90);
+}
+function botMsg(html){var d=document.createElement('div');d.className='msg bot';d.innerHTML=html;chatEl().appendChild(d);followReveal(revealMs(d));return d;}
+function userMsg(t){var d=document.createElement('div');d.className='msg user';d.textContent=t;var l=chatEl();l.appendChild(d);
+  followBottom=true;l.scrollTop=l.scrollHeight;lastScrollTop=l.scrollTop;}   // asking always jumps you to your own question
 function sendChat(){var inp=document.getElementById('chatIn');var q=inp.value.trim();if(!q)return;userMsg(q);inp.value='';document.getElementById('chatSend').disabled=true;respond(q);}
+var GREETING='Ask a question — “who works on Digital Twin?”, “show outputs about circularity”, or type any name. I follow the connections two hops out and summarise what the graph holds.';
+// wipe the transcript and put the graph back to its opening state
+function clearConversation(){
+  chatEl().innerHTML='';
+  followBottom=true;lastScrollTop=0;
+  resetKG();
+  var inp=document.getElementById('chatIn');inp.value='';
+  document.getElementById('chatSend').disabled=true;
+  botMsg(GREETING);
+}
 /* --- narrative engine: retrieve a typed multi-hop subgraph, then tell its story ---
    Technology links are flat tags, so the direct neighbourhood of a topic has no internal
    structure. The sentences come from hop 2: project/output -> managedBy/producedBy -> agent. */
@@ -808,69 +882,126 @@ function yearOf(n){var m=(n.year||'').match(/\d{4}/);return m?+m[0]:0;}
 function countOf(n,w){return '<b>'+n+'</b> '+w+(n===1?'':'s');}
 var LENS_KEY={'organisations & experts':'agent',projects:'project',technologies:'tech'};
 var OUT_LABEL={Report:'report',Standard:'standard',Schema:'schema',Standalone:'software tool',Data:'dataset',Connecting:'connected system'};
-function composeNarrative(sg,tp){
-  var A=sg.agent,P=sg.project,O=sg.output,H=[],secs=[],lens=tp?tp[1]:null;
-  var bits=[];
-  if(A.length)bits.push('<b>'+A.length+'</b> organisation'+(A.length===1?'':'s')+' &amp; expert'+(A.length===1?'':'s'));
-  if(P.length)bits.push(countOf(P.length,'project'));
-  if(O.length)bits.push(countOf(O.length,'output'));
-  H.push('<p>'+(sg.anchors.length===1
-    ? entLink(sg.anchors[0])+' connects to '+listPhrase(bits)+' in the graph.'
-    : sg.anchors.length>1
-      ? 'They share '+listPhrase(bits)+'.'          // the note above already named the anchors
-      : 'That matches '+listPhrase(bits)+'.')+'</p>');
+/* ---- three narrative shapes, routed by what the question is actually after ----
+   landscape = who is in this field and how the sectors meet
+   trail     = what is being built and what has come out of it
+   web       = what two or more topics have in common                            */
+var TRAIL_LENS={standards:1,schemas:1,reports:1,'tools / systems':1,outputs:1,projects:1};
+function pickShape(sg,tp,s){
+  s=s||'';
+  if(sg.anchors.length>1||/\b(connect|connection|link|between|shared|share|common|overlap|bridge|both|versus|vs)\b/.test(s))return 'web';
+  if((tp&&TRAIL_LENS[tp[1]])||/\b(produce|produced|deliver|delivered|result|results|outcome|output|publish|published|built|made|standard|report|tool)\b/.test(s))return 'trail';
+  return 'landscape';
+}
+// everything the shapes draw on, computed once
+function narrFacts(sg){
+  var g={academic:[],industry:[],standards:[],other:[]},runBy={},prodBy={};
+  sg.agent.forEach(function(n){g[roleOf(n)].push(n);});
+  sg.chains.forEach(function(c){
+    if(c.via.kind==='project'&&!runBy[c.via.id])runBy[c.via.id]=c.agent;
+    if(c.via.kind==='output'&&!prodBy[c.via.id])prodBy[c.via.id]=c.agent;
+  });
+  var bySub={}; sg.output.forEach(function(o){var k=o.sub||'Output';bySub[k]=(bySub[k]||0)+1;});
+  return {
+    g:g, runBy:runBy, prodBy:prodBy,
+    mix:Object.keys(bySub).sort(function(a,b){return bySub[b]-bySub[a];}).slice(0,3)
+        .map(function(k){return countOf(bySub[k],OUT_LABEL[k]||k.toLowerCase());}),
+    dated:sg.output.filter(yearOf).sort(function(a,b){return yearOf(b)-yearOf(a);}),
+    themes:Object.keys(sg.themes).sort(function(a,b){return sg.themes[b]-sg.themes[a];}).slice(0,3)
+  };
+}
+function themePhrase(th){return listPhrase(th.map(function(t){return '<b>'+esc(t.replace(' and ',' & ').trim())+'</b>';}));}
+function leadCounts(sg){
+  var b=[];
+  if(sg.agent.length)b.push('<b>'+sg.agent.length+'</b> organisation'+(sg.agent.length===1?'':'s')+' &amp; expert'+(sg.agent.length===1?'':'s'));
+  if(sg.project.length)b.push(countOf(sg.project.length,'project'));
+  if(sg.output.length)b.push(countOf(sg.output.length,'output'));
+  return sg.anchors.length===1 ? entLink(sg.anchors[0])+' connects to '+listPhrase(b)+' in the graph.'
+       : sg.anchors.length>1   ? 'They share '+listPhrase(b)+'.'
+                               : 'That matches '+listPhrase(b)+'.';
+}
+function projectList(sg,f,from){
+  return expandable(sg.project.slice(from||0).map(function(p){var a=f.runBy[p.id];return entLink(p)+(a?' ('+entLink(a)+')':'');}),3,'semi');
+}
+function outputTail(sg,tp,f){
+  var lens=tp?tp[1]:null,pool=sg.output;
+  if(tp&&!LENS_KEY[lens]){var ff=sg.output.filter(tp[0]);if(ff.length&&ff.length<sg.output.length)pool=ff;}
+  var dated=pool.filter(yearOf).sort(function(a,b){return yearOf(b)-yearOf(a);}),top=dated[0],h='';
+  if(top)h+='<p>The most recent is '+entLink(top)+' ('+esc(top.year)+(f.prodBy[top.id]?', from '+entLink(f.prodBy[top.id]):'')+').</p>';
+  var rest=pool.filter(function(o){return !top||o.id!==top.id;})
+    .map(function(o){var a=f.prodBy[o.id];return entLink(o)+(o.year?' ('+esc(o.year)+')':'')+(a?' — '+entLink(a):'');});
+  if(rest.length)h+='<p>'+(pool!==sg.output?'Other '+esc(lens):'Others')+' here'+(rest.length>40?' include':'')+': '+
+    expandable(rest.slice(0,40),3,'semi')+'.</p>';   // very large sets stay browsable rather than dumping 500 links
+  return h;
+}
 
+/* A — Ecosystem landscape: the sectors at work and where they meet */
+function narrLandscape(sg,tp,f){
+  var A=sg.agent,secs=[];
   if(A.length>=2){
-    var g={academic:[],industry:[],standards:[],other:[]},body='';
-    A.forEach(function(n){g[roleOf(n)].push(n);});
-    if(g.academic.length) body+='<p><b>Universities and research institutes:</b> '+joinEnts(g.academic,4)+'.</p>';
-    if(g.industry.length) body+='<p><b>Industry and consultancies:</b> '+joinEnts(g.industry,4)+'.</p>';
-    if(g.standards.length) body+='<p><b>Standards bodies and regulators:</b> '+joinEnts(g.standards,4)+'.</p>';
-    if(!body&&g.other.length) body='<p>'+joinEnts(g.other,5)+'.</p>';
-    var span=[];                                     // name the mix before listing it
-    if(g.academic.length)span.push('research');
-    if(g.industry.length)span.push('industry');
-    if(g.standards.length)span.push('standards');
-    if(span.length>1) body='<p>The '+A.length+' organisations here span '+listPhrase(span)+'.</p>'+body;
-    if(body) secs.push({k:'agent',t:'Who is involved',h:body});
-  }
-  if(P.length){
-    var runBy={}; sg.chains.forEach(function(c){if(c.via.kind==='project'&&!runBy[c.via.id])runBy[c.via.id]=c.agent;});
-    var lead=P[0], la=runBy[lead.id];                // sg lists are sorted by degree, so P[0] is the best-connected
-    var h='<p>'+entLink(lead)+(la?', run by '+entLink(la)+',':'')+' is the most connected project here, with '+
-          countOf(degOf[lead.id]||0,'link')+' into the rest of the graph.</p>';
-    if(P.length>1){
-      var rest=P.slice(1).map(function(p){var a=runBy[p.id];return entLink(p)+(a?' ('+entLink(a)+')':'');});
-      h+='<p>Also under way: '+expandable(rest,3,'semi')+'.</p>';
-    }
-    secs.push({k:'project',t:'Projects under way',h:h});
-  }
-  if(O.length){
-    var bySub={}; O.forEach(function(o){var k=o.sub||'Output';bySub[k]=(bySub[k]||0)+1;});
-    var mix=Object.keys(bySub).sort(function(a,b){return bySub[b]-bySub[a];}).slice(0,3)
-      .map(function(k){return countOf(bySub[k],OUT_LABEL[k]||k.toLowerCase());});
-    var prodBy={}; sg.chains.forEach(function(c){if(c.via.kind==='output'&&!prodBy[c.via.id])prodBy[c.via.id]=c.agent;});
-    var pool=O;                                     // if the question named a type, lead with that type
-    if(tp&&!LENS_KEY[lens]){var f=O.filter(tp[0]);if(f.length&&f.length<O.length)pool=f;}
-    var h='<p>The record so far: '+listPhrase(mix)+'.</p>';
-    var dated=pool.filter(yearOf).sort(function(a,b){return yearOf(b)-yearOf(a);}), top=dated[0];
-    if(top){var ta=prodBy[top.id];
-      h+='<p>The most recent is '+entLink(top)+' ('+esc(top.year)+(ta?', from '+entLink(ta):'')+').</p>';}
-    var restO=pool.filter(function(o){return !top||o.id!==top.id;})
-      .map(function(o){var a=prodBy[o.id];return entLink(o)+(o.year?' ('+esc(o.year)+')':'')+(a?' — '+entLink(a):'');});
-    var capped=restO.length>40;                      // very large sets stay browsable rather than dumping 500 links
-    if(restO.length) h+='<p>'+(pool!==O?'Other '+esc(lens):'Others')+' here'+(capped?' include':'')+': '+
-      expandable(restO.slice(0,40),3,'semi')+'.</p>';
-    secs.push({k:'output',t:'What has been published',h:h});
-  }
-  var th=Object.keys(sg.themes).sort(function(a,b){return sg.themes[b]-sg.themes[a];}).slice(0,3);
-  if(th.length) secs.push({k:'theme',t:'Value themes',
-    h:'<p>Most of this work is tagged under '+listPhrase(th.map(function(t){return '<b>'+esc(t.replace(' and ',' & ').trim())+'</b>';}))+'.</p>'});
+    var body='',span=[];
+    if(f.g.academic.length){span.push('research');body+='<p><b>Universities and research institutes:</b> '+joinEnts(f.g.academic,4)+'.</p>';}
+    if(f.g.industry.length){span.push('industry');body+='<p><b>Industry and consultancies:</b> '+joinEnts(f.g.industry,4)+'.</p>';}
+    if(f.g.standards.length){span.push('standards');body+='<p><b>Standards bodies and regulators:</b> '+joinEnts(f.g.standards,4)+'.</p>';}
+    if(!body&&f.g.other.length)body='<p>'+joinEnts(f.g.other,5)+'.</p>';
+    if(span.length>1)body='<p>The '+A.length+' organisations here span '+listPhrase(span)+'.</p>'+body;
+    secs.push({t:'Who is involved',h:body});
+  }else if(A.length){secs.push({t:'Who is involved',h:'<p>'+joinEnts(A,5)+'.</p>'});}
+  var meet='';
+  if(sg.project.length){var p=sg.project[0],a=f.runBy[p.id];
+    meet+='<p>'+entLink(p)+(a?', run by '+entLink(a)+',':'')+' is where most of that activity converges — '+
+      countOf(degOf[p.id]||0,'link')+' into the rest of the graph.</p>';}
+  if(f.dated.length){var o=f.dated[0];
+    meet+='<p>The newest thing to come out of it is '+entLink(o)+' ('+esc(o.year)+(f.prodBy[o.id]?', from '+entLink(f.prodBy[o.id]):'')+').</p>';}
+  if(meet)secs.push({t:'Where they meet',h:meet});
+  if(f.themes.length)secs.push({t:'Value themes',h:'<p>Most of this work is tagged under '+themePhrase(f.themes)+'.</p>'});
+  return secs;
+}
 
-  var want=lens&&(LENS_KEY[lens]||'output');       // the question's own emphasis leads the story
-  for(var i=0;i<secs.length;i++){if(secs[i].k===want){secs.unshift(secs.splice(i,1)[0]);break;}}
-  secs.forEach(function(x){H.push('<div class="nsec">'+x.t+'</div>'+x.h);});
-  return '<div class="narr">'+H.join('')+'</div>';
+/* B — Impact & delivery trail: why the field exists here, then what it has shipped */
+function narrTrail(sg,tp,f){
+  var secs=[];
+  if(f.themes.length)secs.push({t:'The core challenge',h:'<p>This work is tagged against '+themePhrase(f.themes)+' — that is what it is trying to move.</p>'});
+  if(sg.project.length){
+    var p=sg.project[0],a=f.runBy[p.id];
+    var h='<p>'+entLink(p)+(a?', run by '+entLink(a)+',':'')+' is the most connected initiative here, with '+
+      countOf(degOf[p.id]||0,'link')+' into the rest of the graph.</p>';
+    if(sg.project.length>1)h+='<p>Also under way: '+projectList(sg,f,1)+'.</p>';
+    secs.push({t:'Active initiatives',h:h});
+  }
+  var players=[],seen={};
+  sg.chains.forEach(function(c){if(!seen[c.agent.id]){seen[c.agent.id]=1;players.push(c.agent);}});
+  if(players.length)secs.push({t:'Who is delivering',h:'<p>'+joinEnts(players,5)+(players.length===1?' is':' are')+
+    ' named as running or producing the items above.</p>'});
+  else if(sg.agent.length)secs.push({t:'Who is involved',h:'<p>'+joinEnts(sg.agent,5)+'.</p>'});
+  if(sg.output.length)secs.push({t:'Tangible outcomes',h:'<p>The record so far: '+listPhrase(f.mix)+'.</p>'+outputTail(sg,tp,f)});
+  return secs;
+}
+
+/* C — Collaborative web: what the named topics have in common and who bridges them */
+function narrWeb(sg,tp,f){
+  var secs=[],body='';
+  if(f.g.academic.length&&f.g.industry.length)
+    body='<p>Research and delivery meet here: '+joinEnts(f.g.academic,3)+' on the academic side, '+
+         joinEnts(f.g.industry,3)+' on the commercial side.</p>';
+  else if(sg.agent.length) body='<p>'+joinEnts(sg.agent,5)+' appear on every side of this.</p>';
+  if(f.g.standards.length)body+='<p>Working to frameworks from '+joinEnts(f.g.standards,3)+'.</p>';
+  if(body)secs.push({t:'Primary partnerships',h:body});
+  if(sg.tech.length)secs.push({t:'Enabling technologies',h:'<p>'+joinEnts(sg.tech,5)+' run through these entries as well.</p>'});
+  var overlap='';
+  if(sg.project.length)overlap+='<p>Shared projects: '+projectList(sg,f,0)+'.</p>';
+  if(sg.output.length)overlap+='<p>Shared outputs: '+expandable(sg.output.map(function(o){
+    return entLink(o)+(o.year?' ('+esc(o.year)+')':'');}),3,'semi')+'.</p>';
+  if(overlap)secs.push({t:'Where they overlap',h:overlap});
+  if(f.themes.length)secs.push({t:'Value themes',h:'<p>Most of this work is tagged under '+themePhrase(f.themes)+'.</p>'});
+  return secs;
+}
+
+function composeNarrative(sg,tp,shape){
+  var f=narrFacts(sg),H=['<p>'+leadCounts(sg)+'</p>'];
+  var secs=shape==='trail'?narrTrail(sg,tp,f):shape==='web'?narrWeb(sg,tp,f):narrLandscape(sg,tp,f);
+  secs.forEach(function(x){if(x.h)H.push('<div class="nsec">'+x.t+'</div>'+x.h);});
+  return '<div class="narr" data-shape="'+shape+'">'+H.join('')+'</div>';
 }
 function bindEnts(root){
   if(!root)return;
@@ -918,19 +1049,21 @@ function respond(q){
   setOnlyBtn(true);
   // the template answer renders straight away, then the LLM prose replaces it if the
   // proxy is reachable — so the panel is never blank and never breaks when it isn't
+  var shape=pickShape(sg,tp,s);                 // the question decides which story gets told
   var head=(note?'<p style="margin:0 0 9px">'+note+'</p>':'');
-  var el=botMsg(head+composeNarrative(sg,tp));
+  var el=botMsg(head+composeNarrative(sg,tp,shape));
   bindEnts(el);
-  askLLM(q,sg,tp,el,head);
+  askLLM(q,sg,tp,el,head,shape);
 }
 
 /* ---- LLM narrative (via the Netlify proxy; the key never reaches the browser) ---- */
 var LLM_ENDPOINT='/api/ask', llmOff=false;
 // trim the subgraph to what the model needs — names, roles, years and the agent links
-function llmPayload(sg,tp){
+function llmPayload(sg,tp,shape){
   var slim=function(n){var o={name:n.id,type:kindLabel[n.kind]};if(n.sub)o.role=n.sub;if(n.year)o.year=n.year;return o;};
   return {
     anchors:sg.anchors.map(function(n){return n.id;}),
+    narrative_shape:shape,                       // keep the LLM prose in the same shape as the template
     asked_for:tp?tp[1]:null,
     counts:{agents:sg.agent.length,projects:sg.project.length,outputs:sg.output.length},
     agents:sg.agent.slice(0,25).map(slim),
@@ -957,11 +1090,11 @@ function renderLLM(text){
   });
   return '<div class="narr">'+html+'</div>';
 }
-function askLLM(q,sg,tp,el,head){
+function askLLM(q,sg,tp,el,head,shape){
   if(llmOff||!window.fetch||location.protocol==='file:')return;   // offline / opened as a local file
   el.classList.add('writing');
   fetch(LLM_ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({question:q,subgraph:llmPayload(sg,tp)})})
+    body:JSON.stringify({question:q,subgraph:llmPayload(sg,tp,shape)})})
     .then(function(r){
       if(r.status===404||r.status===403)llmOff=true;              // no proxy deployed — stop trying
       if(!r.ok)throw new Error(r.status);
@@ -971,7 +1104,7 @@ function askLLM(q,sg,tp,el,head){
       if(!d||!d.text)return;
       el.innerHTML=head+renderLLM(d.text)+'<div class="ai-note">Written by Claude from the graph above</div>';
       bindEnts(el);
-      document.getElementById('chatLog').scrollTop=1e9;
+      followReveal(revealMs(el));
     })
     .catch(function(){/* keep the template answer already on screen */})
     .then(function(){el.classList.remove('writing');});
