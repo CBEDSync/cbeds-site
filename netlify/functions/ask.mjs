@@ -300,7 +300,7 @@ export default async (req) => {
     `SECTIONS (write one paragraph for each, in this order):\n` +
     JSON.stringify(sections);
 
-  const key = hashKey(`${PROVIDER}|${GEMINI_MODEL}|${CLAUDE_MODEL}|${userText}`);
+  const key = hashKey(`${PROVIDER}|${GEMINI_MODELS.join(",")}|${CLAUDE_MODEL}|${userText}`);
   const cached = cacheGet(key);
   if (cached) {
     return Response.json(
