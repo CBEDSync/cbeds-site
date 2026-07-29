@@ -15,7 +15,16 @@
  */
 
 const PROVIDER = (process.env.LLM_PROVIDER || "gemini").toLowerCase();
-const GEMINI_MODEL = process.env.GEMINI_MODEL || "gemini-2.5-flash";
+/* Google retires models on a schedule and a retired one answers 404, so try a list
+   rather than a single name — otherwise this quietly stops working months from now
+   with nobody watching. First that answers wins and is reused. Newest first.
+   GEMINI_MODEL overrides, and accepts a comma-separated list of its own. */
+const GEMINI_MODELS = (
+  process.env.GEMINI_MODEL || "gemini-3.6-flash,gemini-3.5-flash-lite,gemini-2.5-flash-lite"
+)
+  .split(",")
+  .map((s) => s.trim())
+  .filter(Boolean);
 const CLAUDE_MODEL = process.env.CLAUDE_MODEL || "claude-opus-5";
 
 /* Only our own pages may call this. Netlify injects the site's own addresses at
@@ -153,6 +162,8 @@ const CLAUDE_SCHEMA = {
   additionalProperties: false,
 };
 
+let workingModel = null; // remembered for the life of a warm instance
+
 async function callGemini(userText) {
   const key = process.env.GEMINI_API_KEY;
   if (!key) {
@@ -160,33 +171,49 @@ async function callGemini(userText) {
     e.status = 503;
     throw e;
   }
-  const r = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`,
-    {
-      method: "POST",
-      headers: { "content-type": "application/json", "x-goog-api-key": key },
-      body: JSON.stringify({
-        systemInstruction: { parts: [{ text: SYSTEM }] },
-        contents: [{ role: "user", parts: [{ text: userText }] }],
-        generationConfig: {
-          responseMimeType: "application/json",
-          temperature: 0.4,
-          maxOutputTokens: 2048,
-        },
-      }),
-    },
-  );
-  if (!r.ok) {
+  // known-good model first, but always keep the others as fallbacks behind it
+  const candidates = workingModel
+    ? [workingModel, ...GEMINI_MODELS.filter((m) => m !== workingModel)]
+    : GEMINI_MODELS;
+
+  let lastErr;
+  for (const model of candidates) {
+    const r = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,
+      {
+        method: "POST",
+        headers: { "content-type": "application/json", "x-goog-api-key": key },
+        body: JSON.stringify({
+          systemInstruction: { parts: [{ text: SYSTEM }] },
+          contents: [{ role: "user", parts: [{ text: userText }] }],
+          generationConfig: {
+            responseMimeType: "application/json",
+            temperature: 0.4,
+            maxOutputTokens: 2048,
+          },
+        }),
+      },
+    );
+
+    if (r.ok) {
+      if (workingModel !== model) console.log("ask: using gemini model", model);
+      workingModel = model;
+      const j = await r.json();
+      return (j?.candidates?.[0]?.content?.parts || [])
+        .map((p) => p.text || "")
+        .join("")
+        .trim();
+    }
+
     const body = await r.text().catch(() => "");
-    const e = new Error(`gemini ${r.status}: ${body.slice(0, 300)}`);
-    e.status = r.status;
-    throw e;
+    lastErr = new Error(`gemini ${r.status} (${model}): ${body.slice(0, 300)}`);
+    lastErr.status = r.status;
+    // 404 means this model is gone — try the next. Anything else is a real
+    // problem (bad key, quota, malformed request) and applies to all of them.
+    if (r.status !== 404) throw lastErr;
+    if (workingModel === model) workingModel = null;
   }
-  const j = await r.json();
-  return (j?.candidates?.[0]?.content?.parts || [])
-    .map((p) => p.text || "")
-    .join("")
-    .trim();
+  throw lastErr;
 }
 
 async function callClaude(userText) {
