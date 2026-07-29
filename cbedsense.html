@@ -139,6 +139,35 @@
   .askbar button:hover{background:#0e4d68}
   .asknote{font-size:12.5px;color:#9fb1b6;margin:9px 4px 0}
   .askres{margin-top:18px;display:grid;gap:10px}
+
+  /* answers from the shared assistant engine (cbeds-assistant.js), in this page's
+     light theme. Same markup as CBEDSync, different palette. */
+  .askres .msg{font-size:14.5px;line-height:1.6;padding:0;border-radius:0;text-align:left}
+  .askres .msg.user{display:none}                      /* the question is still in the box above */
+  .askres .narr p{margin:0 0 10px}
+  .askres .narr .nsec{font-family:var(--display);font-size:10.5px;font-weight:700;letter-spacing:.11em;
+                      text-transform:uppercase;color:#8aa2a9;margin:18px 0 7px}
+  .askres .narr .nnote{font-size:13.5px;color:var(--muted);margin:0 0 10px}
+  .askres .narr .nsum{border-left:3px solid var(--green);padding-left:12px;margin:0 0 11px;color:var(--ink)}
+  .askres .narr .ent{color:var(--blue);font-weight:700;cursor:pointer}
+  .askres .narr .ent:hover{text-decoration:underline}
+  .askres .narr .more{color:#8aa2a9;cursor:pointer;border-bottom:1px dotted #c2d2d6}
+  .askres .narr .more:hover{color:var(--blue);border-bottom-color:var(--blue)}
+  .askres .ai-note{font-family:var(--display);font-size:10.5px;letter-spacing:.04em;color:#9fb1b6;margin-top:14px}
+  .askres .msg.writing{position:relative}
+  .askres .msg.writing::after{content:"writing…";position:absolute;right:0;bottom:-16px;
+                              font-family:var(--display);font-size:10.5px;color:#9fb1b6}
+  @keyframes narrIn{from{opacity:0;transform:translateY(-7px)}to{opacity:1;transform:translateY(0)}}
+  .askres .narr>*{animation:narrIn .34s cubic-bezier(.22,.61,.36,1) both}
+  .askres .narr>*:nth-child(1){animation-delay:0s}   .askres .narr>*:nth-child(2){animation-delay:.06s}
+  .askres .narr>*:nth-child(3){animation-delay:.12s} .askres .narr>*:nth-child(4){animation-delay:.18s}
+  .askres .narr>*:nth-child(5){animation-delay:.24s} .askres .narr>*:nth-child(6){animation-delay:.3s}
+  .askres .narr>*:nth-child(7){animation-delay:.36s} .askres .narr>*:nth-child(n+8){animation-delay:.42s}
+  @media(prefers-reduced-motion:reduce){.askres .narr>*{animation:none}}
+  .askgo{margin-top:16px;padding-top:14px;border-top:1px solid var(--line);display:flex;
+         justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+  .askgo a{font-family:var(--display);font-size:13.5px;font-weight:600;color:var(--blue)}
+  .askgo .hint{font-size:12.5px;color:#9fb1b6}
   .rhead{font-family:var(--display);font-weight:600;font-size:14px;color:var(--muted)}
   .ritem{background:#fff;border:1px solid var(--line);border-radius:12px;padding:15px 18px;display:flex;gap:13px;align-items:flex-start;text-align:left}
   .rkind{font-family:var(--display);font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#fff;border-radius:6px;padding:4px 8px;flex:0 0 auto;margin-top:2px}
@@ -333,8 +362,12 @@
         <input type="text" id="askInput" placeholder="Ask to make sense of something, e.g. digital product passports, who works on ontologies, BIM standards...">
         <button id="askBtn">Explore &#8594;</button>
       </div>
-      <div class="asknote">Searches the CBEDS knowledge base of 1,297 initiatives. AI assisted search is coming soon.</div>
+      <div class="asknote">Knows your acronyms (DPP, BIM, DT…) &middot; follows connections two hops out &middot; every name links into the knowledge graph</div>
       <div class="askres" id="askRes"></div>
+      <div class="askgo" id="askGo" style="display:none">
+        <span class="hint">Click any name to open it in the knowledge graph.</span>
+        <a href="cbedsync.html">Open the full knowledge graph &#8594;</a>
+      </div>
     </div>
 
     <div id="spaceMain" style="margin-top:34px"></div>
@@ -349,6 +382,7 @@
 </footer>
 
 <script src="cbedsync-data.js"></script>
+<script src="cbeds-assistant.js"></script>
 <script>
 // nav solidify on scroll
 var nav=document.getElementById('nav');
@@ -429,27 +463,28 @@ var NODES=DATA.nodes||[];
 function esc(s){return (s||'').replace(/[&<>]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;'}[c];});}
 function clip(s,n){s=s||'';return s.length>n?s.slice(0,n).replace(/\s+\S*$/,'')+'…':s;}
 
-// --- ask box: search the knowledge base ---
-var askInput=document.getElementById('askInput'),askBtn=document.getElementById('askBtn'),askRes=document.getElementById('askRes');
+/* --- ask box: same engine as CBEDSync (cbeds-assistant.js). What differs here is
+       what a name does when clicked: CBEDSync selects it on its own canvas, this
+       page hands the reader over to that canvas with the entity already open. --- */
+var askInput=document.getElementById('askInput'),
+    askBtn=document.getElementById('askBtn'),
+    askRes=document.getElementById('askRes'),
+    askGo=document.getElementById('askGo');
+
+var sense=CBEDSAssistant.create({
+  data:window.CBEDS_DATA,
+  log:askRes,
+  greetOnInit:false,                       // the placeholder already says what to do
+  onEntityClick:function(n){location.href='cbedsync.html?node='+encodeURIComponent(n.id);},
+  onAnswer:function(){askGo.style.display='flex';},
+  onNoMatch:function(){askGo.style.display='none';}
+});
+
 function runAsk(){
-  var q=askInput.value.trim().toLowerCase();
-  if(!q){askRes.innerHTML='';return;}
-  var terms=q.split(/\s+/).filter(function(t){return t.length>2;});
-  var scored=[];
-  NODES.forEach(function(n){
-    var hay=((n.id||'')+' '+(n.desc||'')+' '+(n.tech||[]).join(' ')+' '+(n.themes||[]).join(' ')+' '+(n.sub||'')).toLowerCase();
-    var s=0;terms.forEach(function(t){if(hay.indexOf(t)>=0)s++; if((n.id||'').toLowerCase().indexOf(t)>=0)s+=2;});
-    if(s>0)scored.push([s,n]);
-  });
-  scored.sort(function(a,b){return b[0]-a[0];});
-  if(!scored.length){askRes.innerHTML='<div class="rhead">No matches yet. Try a topic like “digital twin”, “interoperability” or “BIM”.</div>';return;}
-  var top=scored.slice(0,6);
-  var html='<div class="rhead">'+scored.length+' related '+(scored.length===1?'item':'items')+' in CBEDSync, top matches:</div>';
-  top.forEach(function(p){var n=p[1];
-    html+='<div class="ritem"><span class="rkind '+n.kind+'">'+n.kind+'</span><div><h4>'+esc(n.id)+'</h4><p>'+esc(clip(n.desc,150))+'</p></div></div>';
-  });
-  html+='<div class="rgo"><a href="cbedsync.html">Open the full knowledge graph &#8594;</a></div>';
-  askRes.innerHTML=html;
+  var q=askInput.value.trim();
+  if(!q){askRes.innerHTML='';askGo.style.display='none';return;}
+  askRes.innerHTML='';                     // one answer at a time — this isn't a transcript
+  sense.ask(q);
 }
 askBtn.addEventListener('click',runAsk);
 askInput.addEventListener('keydown',function(e){if(e.key==='Enter')runAsk();});
