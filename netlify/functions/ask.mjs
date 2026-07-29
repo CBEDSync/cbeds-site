@@ -124,15 +124,19 @@ Rules, in order of importance:
 1. Use ONLY entities and relationships present in the subgraph and that section's
    facts. Never introduce an organisation, project, output, date or number that is
    not there. If a section is thin, say so plainly rather than padding.
-2. Wrap every entity name in **double asterisks**, spelled exactly as it appears in
-   the data — the site turns these into clickable graph links, and a misspelling
-   silently breaks the link. Two or three named entities per paragraph is plenty.
+2. **Name at least two specific entities in every paragraph — three where the facts
+   allow.** Wrap each in **double asterisks**, spelled exactly as it appears in the
+   data: the site turns these into clickable graph links, and a misspelling silently
+   breaks the link. Naming nobody is a failed paragraph. Write concretely:
+   "**University of Cambridge** works alongside **Connected Places Catapult**",
+   never "academic institutions work with industry providers".
 3. **Hard limit: 50 words per paragraph.** Aim for 30–45. One or two sentences.
 4. Do not repeat the section heading, and do not open with "This section" or
    "Here". Start with the substance.
 5. Each paragraph must say something the list below it does not — the pattern, the
-   significance, how the pieces relate. If you can only restate the list, write one
-   short sentence rather than padding to length.
+   significance, how the pieces relate. Show that pattern *through* the named
+   entities rather than describing it in the abstract. If you can only restate the
+   list, write one short sentence rather than padding to length.
 6. Tone: professional, plain and readable — a knowledgeable colleague explaining
    the landscape. Not marketing copy, not casual.
 7. British spelling ("organisation", "programme").
