@@ -10,7 +10,7 @@
 <style>
   :root{
     --blue:#156082;--green:#70B3AE;--green-bright:#86cdc7;--blue-deep:#0a2f40;--blue-deeper:#072330;
-    --ink:#122a34;--muted:#5c727b;--bg:#ffffff;--bg-soft:#f5f9fa;--line:#e4eef0;--maxw:1180px;
+    --ink:#122a34;--muted:#5c727b;--bg:#ffffff;--bg-soft:#f5f9fa;--line:#e4eef0;--maxw:1180px;--nav-h:76px;--hero-h:clamp(480px,62vh,600px);
     --probe:#3f8fa5;--sense:#d2962f;--respond:#156082;--output:#4f9e74;--track:#dfeaec;
     --display:-apple-system,BlinkMacSystemFont,"SF Pro Display","Helvetica Neue","Inter",Helvetica,Arial,sans-serif;
     --body:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue","Inter",Helvetica,Arial,sans-serif;
@@ -24,7 +24,7 @@
 
   header.nav{position:fixed;top:0;left:0;right:0;z-index:60;transition:background .3s,border-color .3s;border-bottom:1px solid transparent}
   header.nav.solid{background:rgba(255,255,255,.92);backdrop-filter:blur(12px);border-color:var(--line)}
-  .nav-inner{display:flex;align-items:center;justify-content:space-between;height:76px}
+  .nav-inner{display:flex;align-items:center;justify-content:space-between;height:var(--nav-h)}
   .brand{display:flex;align-items:center;gap:12px}
   .brand .mk{width:46px;height:46px;flex:0 0 auto;--a1:#9fe0d9;--a2:#7fc6cd;--a3:#5fadc2;--a4:#3f93b6;--ad:#bdeee9}
   header.nav.solid .brand .mk{--a1:#70B3AE;--a2:#52979f;--a3:#337c91;--a4:#156082;--ad:#156082}
@@ -46,8 +46,11 @@
   header.nav.solid .burger span{background:var(--ink)}
 
   /* ---------- intro ---------- */
-  .intro{position:relative;background:radial-gradient(120% 120% at 78% 18%,#10566f 0%,#0a2f40 46%,#072330 100%);padding:150px 0 92px;text-align:center;overflow:hidden}
-  .intro .wrap{position:relative;z-index:2}
+  /* interior-page hero — same height and vertical rhythm as CBEDSync and CBEDSense */
+  .intro{position:relative;min-height:var(--hero-h);display:flex;align-items:center;
+    background:radial-gradient(120% 120% at 78% 18%,#10566f 0%,#0a2f40 46%,#072330 100%);
+    padding:var(--nav-h) 0 30px;text-align:center;overflow:hidden}
+  .intro .wrap{position:relative;z-index:2;width:100%}
   .intro .tag{font-family:var(--display);font-size:12.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--green-bright);font-weight:600}
   .intro h1{font-size:clamp(34px,5vw,56px);color:#fff;margin:14px auto 16px;max-width:20ch}
   .intro p{font-size:18px;color:#bcd6dc;max-width:66ch;margin:0 auto}

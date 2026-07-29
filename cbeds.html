@@ -20,7 +20,7 @@
     --bg:#ffffff;
     --bg-soft:#f5f9fa;
     --line:#e4eef0;
-    --maxw:1180px;
+    --maxw:1180px;--nav-h:76px;--hero-h:clamp(480px,62vh,600px);
     --display:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text","Helvetica Neue","Inter",Helvetica,Arial,sans-serif;
     --body:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue","Inter",Helvetica,Arial,sans-serif;
   }
@@ -34,7 +34,7 @@
   /* ---------- NAV ---------- */
   header.nav{position:fixed;top:0;left:0;right:0;z-index:60;transition:background .3s,box-shadow .3s,border-color .3s;border-bottom:1px solid transparent}
   header.nav.solid{background:rgba(255,255,255,.9);backdrop-filter:blur(12px);border-color:var(--line);box-shadow:0 4px 24px rgba(10,47,64,.05)}
-  .nav-inner{display:flex;align-items:center;justify-content:space-between;height:76px}
+  .nav-inner{display:flex;align-items:center;justify-content:space-between;height:var(--nav-h)}
   .brand{display:flex;align-items:center;gap:12px}
   .brand .mk{width:48px;height:48px;flex:0 0 auto;--a1:#9fe0d9;--a2:#7fc6cd;--a3:#5fadc2;--a4:#3f93b6;--ad:#bdeee9;transition:.3s}
   header.nav.solid .brand .mk{--a1:#70B3AE;--a2:#52979f;--a3:#337c91;--a4:#156082;--ad:#156082}
@@ -377,8 +377,12 @@ addEventListener('scroll',()=>{nav.classList.toggle('solid',scrollY>40);document
   function build(){
     dpr=Math.min(devicePixelRatio||1,2);
     w=c.clientWidth;h=c.clientHeight;c.width=w*dpr;c.height=h*dpr;ctx.setTransform(dpr,0,0,dpr,0,0);
-    // keep-out zone for the headline copy (desktop only)
-    keep = w>=980 ? {x0:0,x1:Math.min(w*0.46,640),y0:h*0.12,y1:h*0.9} : null;
+    // Keep-out zone for the headline copy. Derive it from where the text column
+    // actually sits — the centred .wrap plus .hero-copy's own width — rather than a
+    // fixed pixel cap, which on wide screens ended well left of the text and let
+    // nodes drift across the headline.
+    var wrapW=Math.min(w-52,1180), copyLeft=(w-wrapW)/2+26;
+    keep = w>=980 ? {x0:0,x1:copyLeft+Math.min(560,wrapW)+56,y0:h*0.10,y1:h*0.92} : null;
     thr=Math.hypot(w,h)*0.165;
     const N=Math.min(labels.length, w<620?14:22);
     nodes=[];

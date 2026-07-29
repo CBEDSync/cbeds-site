@@ -10,7 +10,7 @@
 <style>
   :root{
     --blue:#156082;--green:#70B3AE;--green-bright:#86cdc7;--blue-deep:#0a2f40;--blue-deeper:#072330;
-    --ink:#122a34;--muted:#5c727b;--bg:#ffffff;--bg-soft:#f5f9fa;--line:#e4eef0;--maxw:1280px;
+    --ink:#122a34;--muted:#5c727b;--bg:#ffffff;--bg-soft:#f5f9fa;--line:#e4eef0;--maxw:1180px;--nav-h:76px;--hero-h:clamp(480px,62vh,600px);
     --c-agent:#3a8fd6;--c-project:#36c9b8;--c-output:#86cf5e;--c-tech:#e0a23c;
     --display:-apple-system,BlinkMacSystemFont,"SF Pro Display","Helvetica Neue","Inter",Helvetica,Arial,sans-serif;
     --body:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue","Inter",Helvetica,Arial,sans-serif;
@@ -24,7 +24,7 @@
 
   header.nav{position:fixed;top:0;left:0;right:0;z-index:60;transition:background .3s,border-color .3s;border-bottom:1px solid transparent}
   header.nav.solid{background:rgba(255,255,255,.92);backdrop-filter:blur(12px);border-color:var(--line)}
-  .nav-inner{display:flex;align-items:center;justify-content:space-between;height:76px}
+  .nav-inner{display:flex;align-items:center;justify-content:space-between;height:var(--nav-h)}
   .brand{display:flex;align-items:center;gap:12px}
   .brand .mk{width:46px;height:46px;flex:0 0 auto;--a1:#9fe0d9;--a2:#7fc6cd;--a3:#5fadc2;--a4:#3f93b6;--ad:#bdeee9}
   header.nav.solid .brand .mk{--a1:#70B3AE;--a2:#52979f;--a3:#337c91;--a4:#156082;--ad:#156082}
@@ -42,7 +42,10 @@
   .nav-cta{background:var(--green);color:var(--blue-deeper)!important;padding:10px 20px;border-radius:9px;font-weight:600;font-size:14px;font-family:var(--display)}
   .devtag{display:inline-block;margin-left:6px;font-family:var(--display);font-size:9px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#06202c;background:var(--green);border-radius:5px;padding:1px 5px;vertical-align:middle}
 
-  .synchero{position:relative;padding:128px 0 40px;background:radial-gradient(120% 120% at 78% 18%,#10566f 0%,#0a2f40 46%,#072330 100%);color:#fff;overflow:hidden}
+  /* interior-page hero — same height and vertical rhythm as CBEDStory and CBEDSense */
+  .synchero{position:relative;min-height:var(--hero-h);display:flex;align-items:center;
+    padding:var(--nav-h) 0 30px;background:radial-gradient(120% 120% at 78% 18%,#10566f 0%,#0a2f40 46%,#072330 100%);color:#fff;overflow:hidden}
+  .synchero>.wrap{width:100%}
   .synchero .tag{font-family:var(--display);font-size:12.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--green-bright);font-weight:600}
   .synchero h1{font-size:clamp(32px,4.4vw,50px);margin:10px 0 12px}
   .synchero p{font-size:clamp(15px,1.6vw,18px);color:#bcd6dc;max-width:64ch}
