@@ -1136,16 +1136,36 @@ function mdToHtml(s){
   return out+esc(s.slice(last));
 }
 function stripTags(html){var d=document.createElement('div');d.innerHTML=html;return d.textContent.replace(/\s+/g,' ').trim();}
+/* Same question over the same data gives the same paragraphs, so remember them for
+   the session — a repeat costs no request at all, and reappears instantly. */
+function hashStr(s){var h=2166136261;for(var i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619);}return (h>>>0).toString(36)+s.length;}
+function llmCacheGet(k){try{var v=sessionStorage.getItem('kgllm:'+k);return v?JSON.parse(v):null;}catch(e){return null;}}
+function llmCacheSet(k,v){try{sessionStorage.setItem('kgllm:'+k,JSON.stringify(v));}catch(e){/* full or blocked — skip */}}
+function applyGloss(el,head,narr,sections){
+  var paras={},known={};
+  narr.secs.forEach(function(x){known[x.t]=1;});
+  sections.forEach(function(sec){                                 // ignore headings we didn't ask for
+    if(sec&&known[sec.heading]&&sec.paragraph)paras[sec.heading]=mdToHtml(sec.paragraph);
+  });
+  if(!Object.keys(paras).length)return;
+  if(entHover){entHover=null;kgHover=null;}   // links are about to be replaced under the pointer
+  el.innerHTML=head+renderNarrative(narr,paras)+
+    '<div class="ai-note">Section notes written by AI from the data shown</div>';
+  bindEnts(el);
+  followReveal(revealMs(el));
+}
 function askLLM(q,sg,tp,el,head,narr){
   if(llmOff||!window.fetch||location.protocol==='file:')return;   // offline / opened as a local file
+  var body={
+    question:q,
+    subgraph:llmPayload(sg,tp,narr.shape),
+    // the headings already on screen, each with the facts about to be listed under it
+    sections:narr.secs.map(function(x){return {heading:x.t,facts:stripTags(x.h).slice(0,500)};})
+  };
+  var payload=JSON.stringify(body),key=hashStr(payload),hit=llmCacheGet(key);
+  if(hit){applyGloss(el,head,narr,hit);return;}                   // asked before — no request needed
   el.classList.add('writing');
-  fetch(LLM_ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({
-      question:q,
-      subgraph:llmPayload(sg,tp,narr.shape),
-      // the headings already on screen, each with the facts about to be listed under it
-      sections:narr.secs.map(function(x){return {heading:x.t,facts:stripTags(x.h).slice(0,500)};})
-    })})
+  fetch(LLM_ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json'},body:payload})
     .then(function(r){
       if(r.status===404||r.status===403)llmOff=true;              // no proxy deployed — stop trying
       if(!r.ok)throw new Error(r.status);
@@ -1153,17 +1173,8 @@ function askLLM(q,sg,tp,el,head,narr){
     })
     .then(function(d){
       if(!d||!Array.isArray(d.sections)||!d.sections.length)return;
-      var paras={},known={};
-      narr.secs.forEach(function(x){known[x.t]=1;});
-      d.sections.forEach(function(sec){                            // ignore headings we didn't ask for
-        if(sec&&known[sec.heading]&&sec.paragraph)paras[sec.heading]=mdToHtml(sec.paragraph);
-      });
-      if(!Object.keys(paras).length)return;
-      if(entHover){entHover=null;kgHover=null;}   // links are about to be replaced under the pointer
-      el.innerHTML=head+renderNarrative(narr,paras)+
-        '<div class="ai-note">Section notes written by Claude from the data shown</div>';
-      bindEnts(el);
-      followReveal(revealMs(el));
+      llmCacheSet(key,d.sections);
+      applyGloss(el,head,narr,d.sections);
     })
     .catch(function(){/* keep the template answer already on screen */})
     .then(function(){el.classList.remove('writing');});

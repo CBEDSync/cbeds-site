@@ -21,10 +21,12 @@ data and publishes in one step. See `HOW-TO-HOST-AND-UPDATE.md` for full setup.
 
 ## AI-written answers (optional)
 "Ask the graph" on `cbedsync.html` works with no setup — it writes answers from the
-graph itself. Set `ANTHROPIC_API_KEY` in the Netlify dashboard and
-`netlify/functions/ask.mjs` upgrades those answers to AI-written prose, falling back
-to the built-in ones whenever it can't. **Never put the key in a site file** — it
-would be public. See `HOW-TO-HOST-AND-UPDATE.md`.
+graph itself. Set `GEMINI_API_KEY` in the Netlify dashboard (free tier, no card) and
+`netlify/functions/ask.mjs` adds a short AI-written note under each section heading,
+falling back to the built-in answers whenever it can't. Set `LLM_PROVIDER=claude`
+plus `ANTHROPIC_API_KEY` for better prose at ~2–3p a question.
+**Never put a key in a site file** — it would be public. See
+`HOW-TO-HOST-AND-UPDATE.md`.
 
 ## Assets
 `favicon.svg`, `cbedslogo.jpg`, `Slide1–3.JPG`, and the design sources in `draft/`.

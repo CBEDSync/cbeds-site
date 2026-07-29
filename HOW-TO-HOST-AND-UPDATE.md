@@ -73,31 +73,52 @@ If you'd rather not both touch git, the simplest arrangement is: whoever owns th
 ## Turning on AI-written answers (optional, one-time)
 
 "Ask the graph" on the CBEDSync page works with no setup — it writes answers from
-the graph itself. Adding an API key upgrades those answers to AI-written prose.
+the graph itself. Adding a key makes an AI write a short note under each section
+heading, explaining what the listed facts mean.
 
 **The key must never go in the website files.** Anything in an `.html` or `.js` file
 is public — visitors can read it, and it ends up in the GitHub repo. Instead the key
 lives in Netlify's settings, where only the site's own server code can see it.
 
-1. Create an API key at https://console.anthropic.com → **API keys**.
-2. While you're there, set a monthly spend limit (**Settings → Limits**). This is
-   your safety net — without it there is no cap on what the site can spend.
-3. In Netlify: **Site configuration → Environment variables → Add a variable**.
-   - Key: `ANTHROPIC_API_KEY`
-   - Value: paste the key from step 1
-4. **Deploys → Trigger deploy → Deploy site.**
+### The free option (recommended to start)
 
-Ask a question on the CBEDSync page. You should see the answer appear instantly and
-then, a couple of seconds later, get rewritten into fuller prose with
-"Written by Claude from the graph above" underneath.
+1. Get a Google Gemini API key at https://aistudio.google.com/apikey — **free, no
+   credit card**. Around 250 questions a day, which is well beyond this site's
+   traffic.
+2. In Netlify: **Site configuration → Environment variables → Add a variable**.
+   - Key: `GEMINI_API_KEY`
+   - Value: paste the key
+   - Deploy contexts: **All deploy contexts**
+3. **Deploys → Trigger deploy → Deploy site.** Environment variables are only read
+   at deploy time, so this step is required.
 
-**Costs** roughly 2–3p per question. If nothing is set up, or the key is removed, or
-the service is down, the page quietly falls back to the built-in answers — it never
-breaks.
+Then ask a question on the CBEDSync page. The answer appears instantly, and a
+second or two later each section gains a short paragraph with a **green line beside
+it**, ending with "Section notes written by AI from the data shown".
 
-**One thing to change:** open `netlify/functions/ask.mjs` and add your real site
-address to the `ALLOWED_HOSTS` list near the top. Only pages on those addresses can
-use the key, which stops other websites from spending your credit.
+> Note: on Google's free tier, what gets sent may be used to improve their models.
+> The graph is already published on this website, so there is little exposure — but
+> if that matters to you, use the paid option below instead.
+
+### The paid option (better writing)
+
+Claude writes noticeably better prose. It costs roughly 2–3p per question.
+
+1. Create a key at https://console.anthropic.com → **API keys**, and set a monthly
+   spend limit while you are there (**Settings → Limits**). API usage is billed
+   separately from any Claude Pro subscription — a subscription does not cover it.
+2. Add **two** Netlify environment variables:
+   - `ANTHROPIC_API_KEY` — the key
+   - `LLM_PROVIDER` — `claude`
+3. Trigger a deploy.
+
+### If nothing seems to happen
+
+The page always falls back to the built-in answers, so a missing key or a failed
+call looks like nothing happened rather than an error. To see why: Netlify →
+**Logs** → **Functions** → `ask`. A line starting `ask failed:` shows the cause.
+
+Repeat questions are cached, so asking the same thing twice costs nothing.
 
 ---
 

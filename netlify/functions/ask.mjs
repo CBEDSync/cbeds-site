@@ -2,15 +2,21 @@
  * CBEDSync "Ask the graph" — LLM narrative proxy.
  *
  * The browser does the retrieval (it already holds the whole graph) and posts a
- * subgraph here; this function adds the API key and asks Claude to narrate it.
- * The key lives only in Netlify's environment — never in the page.
+ * subgraph plus the section headings it has already laid out; this function adds
+ * the API key and asks a model to write one short paragraph per section. The key
+ * lives only in Netlify's environment — never in the page.
  *
- * Set ANTHROPIC_API_KEY in: Netlify → Site configuration → Environment variables.
+ * Netlify → Site configuration → Environment variables:
+ *   GEMINI_API_KEY     free tier, no card:  https://aistudio.google.com/apikey
+ *   LLM_PROVIDER       "gemini" (default) or "claude"
+ *   ANTHROPIC_API_KEY  only needed when LLM_PROVIDER=claude
+ *
+ * Optional: GEMINI_MODEL, CLAUDE_MODEL, EXTRA_ALLOWED_HOSTS.
  */
 
-import Anthropic from "@anthropic-ai/sdk";
-
-const client = new Anthropic(); // reads ANTHROPIC_API_KEY from the environment
+const PROVIDER = (process.env.LLM_PROVIDER || "gemini").toLowerCase();
+const GEMINI_MODEL = process.env.GEMINI_MODEL || "gemini-2.5-flash";
+const CLAUDE_MODEL = process.env.CLAUDE_MODEL || "claude-opus-5";
 
 /* Only our own pages may call this. Netlify injects the site's own addresses at
    runtime, so this configures itself — including a custom domain and deploy
@@ -38,8 +44,8 @@ const ALLOWED_HOSTS = [
   .concat(["localhost", "127.0.0.1"]); // `netlify dev` on this machine
 
 /* Crude per-IP throttle. Serverless instances don't share memory, so this blunts
-   casual abuse rather than preventing it — the real backstop is a spend limit in
-   the Anthropic Console. */
+   casual abuse rather than preventing it — the real backstop is the provider's
+   own quota (Gemini free tier) or a spend limit in the Anthropic Console. */
 const WINDOW_MS = 60_000;
 const MAX_PER_WINDOW = 10;
 const hits = new Map();
@@ -61,6 +67,32 @@ function sameSite(req) {
   } catch {
     return false;
   }
+}
+
+/* Identical question over identical data gives identical paragraphs, so a warm
+   instance can answer repeats for free. Instances are ephemeral and not shared,
+   so this is a bonus rather than a guarantee — the browser caches too. */
+const CACHE = new Map();
+const CACHE_MAX = 300;
+function hashKey(s) {
+  let h = 2166136261;
+  for (let i = 0; i < s.length; i++) {
+    h ^= s.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  return (h >>> 0).toString(36) + ":" + s.length;
+}
+function cacheGet(k) {
+  const v = CACHE.get(k);
+  if (v) {
+    CACHE.delete(k);
+    CACHE.set(k, v); // refresh recency
+  }
+  return v;
+}
+function cacheSet(k, v) {
+  CACHE.set(k, v);
+  if (CACHE.size > CACHE_MAX) CACHE.delete(CACHE.keys().next().value);
 }
 
 const SYSTEM = `You are writing short narrative glosses for CBEDSync, the knowledge graph of the
@@ -94,10 +126,14 @@ Rules, in order of importance:
    the landscape. Not marketing copy, not casual.
 7. British spelling ("organisation", "programme").
 
-Return one entry per section, echoing the heading back exactly as given.`;
+Reply with JSON only — no markdown fence, no commentary — in exactly this shape,
+echoing each heading back exactly as given:
 
-/* Structured output keeps the reply keyed to the headings the page already rendered. */
-const SCHEMA = {
+{"sections":[{"heading":"<heading exactly as given>","paragraph":"<your paragraph>"}]}`;
+
+/* Claude supports a response schema outright; Gemini gets the shape via JSON mode
+   plus the instruction above, which keeps the request surface small. */
+const CLAUDE_SCHEMA = {
   type: "object",
   properties: {
     sections: {
@@ -116,6 +152,89 @@ const SCHEMA = {
   required: ["sections"],
   additionalProperties: false,
 };
+
+async function callGemini(userText) {
+  const key = process.env.GEMINI_API_KEY;
+  if (!key) {
+    const e = new Error("GEMINI_API_KEY is not set");
+    e.status = 503;
+    throw e;
+  }
+  const r = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`,
+    {
+      method: "POST",
+      headers: { "content-type": "application/json", "x-goog-api-key": key },
+      body: JSON.stringify({
+        systemInstruction: { parts: [{ text: SYSTEM }] },
+        contents: [{ role: "user", parts: [{ text: userText }] }],
+        generationConfig: {
+          responseMimeType: "application/json",
+          temperature: 0.4,
+          maxOutputTokens: 2048,
+        },
+      }),
+    },
+  );
+  if (!r.ok) {
+    const body = await r.text().catch(() => "");
+    const e = new Error(`gemini ${r.status}: ${body.slice(0, 300)}`);
+    e.status = r.status;
+    throw e;
+  }
+  const j = await r.json();
+  return (j?.candidates?.[0]?.content?.parts || [])
+    .map((p) => p.text || "")
+    .join("")
+    .trim();
+}
+
+async function callClaude(userText) {
+  const { default: Anthropic } = await import("@anthropic-ai/sdk");
+  const client = new Anthropic(); // reads ANTHROPIC_API_KEY
+  const message = await client.beta.messages.create({
+    model: CLAUDE_MODEL,
+    max_tokens: 4000, // caps thinking + prose together — thinking is on by default
+    system: SYSTEM,
+    // short scoped task; raise effort to "medium" for richer prose
+    output_config: { effort: "low", format: { type: "json_schema", schema: CLAUDE_SCHEMA } },
+    betas: ["server-side-fallback-2026-07-01"],
+    fallbacks: "default",
+    messages: [{ role: "user", content: userText }],
+  });
+  if (message.stop_reason === "refusal") {
+    const e = new Error("refused");
+    e.status = 422;
+    throw e;
+  }
+  return message.content
+    .filter((b) => b.type === "text")
+    .map((b) => b.text)
+    .join("")
+    .trim();
+}
+
+// tolerant: models occasionally wrap JSON in a markdown fence even when told not to
+function parseSections(text) {
+  let t = (text || "").trim();
+  const fence = t.match(/^```(?:json)?\s*([\s\S]*?)\s*```$/);
+  if (fence) t = fence[1].trim();
+  let parsed;
+  try {
+    parsed = JSON.parse(t);
+  } catch {
+    return null;
+  }
+  if (!parsed || !Array.isArray(parsed.sections)) return null;
+  const out = parsed.sections
+    .filter((s) => s && typeof s.heading === "string" && typeof s.paragraph === "string")
+    // belt-and-braces: the word cap is a prompt instruction, so clamp it here too
+    .map((s) => ({
+      heading: s.heading.slice(0, 120),
+      paragraph: s.paragraph.trim().split(/\s+/).slice(0, 60).join(" "),
+    }));
+  return out.length ? out : null;
+}
 
 export default async (req) => {
   if (req.method !== "POST") {
@@ -148,67 +267,34 @@ export default async (req) => {
     return Response.json({ error: "bad_request" }, { status: 400 });
   }
 
+  const userText =
+    `Question: ${question}\n\n` +
+    `SUBGRAPH:\n${JSON.stringify(subgraph)}\n\n` +
+    `SECTIONS (write one paragraph for each, in this order):\n` +
+    JSON.stringify(sections);
+
+  const key = hashKey(`${PROVIDER}|${GEMINI_MODEL}|${CLAUDE_MODEL}|${userText}`);
+  const cached = cacheGet(key);
+  if (cached) {
+    return Response.json(
+      { sections: cached, cached: true },
+      { headers: { "cache-control": "no-store" } },
+    );
+  }
+
   try {
-    const message = await client.beta.messages.create({
-      model: "claude-opus-5",
-      max_tokens: 4000, // caps thinking + prose together — thinking is on by default
-      system: SYSTEM,
-      // short scoped task; raise effort to "medium" for richer prose
-      output_config: { effort: "low", format: { type: "json_schema", schema: SCHEMA } },
-      betas: ["server-side-fallback-2026-07-01"],
-      fallbacks: "default",
-      messages: [
-        {
-          role: "user",
-          content:
-            `Question: ${question}\n\n` +
-            `SUBGRAPH:\n${JSON.stringify(subgraph)}\n\n` +
-            `SECTIONS (write one paragraph for each, in this order):\n` +
-            JSON.stringify(sections),
-        },
-      ],
-    });
-
-    if (message.stop_reason === "refusal") {
-      return Response.json({ error: "refused" }, { status: 422 });
-    }
-
-    const text = message.content
-      .filter((b) => b.type === "text")
-      .map((b) => b.text)
-      .join("")
-      .trim();
-
+    const text = PROVIDER === "claude" ? await callClaude(userText) : await callGemini(userText);
     if (!text) return Response.json({ error: "empty" }, { status: 502 });
 
-    let parsed;
-    try {
-      parsed = JSON.parse(text);
-    } catch {
-      return Response.json({ error: "bad_model_output" }, { status: 502 });
-    }
-    if (!parsed || !Array.isArray(parsed.sections)) {
-      return Response.json({ error: "bad_model_output" }, { status: 502 });
-    }
+    const out = parseSections(text);
+    if (!out) return Response.json({ error: "bad_model_output" }, { status: 502 });
 
-    // belt-and-braces: the word cap is a prompt instruction, so clamp it here too
-    const out = parsed.sections
-      .filter((s) => s && typeof s.heading === "string" && typeof s.paragraph === "string")
-      .map((s) => ({
-        heading: s.heading.slice(0, 120),
-        paragraph: s.paragraph.trim().split(/\s+/).slice(0, 60).join(" "),
-      }));
-
-    if (!out.length) return Response.json({ error: "empty" }, { status: 502 });
-
-    return Response.json(
-      { sections: out },
-      { headers: { "cache-control": "no-store" } }
-    );
+    cacheSet(key, out);
+    return Response.json({ sections: out }, { headers: { "cache-control": "no-store" } });
   } catch (err) {
     // Never leak key material or internals to the page.
-    console.error("ask failed:", err?.status, err?.message);
-    const status = err?.status === 429 ? 429 : 502;
+    console.error("ask failed:", PROVIDER, err?.status, err?.message);
+    const status = err?.status === 429 ? 429 : err?.status === 503 ? 503 : 502;
     return Response.json({ error: "upstream_error" }, { status });
   }
 };
