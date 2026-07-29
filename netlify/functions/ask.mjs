@@ -12,13 +12,30 @@ import Anthropic from "@anthropic-ai/sdk";
 
 const client = new Anthropic(); // reads ANTHROPIC_API_KEY from the environment
 
-/* Only our own pages may call this. Add any custom domain here once it's live. */
+/* Only our own pages may call this. Netlify injects the site's own addresses at
+   runtime, so this configures itself — including a custom domain and deploy
+   previews. EXTRA_ALLOWED_HOSTS (comma-separated) covers anything unusual. */
 const ALLOWED_HOSTS = [
-  "cbedsync.netlify.app",
-  "cbeds.netlify.app",
-  "localhost",
-  "127.0.0.1",
-];
+  process.env.URL, // the site's primary address, custom domain included
+  process.env.DEPLOY_PRIME_URL, // branch and preview deploys
+  process.env.DEPLOY_URL,
+]
+  .filter(Boolean)
+  .map((u) => {
+    try {
+      return new URL(u).hostname;
+    } catch {
+      return null;
+    }
+  })
+  .filter(Boolean)
+  .concat(
+    (process.env.EXTRA_ALLOWED_HOSTS || "")
+      .split(",")
+      .map((h) => h.trim())
+      .filter(Boolean),
+  )
+  .concat(["localhost", "127.0.0.1"]); // `netlify dev` on this machine
 
 /* Crude per-IP throttle. Serverless instances don't share memory, so this blunts
    casual abuse rather than preventing it — the real backstop is a spend limit in
