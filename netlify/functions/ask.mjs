@@ -17,10 +17,12 @@
 const PROVIDER = (process.env.LLM_PROVIDER || "gemini").toLowerCase();
 /* Google retires models on a schedule and a retired one answers 404, so try a list
    rather than a single name — otherwise this quietly stops working months from now
-   with nobody watching. First that answers wins and is reused. Newest first.
-   GEMINI_MODEL overrides, and accepts a comma-separated list of its own. */
+   with nobody watching. First that answers wins and is reused.
+   Lite leads: these are 50-word notes about facts already on screen, so latency
+   matters more here than prose quality. Put gemini-3.6-flash first (or set
+   GEMINI_MODEL, which also takes a comma-separated list) to prefer the fuller model. */
 const GEMINI_MODELS = (
-  process.env.GEMINI_MODEL || "gemini-3.6-flash,gemini-3.5-flash-lite,gemini-2.5-flash-lite"
+  process.env.GEMINI_MODEL || "gemini-3.5-flash-lite,gemini-3.6-flash,gemini-2.5-flash-lite"
 )
   .split(",")
   .map((s) => s.trim())
