@@ -80,17 +80,20 @@
   .intro-rip{width:85%;height:85%;opacity:.9}
   /* The rings light in turn from the centre outwards, which is the same "each cycle
      sends a ripple further out" idea the copy above states and the scroll map below
-     plays out. One shared 5s cycle with a staggered delay per ring carries the pulse
-     outwards; each ring then stays lit for the rest of its cycle, so the ripple
-     builds up to all five before fading out together in the order it arrived. */
+     plays out. One shared cycle with a staggered delay per ring carries the pulse
+     outwards; each ring holds lit, then they go out in the order they arrived and
+     the artwork rests with everything dim before the next ripple.
+
+     The rest is what the 8.5s is for. Each ring is dim for 44% of its own cycle
+     (62% to 100%, then 0% to 6% of the next), which is 3.74s — but the rings are
+     staggered across 1.2s, so the window where they are *all* dim is 3.74 - 1.2 =
+     2.5s. Shortening the cycle or widening the stagger eats into that pause. */
   .intro-rip .r{fill:none;stroke:rgba(134,205,199,.16);stroke-width:1.1;
-    animation:ripOut 5s cubic-bezier(.35,.7,.4,1) infinite}
-  /* !important because a CSS animation outranks a normal declaration — ripOut is
-     driving stroke on these same elements, so the hover state has to beat it */
-  .intro-rip .r.hot{stroke:#bdeee9!important;stroke-width:3.2!important}
-  /* the hit targets: no fill, a fat transparent stroke, and only the stroke listens */
+    animation:ripOut 8.5s cubic-bezier(.35,.7,.4,1) infinite}
+  /* the hit targets: no fill, a fat transparent stroke, and only the stroke listens.
+     Hovering names the cycle and does nothing to the ring itself. */
   .intro-rip .rhits ellipse{fill:none;stroke:transparent;stroke-width:26;
-    pointer-events:stroke;cursor:pointer}
+    pointer-events:stroke}
   .intro-art{position:relative}
   .rip-tip{position:absolute;z-index:5;pointer-events:none;opacity:0;transition:opacity .15s;
     transform:translate(-50%,-140%);white-space:nowrap;
@@ -98,17 +101,21 @@
     font-family:var(--display);font-size:13px;font-weight:600;padding:7px 12px;border-radius:8px}
   .rip-tip.show{opacity:1}
   .rip-tip i{font-style:normal;color:var(--green-bright);margin-right:7px}
+  /* 62% to 100% is the flat dim tail — the rest between ripples. The fade out runs
+     55% to 62% so it is a quick release rather than a long slow dim. */
   @keyframes ripOut{
     0%{stroke:rgba(134,205,199,.16);stroke-width:1.1}
     6%{stroke:rgba(159,224,217,.85);stroke-width:2.2}
-    88%{stroke:rgba(159,224,217,.85);stroke-width:2.2}
+    55%{stroke:rgba(159,224,217,.85);stroke-width:2.2}
+    62%{stroke:rgba(134,205,199,.16);stroke-width:1.1}
     100%{stroke:rgba(134,205,199,.16);stroke-width:1.1}
   }
   /* the drop at the centre, matching CBEDSynergy: teardrop, soft glow, CBEDS beneath.
-     It beats on the same 5s cycle as the rings, on the beat that starts the ripple. */
+     Same 8.5s cycle as the rings, so the beat lands on the ripple it sets off and
+     the drop is then still through the rest. */
   .intro-drop{fill:#eafffb;transform-box:fill-box;transform-origin:center;
-    animation:dropBeat 5s ease-in-out infinite}
-  @keyframes dropBeat{0%,100%{transform:scale(1)}5%{transform:scale(1.22)}20%{transform:scale(1)}}
+    animation:dropBeat 8.5s ease-in-out infinite}
+  @keyframes dropBeat{0%,100%{transform:scale(1)}3%{transform:scale(1.22)}12%{transform:scale(1)}}
   /* 6.5px in viewBox units puts the wordmark's inked width at 26.6, the diameter of
      the glow disc behind the droplet, so the mark reads as one stacked unit. Measured
      on the glyph bounds rather than the advance width, which carries a trailing
@@ -457,7 +464,6 @@ setTimeout(onScroll,60);
   var svg=document.querySelector('.intro-rip'); if(!svg) return;
   var art=document.querySelector('.intro-art'), tip=document.getElementById('ripTip');
   if(!art||!tip) return;
-  var rings=[].slice.call(svg.querySelectorAll('.r'));
   var hits=[].slice.call(svg.querySelectorAll('.rhits ellipse'));
   var cycles=[].slice.call(document.querySelectorAll('#stages .st')).map(function(s){
     var b=s.querySelector('b'), n=s.querySelector('.num');
@@ -467,7 +473,7 @@ setTimeout(onScroll,60);
   if(!cycles.length) return;
   function show(i,e){
     var cy=cycles[i]; if(!cy) return;
-    rings.forEach(function(r,k){r.classList.toggle('hot',k===i);});
+    // the ring itself is left alone — hovering names the cycle, nothing more
     tip.innerHTML='<i>'+cy.mark+'</i>'+cy.name;
     tip.style.borderColor=cy.colour;
     var b=art.getBoundingClientRect();
@@ -475,7 +481,7 @@ setTimeout(onScroll,60);
     tip.style.top=(e.clientY-b.top)+'px';
     tip.classList.add('show');
   }
-  function hide(){rings.forEach(function(r){r.classList.remove('hot');});tip.classList.remove('show');}
+  function hide(){tip.classList.remove('show');}
   hits.forEach(function(h,i){
     h.addEventListener('mousemove',function(e){show(i,e);});
     h.addEventListener('mouseleave',hide);
