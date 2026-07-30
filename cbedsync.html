@@ -598,8 +598,27 @@ function restoreBase(){for(var id in basePos){if(layout[id]){layout[id].x=basePo
   computeLayout();                       // deterministic, and initKG() re-runs it harmlessly
   /* The hero keeps its own copy of the positions. Selecting a node in the full overlay
      tweens `layout` into a radial arrangement, and the hero must not be dragged around
-     by that while it sits behind the overlay. */
-  var pos={}; for(var id in basePos) pos[id]={x:basePos[id].x,y:basePos[id].y};
+     by that while it sits behind the overlay.
+
+     It also lays them out per node rather than per id. Thirty-four ids appear twice in
+     the data — an organisation and one of its products under the same name, ActivePlan
+     and Revizto among them — and computeLayout keys positions by id, so the second
+     entry overwrites the first. Both dots then land in the later one's cluster while
+     the earlier one's slot in its own spiral is left empty, which is the stray dots in
+     the wrong blob and the holes opposite them. The spiral maths here are the same, so
+     every node keeps the radius it always had; only the storage differs. */
+  var posOf=new Array(NODES.length), pos={};
+  (function(){
+    var idx={agent:0,project:0,output:0,tech:0};
+    NODES.forEach(function(n,k){
+      var m=clusterMeta[n.kind]; if(!m) return;
+      var i=idx[n.kind]++, step=n.kind==='tech'?60:30;
+      var r=step*Math.sqrt(i+1), a=(i+1)*2.39996;
+      posOf[k]={x:m.cx+Math.cos(a)*r, y:m.cy+Math.sin(a)*r};
+      // edges and relations are keyed by id, so those follow the first of a pair
+      if(!pos[n.id]) pos[n.id]=posOf[k];
+    });
+  })();
   var seen={}, edges=[];
   Object.keys(adj).forEach(function(a){(adj[a]||[]).forEach(function(e){
     var k=a<e.id?a+'|'+e.id:e.id+'|'+a; if(!seen[k]){seen[k]=1;edges.push([a,e.id]);}});});
@@ -625,7 +644,7 @@ function restoreBase(){for(var id in basePos){if(layout[id]){layout[id].x=basePo
     b.stroke();
     // kept faint and small: this layer is context, and at hero scale the clusters read
     // as solid discs if the dots are any heavier than this
-    for(var k=0;k<NODES.length;k++){var n=NODES[k],p=pos[n.id]; if(!p)continue;
+    for(var k=0;k<NODES.length;k++){var n=NODES[k],p=posOf[k]; if(!p)continue;
       b.globalAlpha=.3; b.fillStyle=kindColor(n.kind);
       b.beginPath(); b.arc(fx(p.x),fy(p.y),rOf(n)*0.85,0,7); b.fill();}
     b.globalAlpha=1;
@@ -665,7 +684,7 @@ function restoreBase(){for(var id in basePos){if(layout[id]){layout[id].x=basePo
     cv.width=Math.round(w*dpr); cv.height=Math.round(h*dpr); g.setTransform(dpr,0,0,dpr,0,0);
     W=w; H=h;
     var minx=1e9,miny=1e9,maxx=-1e9,maxy=-1e9;
-    for(var id in pos){var p=pos[id];
+    for(var k=0;k<posOf.length;k++){var p=posOf[k]; if(!p)continue;
       if(p.x<minx)minx=p.x; if(p.y<miny)miny=p.y; if(p.x>maxx)maxx=p.x; if(p.y>maxy)maxy=p.y;}
     var gw=maxx-minx||1, gh=maxy-miny||1;
     S=Math.min(W/gw,H/gh)*0.9;           // fit the whole graph, both axes, same scale
@@ -716,7 +735,7 @@ function restoreBase(){for(var id in basePos){if(layout[id]){layout[id].x=basePo
     g.globalAlpha=a; g.fillStyle=kindColor(kind);
     for(var k=0;k<NODES.length;k++){
       var n=NODES[k]; if(n.kind!==kind) continue;
-      var p=pos[n.id]; if(!p) continue;
+      var p=posOf[k]; if(!p) continue;
       g.beginPath(); g.arc(fx(p.x),fy(p.y),rOf(n),0,7); g.fill();
     }
     g.globalAlpha=1;
@@ -726,8 +745,8 @@ function restoreBase(){for(var id in basePos){if(layout[id]){layout[id].x=basePo
     if(baseLayer) g.drawImage(baseLayer,0,0,W,H);
     drawCluster(litKind,litA);
     lab.length=0;                        // label collision map is per frame
-    if(!cur||a<=0) return;
-    var p=pos[cur.id]; if(!p) return;
+    if(curIdx<0||a<=0) return;
+    var cur=NODES[curIdx], p=posOf[curIdx]; if(!cur||!p) return;
     var nbs=(adj[cur.id]||[]).filter(function(e){return byId[e.id]&&pos[e.id];});
     // relations first, so every dot sits on top of its own lines
     for(var j=0;j<nbs.length;j++){
@@ -747,20 +766,22 @@ function restoreBase(){for(var id in basePos){if(layout[id]){layout[id].x=basePo
   /* Nothing moves on its own: the reader drives it. Hovering a node lights it and its
      relations, moving off lets them fade back. The loop only runs while that fade is
      in flight, so an idle hero costs nothing. */
-  var cur=null, alpha=0, rafId=null, litKind=null, litA=0;
+  var curIdx=-1, alpha=0, rafId=null, litKind=null, litA=0;
   var EASE=matchMedia('(prefers-reduced-motion:reduce)').matches?1:0.2;
+  /* Returns the index rather than the node, so the caller keeps hold of which of a
+     duplicated pair was actually under the pointer and can draw from its own position. */
   function nodeAt(mx,my){
-    var best=null,bd=17;
+    var best=-1,bd=17;
     for(var k=0;k<NODES.length;k++){
-      var n=NODES[k],p=pos[n.id]; if(!p) continue;
+      var p=posOf[k]; if(!p) continue;
       var d=Math.hypot(fx(p.x)-mx,fy(p.y)-my);
-      if(d<bd){bd=d;best=n;}
+      if(d<bd){bd=d;best=k;}
     }
     return best;
   }
   function tick(){
     rafId=null;
-    var target=cur?1:0, litTarget=litKind?1:0;
+    var target=curIdx>=0?1:0, litTarget=litKind?1:0;
     alpha+=(target-alpha)*EASE;
     litA+=(litTarget-litA)*EASE;
     if(Math.abs(target-alpha)<0.012) alpha=target;
@@ -780,17 +801,18 @@ function restoreBase(){for(var id in basePos){if(layout[id]){layout[id].x=basePo
   draw(0);                                 // the graph at rest, no highlight
   cv.addEventListener('mousemove',function(e){
     var r=cv.getBoundingClientRect();
-    var n=nodeAt(e.clientX-r.left,e.clientY-r.top);
-    if((n&&n.id)!==(cur&&cur.id)){ cur=n; cv.style.cursor=n?'pointer':'default'; kick(); }
+    var k=nodeAt(e.clientX-r.left,e.clientY-r.top);
+    if(k!==curIdx){ curIdx=k; cv.style.cursor=k>=0?'pointer':'default'; kick(); }
   });
   cv.addEventListener('mouseleave',function(){
-    if(cur){ cur=null; cv.style.cursor='default'; kick(); }
+    if(curIdx>=0){ curIdx=-1; cv.style.cursor='default'; kick(); }
   });
   // the hero graph is a way in, not just a picture: a node opens it in the full graph
   cv.addEventListener('click',function(e){
     var r=cv.getBoundingClientRect();
-    var n=nodeAt(e.clientX-r.left,e.clientY-r.top);
-    if(n && typeof openKG==='function') openKG(n);
+    var k=nodeAt(e.clientX-r.left,e.clientY-r.top);
+    // the overlay is keyed by id, so hand it the node byId resolves to
+    if(k>=0 && typeof openKG==='function'){var t=byId[NODES[k].id]; if(t) openKG(t);}
   });
   /* Hovering a count brings its own blob up to full colour. focus/blur as well as
      the pointer, since the counts are buttons and reachable by keyboard. */
