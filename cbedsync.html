@@ -42,31 +42,31 @@
   .nav-cta{background:var(--green);color:var(--blue-deeper)!important;padding:10px 20px;border-radius:9px;font-weight:600;font-size:14px;font-family:var(--display)}
   .devtag{display:inline-block;margin-left:6px;font-family:var(--display);font-size:9px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#06202c;background:var(--green);border-radius:5px;padding:1px 5px;vertical-align:middle}
 
-  /* Full-screen hero, laid out like the homepage: copy on the left, graph filling the
-     space to its right. The gradient's light sits over on that side to follow it. */
-  .synchero{position:relative;height:var(--hero-h);min-height:660px;padding:0;display:flex;align-items:center;
-    background:radial-gradient(120% 120% at 70% 50%,#10566f 0%,#0a2f40 46%,#072330 100%);color:#fff;overflow:hidden}
-  #heroGraph{position:absolute;inset:0;width:100%;height:100%;z-index:2;display:block}
-  /* darkens the left so the copy reads over the graph, and fades to nothing on the
-     right so the graph itself stays clean. pointer-events:none or it would eat the
-     hover. */
-  .synchero-scrim{position:absolute;inset:0;z-index:3;pointer-events:none;
-    background:linear-gradient(90deg,rgba(7,35,48,.95) 0%,rgba(7,35,48,.85) 26%,rgba(7,35,48,.45) 50%,rgba(7,35,48,.05) 74%,rgba(7,35,48,0) 100%),
-               linear-gradient(to bottom,rgba(7,35,48,.5) 0%,transparent 18%,transparent 78%,rgba(7,35,48,.6) 100%)}
-  /* pointer-events:none so the graph behind stays hoverable; the copy takes its own
-     events back for the counts and the button */
-  .synchero-inner{position:relative;z-index:4;width:100%;padding:120px 26px 80px;pointer-events:none}
-  .synchero-copy{max-width:560px;pointer-events:auto}
-  .synchero h1{font-size:var(--fs-h1);line-height:1.08;margin:0 0 16px}
-  .synchero p{font-size:var(--fs-lead);color:#bcd6dc;max-width:52ch;margin:0}
-  /* the counts get their own line, the button sits under them, both ranged left */
-  .hero-row{display:flex;flex-direction:column;align-items:flex-start;gap:14px;margin-top:30px}
-  .stat-row{display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-start}
-  .stat-chip{display:inline-flex;align-items:center;gap:9px;background:rgba(255,255,255,.06);
-    border:1px solid rgba(255,255,255,.14);border-radius:100px;padding:8px 16px;
+  /* Full-screen hero: copy centred at the top like CBEDStory and CBEDSynergy, then the
+     graph below with each count sitting out beside the cluster it belongs to. */
+  .synchero{position:relative;height:var(--hero-h);min-height:660px;display:flex;flex-direction:column;
+    padding:calc(var(--nav-h) + 40px) 0 30px;
+    background:radial-gradient(120% 120% at 50% 70%,#10566f 0%,#0a2f40 46%,#072330 100%);
+    color:#fff;overflow:hidden;text-align:center}
+  .synchero>.wrap{width:100%;flex:0 0 auto;position:relative;z-index:4}
+  .synchero h1{font-size:var(--fs-h1);line-height:1.08;margin:14px auto 16px;max-width:20ch}
+  .synchero p{font-size:var(--fs-lead);color:#bcd6dc;max-width:66ch;margin:0 auto}
+  /* only the graph button lives under the copy now — the counts are out on the graph */
+  .hero-row{display:flex;flex-direction:column;align-items:center;gap:14px;margin-top:24px}
+  .synchero-art{flex:1;min-height:0;position:relative;z-index:1;padding-bottom:54px}
+  #heroGraph{display:block;width:100%;height:100%}
+  /* Each count is pinned beside its own cluster, on the outward side: agents and
+     projects to the left of theirs, outputs and technologies to the right. placeChips()
+     in the renderer sets left/top from where the clusters actually land, so they follow
+     the graph at any size. The row itself is only a wrapper — its children are taken
+     out of flow, so it collapses and the button sits straight under the paragraph. */
+  .stat-chip{position:absolute;z-index:3;white-space:nowrap;
+    display:inline-flex;align-items:center;gap:9px;background:rgba(7,35,48,.55);
+    border:1px solid rgba(255,255,255,.16);border-radius:100px;padding:8px 16px;
     font-family:var(--display);font-size:14px;color:inherit;cursor:pointer;
-    transition:background .18s,border-color .18s,transform .15s}
-  .stat-chip:hover{background:rgba(255,255,255,.13);border-color:rgba(134,205,199,.55);transform:translateY(-1px)}
+    backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);
+    transition:background .18s,border-color .18s}
+  .stat-chip:hover{background:rgba(12,52,68,.85);border-color:rgba(134,205,199,.6)}
   .stat-chip:focus-visible{outline:2px solid var(--green-bright);outline-offset:2px}
   /* the dot carries the entity type's own colour, the same one the graph uses */
   .stat-chip i{width:9px;height:9px;border-radius:50%;flex:0 0 auto}
@@ -259,13 +259,14 @@
   .foot-brand{display:flex;align-items:center;gap:11px;color:#fff;font-family:var(--display);font-weight:700}
   .foot-brand .mk{width:34px;height:34px;--a1:#9fe0d9;--a2:#7fc6cd;--a3:#5fadc2;--a4:#3f93b6;--ad:#bdeee9}
   @media(max-width:920px){.ex-grid{grid-template-columns:1fr}nav ul{display:none}.results{max-height:none}.kg-body{grid-template-columns:1fr}.kg-resizer{display:none}.send{width:44px;height:44px}}
-  /* Below 980 the copy goes full width and the graph is fitted to the whole canvas
-     rather than a column beside it, so the side-to-side scrim no longer protects the
-     text — it becomes a top-down one, exactly as the homepage hero does. */
+  /* Below 980 the graph is too small to hang labels off, so the counts drop back into
+     an ordinary row under the copy and placeChips() leaves them alone. */
   @media(max-width:980px){
-    .synchero-inner{padding:120px 26px 70px}
-    .synchero-copy{max-width:none}
-    .synchero-scrim{background:linear-gradient(to bottom,rgba(7,35,48,.92) 0%,rgba(7,35,48,.72) 45%,rgba(7,35,48,.5) 100%)}
+    .stat-row{display:flex;flex-wrap:wrap;gap:10px;justify-content:center}
+    /* transform:none has to win here: placeChips() writes it inline, and if the width
+       crosses this breakpoint after it has run the chips would keep the offset that
+       pinned them to a cluster and sit well off the row */
+    .stat-chip{position:static;transform:none!important;background:rgba(255,255,255,.06)}
   }
 </style>
 </head>
@@ -295,18 +296,17 @@
 </header>
 
 <section class="synchero">
-  <canvas id="heroGraph"></canvas>
-  <div class="synchero-scrim"></div>
-  <div class="wrap synchero-inner">
-    <div class="synchero-copy">
-      <h1>Explore the data solutions ecosystem</h1>
-      <p>Search the living knowledge graph of the built environment: the organisations, projects, outputs and technologies that already exist, and how they connect.</p>
-      <div class="hero-row">
-        <div class="stat-row" id="statRow"></div>
-        <button class="openkg" id="openKg"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="5" cy="6" r="2.4"/><circle cx="19" cy="7" r="2.4"/><circle cx="12" cy="17" r="2.4"/><path d="M7 7l3.5 8M17 8.5l-4 6"/></svg> Open full knowledge graph</button>
-      </div>
+  <div class="wrap">
+    <h1>Explore the data solutions ecosystem</h1>
+    <p>Search the living knowledge graph of the built environment: the organisations, projects, outputs and technologies that already exist, and how they connect.</p>
+    <div class="hero-row">
+      <!-- the counts are pinned out beside their clusters on wide screens, so this row
+           collapses; it only lays them out again on narrow ones -->
+      <div class="stat-row" id="statRow"></div>
+      <button class="openkg" id="openKg"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="5" cy="6" r="2.4"/><circle cx="19" cy="7" r="2.4"/><circle cx="12" cy="17" r="2.4"/><path d="M7 7l3.5 8M17 8.5l-4 6"/></svg> Open full knowledge graph</button>
     </div>
   </div>
+  <div class="synchero-art"><canvas id="heroGraph"></canvas></div>
   <div class="scrollcue">Scroll for more<span>&#8595;</span></div>
 </section>
 
@@ -630,6 +630,35 @@ function restoreBase(){for(var id in basePos){if(layout[id]){layout[id].x=basePo
       b.beginPath(); b.arc(fx(p.x),fy(p.y),rOf(n)*0.85,0,7); b.fill();}
     b.globalAlpha=1;
   }
+  /* Pins each count beside the cluster it counts, on the outward side of the graph:
+     agents and projects sit left of theirs, outputs and technologies right. The chips
+     are positioned against the section rather than the canvas so that below 980px, where
+     the CSS drops them back into an ordinary row, they are still in the right place in
+     the flow. Above that the row's children are all out of flow, so it collapses and the
+     button sits directly under the paragraph. */
+  var SIDE={agent:'left',project:'left',output:'right',tech:'right'};
+  function placeChips(){
+    if(!clusterMeta||!clusterMeta.agent) return;
+    var wide=document.documentElement.clientWidth>980;
+    var cr=cv.getBoundingClientRect();
+    [].forEach.call(document.querySelectorAll('.stat-chip'),function(el){
+      if(!wide){ el.style.left=el.style.top=el.style.transform=''; return; }
+      var m=clusterMeta[el.getAttribute('data-kind')]; if(!m) return;
+      /* offsets are measured against whatever the chip's absolute position actually
+         resolves against — .wrap is position:relative, so it is that and not the
+         section, and assuming otherwise put every chip out by the wrap's own offset */
+      var host=el.offsetParent||cv.closest('.synchero'); if(!host) return;
+      var hr=host.getBoundingClientRect();
+      var x=cr.left-hr.left+fx(m.cx), y=cr.top-hr.top+fy(m.cy), r=m.R*S+16;
+      if(SIDE[el.getAttribute('data-kind')]==='left'){
+        el.style.left=(x-r)+'px'; el.style.transform='translate(-100%,-50%)';
+      } else {
+        el.style.left=(x+r)+'px'; el.style.transform='translate(0,-50%)';
+      }
+      el.style.top=y+'px';
+    });
+  }
+
   function size(){
     var w=cv.clientWidth,h=cv.clientHeight; if(w<2||h<2) return false;
     dpr=Math.min(devicePixelRatio||1,2);
@@ -639,19 +668,9 @@ function restoreBase(){for(var id in basePos){if(layout[id]){layout[id].x=basePo
     for(var id in pos){var p=pos[id];
       if(p.x<minx)minx=p.x; if(p.y<miny)miny=p.y; if(p.x>maxx)maxx=p.x; if(p.y>maxy)maxy=p.y;}
     var gw=maxx-minx||1, gh=maxy-miny||1;
-    /* The canvas spans the whole hero but the copy sits over its left, so the graph is
-       fitted into the space to the right of that column rather than into the full
-       width — the same idea as the homepage hero, where the node field starts where
-       the headline ends. The right edge is the content column's, not the window's, so
-       the graph stays inside the page grid everything else lines up to. */
-    var wrapW=Math.min(W-52,1180), colL=(W-wrapW)/2+26, colR=colL+wrapW-52;
-    var wide=W>=980;
-    var bx0=wide?colL+Math.min(560,wrapW)+40:0, bx1=wide?colR:W;
-    var by0=100, by1=H-100;                        // clear of the nav and the scroll cue
-    var bw=Math.max(80,bx1-bx0), bh=Math.max(80,by1-by0);
-    S=Math.min(bw/gw,bh/gh)*0.9;         // fit the whole graph, both axes, same scale
-    TX=bx0+bw/2-(minx+gw/2)*S; TY=by0+bh/2-(miny+gh/2)*S;
-    buildBase(); return true;
+    S=Math.min(W/gw,H/gh)*0.9;           // fit the whole graph, both axes, same scale
+    TX=W/2-(minx+gw/2)*S; TY=H/2-(miny+gh/2)*S;
+    buildBase(); placeChips(); return true;
   }
 
   var lab=[];                            // label boxes already placed this frame
@@ -761,8 +780,14 @@ function restoreBase(){for(var id in basePos){if(layout[id]){layout[id].x=basePo
      no window resize at all — a web font landing late reflows the h1 onto another line.
      size() only touches the bitmap, never layout, so observing the canvas cannot loop. */
   function resize(){ if(size()) draw(alpha); }
-  if(window.ResizeObserver){new ResizeObserver(resize).observe(cv);}
-  else addEventListener('resize',resize);
+  if(window.ResizeObserver) new ResizeObserver(resize).observe(cv);
+  /* The window listener is not a fallback for the observer, it is there as well: the
+     counts are pinned to clusters only above 980px, and crossing that width flips them
+     between pinned and an ordinary row. That is a change the canvas box may not report,
+     and getting it wrong leaves the counts stranded away from their clusters. */
+  addEventListener('resize',resize);
+  // one more pass once webfonts have settled, since they move the copy and so the canvas
+  if(document.fonts&&document.fonts.ready) document.fonts.ready.then(resize);
 })();
 // radial arrangement for a selection: chosen node in the centre, neighbours on depth rings
 function radialFocusTargets(n){
