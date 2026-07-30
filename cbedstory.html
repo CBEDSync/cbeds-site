@@ -70,7 +70,10 @@
   /* the ripple rings now sit below the copy rather than behind it. flex:1 hands
      them the leftover height; preserveAspectRatio on the svg keeps them circular
      however that box ends up shaped. */
-  .intro-art{flex:1;min-height:0;position:relative;z-index:1;margin-top:34px;
+  /* margin-top absorbs the 26px that dropping the page-name tag freed up, so the copy
+     rises but the ripple stays exactly the size it was. Only CBEDSync spends that
+     space on its artwork. */
+  .intro-art{flex:1;min-height:0;position:relative;z-index:1;margin-top:60px;
     padding-bottom:54px;display:flex;align-items:center;justify-content:center}
   /* a touch more present than when this was a backdrop behind the text — at .5 opacity
      over a .16 stroke it read as almost nothing in a space this size */
@@ -255,7 +258,6 @@
 
 <section class="intro">
   <div class="wrap">
-    <span class="tag">CBEDStory</span>
     <h1>How we set out to support a complex ecosystem</h1>
     <p>No single initiative can connect the built environment's data ecosystem alone. So we work in repeating cycles of <b>probe</b>, <b>sense</b> and <b>respond</b>. Each cycle sends a ripple further out, and every response drops the stone that starts the next.</p>
     <div class="legend">
