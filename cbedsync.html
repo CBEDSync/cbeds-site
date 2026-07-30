@@ -44,20 +44,17 @@
 
   /* Full-screen hero: copy centred at the top like CBEDStory and CBEDSynergy, then the
      graph below with each count sitting out beside the cluster it belongs to. */
-  /* the extra bottom padding is the button's room: it sits under the graph now, and has
-     to clear the scroll arrow pinned to the foot of the section */
   .synchero{position:relative;height:var(--hero-h);min-height:660px;display:flex;flex-direction:column;
-    padding:calc(var(--nav-h) + 40px) 0 62px;
+    padding:calc(var(--nav-h) + 40px) 0 30px;
     background:radial-gradient(120% 120% at 50% 70%,#10566f 0%,#0a2f40 46%,#072330 100%);
     color:#fff;overflow:hidden;text-align:center}
   .synchero>.wrap{width:100%;flex:0 0 auto;position:relative;z-index:4}
   .synchero h1{font-size:var(--fs-h1);line-height:1.08;margin:14px auto 16px;max-width:20ch}
   .synchero p{font-size:var(--fs-lead);color:#bcd6dc;max-width:66ch;margin:0 auto}
-  /* under the graph, not above it — the counts are out on the graph itself */
-  .hero-row{flex:0 0 auto;display:flex;flex-direction:column;align-items:center;gap:14px;
-    margin-top:16px;position:relative;z-index:4}
-  /* the graph starts straight below the copy and takes everything down to the button */
-  .synchero-art{flex:1;min-height:0;position:relative;z-index:1;margin-top:12px}
+  /* sits with the copy — the counts are out on the graph, so this is the button alone */
+  .hero-row{display:flex;flex-direction:column;align-items:center;gap:14px;margin-top:22px}
+  /* the graph takes everything below the copy, down to the scroll arrow */
+  .synchero-art{flex:1;min-height:0;position:relative;z-index:1;margin-top:14px;padding-bottom:44px}
   #heroGraph{display:block;width:100%;height:100%}
   /* Each count is pinned beside its own cluster, on the outward side: agents and
      projects to the left of theirs, outputs and technologies to the right. placeChips()
@@ -303,16 +300,18 @@
   <div class="wrap">
     <h1>Explore the data solutions ecosystem</h1>
     <p>Search the living knowledge graph of the built environment: the organisations, projects, outputs and technologies that already exist, and how they connect.</p>
+    <!-- The button belongs with the copy, not at the foot of the graph. At the bottom of
+         a full-screen section it read as "continue", which is where a scroll control
+         conventionally lives — it is a call to open the graph, not to move past it. The
+         counts are pinned out beside their clusters on wide screens, so this row is just
+         the button there; it lays them out again on narrow ones. -->
+    <div class="hero-row">
+      <div class="stat-row" id="statRow"></div>
+      <button class="openkg" id="openKg"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="5" cy="6" r="2.4"/><circle cx="19" cy="7" r="2.4"/><circle cx="12" cy="17" r="2.4"/><path d="M7 7l3.5 8M17 8.5l-4 6"/></svg> Open full knowledge graph</button>
+    </div>
+  </div>
   </div>
   <div class="synchero-art"><canvas id="heroGraph"></canvas></div>
-  <!-- the button sits under the graph, so the graph starts straight below the copy and
-       takes the height the button used to occupy above it. The counts are pinned out
-       beside their clusters on wide screens, so this row collapses to the button alone;
-       it only lays them out again on narrow ones. -->
-  <div class="hero-row">
-    <div class="stat-row" id="statRow"></div>
-    <button class="openkg" id="openKg"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="5" cy="6" r="2.4"/><circle cx="19" cy="7" r="2.4"/><circle cx="12" cy="17" r="2.4"/><path d="M7 7l3.5 8M17 8.5l-4 6"/></svg> Open full knowledge graph</button>
-  </div>
   <div class="scrollcue"><span>&#8595;</span></div>
 </section>
 
