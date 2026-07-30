@@ -89,9 +89,10 @@
   .intro-drop{fill:#eafffb;transform-box:fill-box;transform-origin:center;
     animation:dropBeat 5s ease-in-out infinite}
   @keyframes dropBeat{0%,100%{transform:scale(1)}5%{transform:scale(1.22)}20%{transform:scale(1)}}
-  /* Floored relative to the droplet: a third of 15px is 5px, which renders as a smudge
-     rather than a word. Set to 9px so it stays readable at the smaller mark. */
-  .intro-wordmark{fill:#9fe0d9;font-family:var(--display);font-size:9px;font-weight:700;
+  /* 3px in viewBox units — a third of the 9px it was. The svg is scaled to fit its box,
+     so this lands around 3-5px on screen; it reads as a mark under the droplet rather
+     than as a word you can pick out. */
+  .intro-wordmark{fill:#9fe0d9;font-family:var(--display);font-size:3px;font-weight:700;
     letter-spacing:.14em;text-anchor:middle}
   @media (prefers-reduced-motion:reduce){
     .intro-rip .r,.intro-drop{animation:none}
@@ -252,7 +253,7 @@
       <!-- droplet and glow scaled to a third about the ring centre (380,180) -->
       <circle cx="380" cy="180" r="13.3" fill="url(#dropGlow)"/>
       <path class="intro-drop" d="M380 174 C383.7 178.3 383.7 184 380 184 C376.3 184 376.3 178.3 380 174 Z"/>
-      <text class="intro-wordmark" x="380" y="194">CBEDS</text>
+      <text class="intro-wordmark" x="380" y="188">CBEDS</text>
     </svg>
   </div>
   <div class="scrollcue">Scroll to begin<span>&#8595;</span></div>
