@@ -54,7 +54,10 @@
      falls back to its intrinsic ratio and pushes the hero past one screen.
      The px floor means a very short window scrolls rather than crushing the art. */
   .intro{position:relative;height:var(--hero-h);min-height:660px;display:flex;flex-direction:column;
-    background:radial-gradient(120% 120% at 78% 18%,#10566f 0%,#0a2f40 46%,#072330 100%);
+    /* the light in the gradient sits on the ripple's centre rather than up in the
+       top right, so the artwork looks lit by it — 74% down is where the ring centre
+       lands once the copy above has taken its share of the hero */
+    background:radial-gradient(120% 120% at 50% 74%,#10566f 0%,#0a2f40 46%,#072330 100%);
     padding:calc(var(--nav-h) + 40px) 0 30px;text-align:center;overflow:hidden}
   .intro .wrap{position:relative;z-index:2;width:100%;flex:0 0 auto}
   .intro .tag{font-family:var(--display);font-size:12.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--green-bright);font-weight:600}
@@ -75,13 +78,14 @@
   /* The rings light in turn from the centre outwards, which is the same "each cycle
      sends a ripple further out" idea the copy above states and the scroll map below
      plays out. One shared 5s cycle with a staggered delay per ring carries the pulse
-     outwards, and the tail of the cycle is the rest between ripples. */
+     outwards; each ring then stays lit for the rest of its cycle, so the ripple
+     builds up to all five before fading out together in the order it arrived. */
   .intro-rip .r{fill:none;stroke:rgba(134,205,199,.16);stroke-width:1.1;
     animation:ripOut 5s cubic-bezier(.35,.7,.4,1) infinite}
   @keyframes ripOut{
     0%{stroke:rgba(134,205,199,.16);stroke-width:1.1}
-    7%{stroke:rgba(159,224,217,.85);stroke-width:2.2}
-    26%{stroke:rgba(134,205,199,.16);stroke-width:1.1}
+    6%{stroke:rgba(159,224,217,.85);stroke-width:2.2}
+    88%{stroke:rgba(159,224,217,.85);stroke-width:2.2}
     100%{stroke:rgba(134,205,199,.16);stroke-width:1.1}
   }
   /* the drop at the centre, matching CBEDSynergy: teardrop, soft glow, CBEDS beneath.
@@ -89,10 +93,12 @@
   .intro-drop{fill:#eafffb;transform-box:fill-box;transform-origin:center;
     animation:dropBeat 5s ease-in-out infinite}
   @keyframes dropBeat{0%,100%{transform:scale(1)}5%{transform:scale(1.22)}20%{transform:scale(1)}}
-  /* 3px in viewBox units — a third of the 9px it was. The svg is scaled to fit its box,
-     so this lands around 3-5px on screen; it reads as a mark under the droplet rather
-     than as a word you can pick out. */
-  .intro-wordmark{fill:#9fe0d9;font-family:var(--display);font-size:3px;font-weight:700;
+  /* 6.5px in viewBox units puts the wordmark's inked width at 26.6, the diameter of
+     the glow disc behind the droplet, so the mark reads as one stacked unit. Measured
+     on the glyph bounds rather than the advance width, which carries a trailing
+     letter-space the eye does not see. Letter-spacing is in em, so the width tracks
+     the font-size and the ratio holds if either is retuned. */
+  .intro-wordmark{fill:#9fe0d9;font-family:var(--display);font-size:6.5px;font-weight:700;
     letter-spacing:.14em;text-anchor:middle}
   @media (prefers-reduced-motion:reduce){
     .intro-rip .r,.intro-drop{animation:none}
@@ -253,7 +259,7 @@
       <!-- droplet and glow scaled to a third about the ring centre (380,180) -->
       <circle cx="380" cy="180" r="13.3" fill="url(#dropGlow)"/>
       <path class="intro-drop" d="M380 174 C383.7 178.3 383.7 184 380 184 C376.3 184 376.3 178.3 380 174 Z"/>
-      <text class="intro-wordmark" x="380" y="188">CBEDS</text>
+      <text class="intro-wordmark" x="380" y="191">CBEDS</text>
     </svg>
   </div>
   <div class="scrollcue">Scroll to begin<span>&#8595;</span></div>

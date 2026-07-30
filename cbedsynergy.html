@@ -50,7 +50,9 @@
      left 96px of dead space at the foot of the hero and squashed the canvas by that
      much again at the top. */
   .nethero{position:relative;height:var(--hero-h);min-height:680px;padding:0;display:flex;flex-direction:column;
-    overflow:hidden;background:radial-gradient(120% 120% at 78% 18%,#10566f 0%,#0a2f40 46%,#072330 100%)}
+    /* the light in the gradient sits on the network's centre — where the CBEDS drop
+       lands — rather than up in the top right, so the artwork looks lit by it */
+    overflow:hidden;background:radial-gradient(120% 120% at 50% 62%,#10566f 0%,#0a2f40 46%,#072330 100%)}
   /* the canvas sits in normal flow rather than absolutely positioned: as a replaced
      element its width:auto falls back to the intrinsic 300x150, so insets alone
      collapsed it. In flow, height:100% resolves against this content box, which the
@@ -204,23 +206,18 @@ function build(){
 var mouse={x:null,y:null,cxp:0,cyp:0};
 c.addEventListener('mousemove',function(e){var r=c.getBoundingClientRect();mouse.x=e.clientX-r.left;mouse.y=e.clientY-r.top;mouse.cxp=e.clientX;mouse.cyp=e.clientY;});
 c.addEventListener('mouseleave',function(){mouse.x=mouse.y=null;});
-// The whole centre mark — glow, droplet and wordmark — at a third of its former size.
-var DROP=1/3;
 function drawDrop(dx,dy,k,stretch){
-  var glowR=base*0.05*DROP;
+  var glowR=base*0.05;
   var g=ctx.createRadialGradient(dx,dy,0,dx,dy,glowR);
   g.addColorStop(0,'rgba(134,205,199,'+(0.5*k).toFixed(3)+')');g.addColorStop(1,'rgba(134,205,199,0)');
   ctx.fillStyle=g;ctx.beginPath();ctx.arc(dx,dy,glowR,0,7);ctx.fill();
-  var S=0.2*DROP;   // tiny: about the size of an organisation dot
+  var S=0.2;   // tiny: about the size of an organisation dot
   ctx.save();ctx.translate(dx,dy);ctx.scale(S,S*stretch);
   ctx.fillStyle='#eafffb';
   ctx.beginPath();ctx.moveTo(0,-30);ctx.bezierCurveTo(18,-6,18,22,0,22);ctx.bezierCurveTo(-18,22,-18,-6,0,-30);ctx.closePath();ctx.fill();
   ctx.restore();
-  /* Floored at 9px: a third of the old size puts this under 4px, which renders as a
-     smudge rather than a word. Drop the floor if it should scale literally. */
-  var fs=Math.max(9,base*0.022*DROP);
-  ctx.fillStyle='rgba(159,224,217,'+(0.5+0.45*k).toFixed(2)+')';ctx.font='700 '+fs+'px '+getComputedStyle(document.body).fontFamily;
-  ctx.textAlign='center';ctx.textBaseline='top';ctx.fillText('CBEDS',dx,dy+22*S+4);
+  ctx.fillStyle='rgba(159,224,217,'+(0.5+0.45*k).toFixed(2)+')';ctx.font='700 '+(base*0.022)+'px '+getComputedStyle(document.body).fontFamily;
+  ctx.textAlign='center';ctx.textBaseline='top';ctx.fillText('CBEDS',dx,dy+10);
 }
 function clamp01(v){return Math.max(0,Math.min(1,v));}
 function cdist(d){return Math.hypot(d.x-cx,(d.y-cy)/RYF);}

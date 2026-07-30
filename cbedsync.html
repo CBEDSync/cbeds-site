@@ -48,7 +48,9 @@
      left" if the section's own height is definite. The px floor means a very short
      window scrolls rather than crushing the artwork. */
   .synchero{position:relative;height:var(--hero-h);min-height:660px;display:flex;flex-direction:column;
-    padding:calc(var(--nav-h) + 40px) 0 30px;background:radial-gradient(120% 120% at 78% 18%,#10566f 0%,#0a2f40 46%,#072330 100%);color:#fff;overflow:hidden;text-align:center}
+    /* the light in the gradient sits on the graph's centre rather than up in the top
+       right, so the artwork looks lit by it */
+    padding:calc(var(--nav-h) + 40px) 0 30px;background:radial-gradient(120% 120% at 50% 70%,#10566f 0%,#0a2f40 46%,#072330 100%);color:#fff;overflow:hidden;text-align:center}
   .synchero>.wrap{width:100%;flex:0 0 auto;position:relative;z-index:2}
   .synchero .tag{font-family:var(--display);font-size:12.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--green-bright);font-weight:600}
   .synchero h1{font-size:var(--fs-h1);line-height:1.08;margin:14px auto 16px;max-width:20ch}

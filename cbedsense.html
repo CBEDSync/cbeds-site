@@ -43,7 +43,10 @@
   /* hero */
   /* Full-screen hero, shared across all five pages via --hero-h. The chip cloud
      fills the whole screen; the copy keeps its place in the middle. */
-  .hero{position:relative;min-height:var(--hero-h);overflow:hidden;background:radial-gradient(120% 120% at 78% 18%,#10566f 0%,#0a2f40 46%,#072330 100%);display:flex;align-items:center;padding:var(--nav-h) 0 30px}
+  /* There is no artwork at the centre here, so the light in the gradient sits behind
+     the copy instead — it lifts the words off the chip cloud without the opaque panel
+     that used to do that job. */
+  .hero{position:relative;min-height:var(--hero-h);overflow:hidden;background:radial-gradient(120% 120% at 50% 52%,#10566f 0%,#0a2f40 46%,#072330 100%);display:flex;align-items:center;padding:var(--nav-h) 0 30px}
   .chips{position:absolute;inset:0;z-index:1;overflow:hidden}
   .chip{position:absolute;font-family:var(--display);font-size:13px;font-weight:600;color:rgba(159,224,217,.5);border:1px solid rgba(134,205,199,.22);border-radius:100px;padding:6px 14px;white-space:nowrap;animation:drift linear infinite}
   /* Travel shortened from 20/-60 to 14/-38. Each chip has to be kept clear of the
