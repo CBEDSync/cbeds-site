@@ -55,9 +55,17 @@
   .synchero .tag{font-family:var(--display);font-size:12.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--green-bright);font-weight:600}
   .synchero h1{font-size:var(--fs-h1);line-height:1.08;margin:14px auto 16px;max-width:20ch}
   .synchero p{font-size:var(--fs-lead);color:#bcd6dc;max-width:66ch;margin:0 auto}
-  .hero-row{display:flex;align-items:center;justify-content:center;gap:20px;flex-wrap:wrap;margin-top:26px}
-  .stat-row{display:flex;gap:14px;flex-wrap:wrap}
-  .stat-chip{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14);border-radius:100px;padding:9px 18px;font-family:var(--display);font-size:14px}
+  /* a column: the counts get their own line, the button sits under them */
+  .hero-row{display:flex;flex-direction:column;align-items:center;gap:18px;margin-top:26px}
+  .stat-row{display:flex;gap:14px;flex-wrap:wrap;justify-content:center}
+  .stat-chip{display:inline-flex;align-items:center;gap:9px;background:rgba(255,255,255,.06);
+    border:1px solid rgba(255,255,255,.14);border-radius:100px;padding:9px 18px;
+    font-family:var(--display);font-size:14px;color:inherit;cursor:pointer;
+    transition:background .18s,border-color .18s,transform .15s}
+  .stat-chip:hover{background:rgba(255,255,255,.13);border-color:rgba(134,205,199,.55);transform:translateY(-1px)}
+  .stat-chip:focus-visible{outline:2px solid var(--green-bright);outline-offset:2px}
+  /* the dot carries the entity type's own colour, the same one the graph uses */
+  .stat-chip i{width:9px;height:9px;border-radius:50%;flex:0 0 auto}
   .stat-chip b{color:#fff;font-weight:700}.stat-chip span{color:#9fc1c9}
   .openkg{display:inline-flex;align-items:center;gap:10px;background:var(--green);color:var(--blue-deeper);font-family:var(--display);font-weight:700;font-size:15px;padding:13px 22px;border-radius:12px;cursor:pointer;border:none;transition:transform .15s,box-shadow .2s}
   .openkg:hover{transform:translateY(-2px);box-shadow:0 12px 30px rgba(112,179,174,.4)}
@@ -388,11 +396,22 @@ var D=X.D, ENT=X.ENT, TECH=X.TECH, NODES=X.NODES, byId=X.byId, adj=X.adj, degOf=
 var kindLabel=X.kindLabel, kindColors=X.kindColors, relLabel=X.relLabel, relLabelIn=X.relLabelIn;
 function kindColor(k){return kindColors[k]||'#7e98a0';}
 
-document.getElementById('statRow').innerHTML=
-  '<div class="stat-chip"><b>'+D.counts.agent+'</b> <span>orgs &amp; experts</span></div>'+
-  '<div class="stat-chip"><b>'+D.counts.project+'</b> <span>projects</span></div>'+
-  '<div class="stat-chip"><b>'+D.counts.output+'</b> <span>outputs</span></div>'+
-  '<div class="stat-chip"><b>'+TECH.length+'</b> <span>technologies</span></div>';
+/* The counts double as the way in: each one carries its type's colour and, clicked,
+   drops the reader into the explorer with that type already filtered. */
+(function(){
+  var sr=document.getElementById('statRow');
+  [['agent',D.counts.agent,'orgs & experts'],
+   ['project',D.counts.project,'projects'],
+   ['output',D.counts.output,'outputs'],
+   ['tech',TECH.length,'technologies']].forEach(function(s){
+    var b=document.createElement('button');
+    b.type='button'; b.className='stat-chip'; b.setAttribute('data-kind',s[0]);
+    b.setAttribute('aria-label','Show '+s[2]+' in the explorer');
+    b.innerHTML='<i style="background:'+kindColor(s[0])+'"></i><b>'+s[1]+'</b> <span>'+esc(s[2])+'</span>';
+    b.onclick=function(){ selectKind(s[0]); toExplorer(); };
+    sr.appendChild(b);
+  });
+})();
 
 function esc(s){return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 function toExplorer(){var el=document.getElementById('detail');if(el){var y=el.getBoundingClientRect().top+window.pageYOffset-70;window.scrollTo({top:y,behavior:'smooth'});}}
@@ -402,7 +421,11 @@ function legendHTML(){return '<span><i style="background:#3a8fd6"></i>Agent</spa
 var state={q:'',kind:'all',theme:'',tech:'',depth:1};
 var kinds=[['all','All'],['agent','Agents'],['project','Projects'],['output','Outputs'],['tech','Technologies']];
 var kc=document.getElementById('kindChips');
-kinds.forEach(function(k){var b=document.createElement('div');b.className='chip'+(k[0]==='all'?' on':'');b.textContent=k[1];b.onclick=function(){state.kind=k[0];[].forEach.call(kc.children,function(c){c.classList.remove('on');});b.classList.add('on');render();};kc.appendChild(b);});
+kinds.forEach(function(k){var b=document.createElement('div');b.className='chip'+(k[0]==='all'?' on':'');b.setAttribute('data-kind',k[0]);b.textContent=k[1];b.onclick=function(){state.kind=k[0];[].forEach.call(kc.children,function(c){c.classList.remove('on');});b.classList.add('on');render();};kc.appendChild(b);});
+/* Lets the hero counts drive this filter. Going through the chip's own click keeps
+   one code path for selecting a type, so the state, the highlight and the re-render
+   can never fall out of step. */
+function selectKind(kind){var b=kc.querySelector('[data-kind="'+kind+'"]');if(b)b.click();}
 var ts=document.getElementById('themeSel');
 D.themes.forEach(function(t){var o=document.createElement('option');o.value=t;o.textContent=t.replace('Data Integration and Interoperability','Interoperability').replace(' and ',' & ').trim();ts.appendChild(o);});
 ts.onchange=function(){state.theme=this.value;render();};
@@ -575,12 +598,7 @@ function restoreBase(){for(var id in basePos){if(layout[id]){layout[id].x=basePo
   var seen={}, edges=[];
   Object.keys(adj).forEach(function(a){(adj[a]||[]).forEach(function(e){
     var k=a<e.id?a+'|'+e.id:e.id+'|'+a; if(!seen[k]){seen[k]=1;edges.push([a,e.id]);}});});
-  /* Entities worth featuring: enough relations to be worth looking at, few enough that
-     the labels do not stack into an unreadable pile. */
-  var cast=NODES.filter(function(n){var d=(adj[n.id]||[]).length; return d>=3&&d<=11;});
-  if(!cast.length) cast=NODES.slice();
-  // hash order, so the sequence is varied but stable rather than re-randomised per load
-  cast.sort(function(a,b){return hashFrac(a.id)-hashFrac(b.id);});
+  var LABEL_CAP=12;   // a hub can have dozens of relations; only name this many
 
   var W=0,H=0,S=1,TX=0,TY=0,dpr=1,baseLayer=null;
   function fx(x){return x*S+TX;} function fy(y){return y*S+TY;}
@@ -645,7 +663,7 @@ function restoreBase(){for(var id in basePos){if(layout[id]){layout[id].x=basePo
     g.globalAlpha=a; g.fillStyle='rgba(238,251,248,0.98)';
     g.fillText(s,bx+4.5,by+11.7);
   }
-  function dot(n,p,a,hub){
+  function dot(n,p,a,hub,named){
     var x=fx(p.x),y=fy(p.y),r=rOf(n)*(hub?2.5:1.8);
     var rg=g.createRadialGradient(x,y,0,x,y,r*3.4);
     rg.addColorStop(0,kindColor(n.kind)); rg.addColorStop(1,'rgba(6,32,44,0)');
@@ -653,7 +671,7 @@ function restoreBase(){for(var id in basePos){if(layout[id]){layout[id].x=basePo
     g.globalAlpha=a; g.fillStyle=hub?'#f4fffd':kindColor(n.kind);
     g.beginPath(); g.arc(x,y,r,0,7); g.fill();
     g.strokeStyle='rgba(255,255,255,'+(hub?0.95:0.72)+')'; g.lineWidth=hub?2:1.2; g.stroke();
-    label(n,x,y,r,a,hub);
+    if(named) label(n,x,y,r,a,hub);
     g.globalAlpha=1;
   }
   function draw(a){
@@ -671,40 +689,65 @@ function restoreBase(){for(var id in basePos){if(layout[id]){layout[id].x=basePo
       g.beginPath(); g.moveTo(fx(d[0].x),fy(d[0].y)); g.lineTo(fx(d[1].x),fy(d[1].y)); g.stroke();
       arrow(fx(d[0].x),fy(d[0].y),fx(d[1].x),fy(d[1].y),'rgba(159,224,217,'+(0.85*a).toFixed(3)+')',rOf(byId[nbs[j].id])*1.8+4);
     }
-    for(var j=0;j<nbs.length;j++) dot(byId[nbs[j].id],pos[nbs[j].id],a,false);
-    dot(cur,p,a,true);
+    // named in descending degree, so the busiest neighbours are the ones that get a label
+    var named=nbs.slice().sort(function(x,y){return (degOf[y.id]||0)-(degOf[x.id]||0);}).slice(0,LABEL_CAP);
+    var nameSet={}; named.forEach(function(e){nameSet[e.id]=1;});
+    for(var j=0;j<nbs.length;j++) dot(byId[nbs[j].id],pos[nbs[j].id],a,false,nameSet[nbs[j].id]);
+    dot(cur,p,a,true,true);
   }
 
-  var i=0,t0=null,cur=null,running=false,rafId=null;
-  // halved twice over: one entity every 1.3s, down from the original 5.2s
-  var FADE=200, HOLD=900, CYCLE=HOLD+FADE*2;
-  function frame(ts){
-    if(!running){rafId=null;return;}
-    if(t0===null){t0=ts;cur=cast[i++%cast.length];}
-    var el=ts-t0;
-    if(el>=CYCLE){t0=ts;el=0;cur=cast[i++%cast.length];}
-    var a = el<FADE ? el/FADE : (el>FADE+HOLD ? 1-(el-FADE-HOLD)/FADE : 1);
-    draw(Math.max(0,Math.min(1,a)));
-    rafId=requestAnimationFrame(frame);
-  }
-  function start(){if(running)return;running=true;if(!rafId)rafId=requestAnimationFrame(frame);}
-  function stop(){running=false;if(rafId){cancelAnimationFrame(rafId);rafId=null;}}
-
-  if(!size()) return;
-  if(matchMedia('(prefers-reduced-motion:reduce)').matches){
-    cur=cast[0]; draw(1);                // one still frame, no cycling
-  } else {
-    start();
-    // no point burning frames on a hero that has been scrolled past
-    if(window.IntersectionObserver){
-      new IntersectionObserver(function(es){es[0].isIntersecting?start():stop();},{threshold:0.02}).observe(cv);
+  /* Nothing moves on its own: the reader drives it. Hovering a node lights it and its
+     relations, moving off lets them fade back. The loop only runs while that fade is
+     in flight, so an idle hero costs nothing. */
+  var cur=null, alpha=0, rafId=null;
+  var EASE=matchMedia('(prefers-reduced-motion:reduce)').matches?1:0.2;
+  function nodeAt(mx,my){
+    var best=null,bd=17;
+    for(var k=0;k<NODES.length;k++){
+      var n=NODES[k],p=pos[n.id]; if(!p) continue;
+      var d=Math.hypot(fx(p.x)-mx,fy(p.y)-my);
+      if(d<bd){bd=d;best=n;}
     }
+    return best;
   }
+  function tick(){
+    rafId=null;
+    var target=cur?1:0;
+    alpha+=(target-alpha)*EASE;
+    if(Math.abs(target-alpha)<0.012) alpha=target;
+    draw(alpha);
+    if(alpha!==target) rafId=requestAnimationFrame(tick);
+  }
+  /* Steps once straight away rather than waiting on the next frame, so the highlight
+     answers the pointer immediately and the fade merely catches up. */
+  function kick(){ if(rafId){cancelAnimationFrame(rafId);rafId=null;} tick(); }
+
+  /* No early return if the canvas has no size yet. It is sized from a flex slot whose
+     height depends on the copy above it, so the first measurement can legitimately come
+     back as zero; bailing here used to kill the whole thing silently, listeners and all.
+     Instead draw what we can and let the observer below finish the job. */
+  size();
+  draw(0);                                 // the graph at rest, no highlight
+  cv.addEventListener('mousemove',function(e){
+    var r=cv.getBoundingClientRect();
+    var n=nodeAt(e.clientX-r.left,e.clientY-r.top);
+    if((n&&n.id)!==(cur&&cur.id)){ cur=n; cv.style.cursor=n?'pointer':'default'; kick(); }
+  });
+  cv.addEventListener('mouseleave',function(){
+    if(cur){ cur=null; cv.style.cursor='default'; kick(); }
+  });
+  // the hero graph is a way in, not just a picture: a node opens it in the full graph
+  cv.addEventListener('click',function(e){
+    var r=cv.getBoundingClientRect();
+    var n=nodeAt(e.clientX-r.left,e.clientY-r.top);
+    if(n && typeof openKG==='function') openKG(n);
+  });
   /* The canvas box is whatever height the copy above it leaves, so it can change with
      no window resize at all — a web font landing late reflows the h1 onto another line.
      size() only touches the bitmap, never layout, so observing the canvas cannot loop. */
-  if(window.ResizeObserver){new ResizeObserver(function(){size();}).observe(cv);}
-  else addEventListener('resize',function(){size();});
+  function resize(){ if(size()) draw(alpha); }
+  if(window.ResizeObserver){new ResizeObserver(resize).observe(cv);}
+  else addEventListener('resize',resize);
 })();
 // radial arrangement for a selection: chosen node in the centre, neighbours on depth rings
 function radialFocusTargets(n){
