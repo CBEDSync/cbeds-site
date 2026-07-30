@@ -71,8 +71,29 @@
     padding-bottom:54px;display:flex;align-items:center;justify-content:center}
   /* a touch more present than when this was a backdrop behind the text — at .5 opacity
      over a .16 stroke it read as almost nothing in a space this size */
-  .intro-rip{width:100%;height:100%;opacity:.8}
-  .intro-rip ellipse{fill:none;stroke:rgba(134,205,199,.26);stroke-width:1.2}
+  .intro-rip{width:100%;height:100%;opacity:.9}
+  /* The rings light in turn from the centre outwards, which is the same "each cycle
+     sends a ripple further out" idea the copy above states and the scroll map below
+     plays out. One shared 5s cycle with a staggered delay per ring carries the pulse
+     outwards, and the tail of the cycle is the rest between ripples. */
+  .intro-rip .r{fill:none;stroke:rgba(134,205,199,.16);stroke-width:1.1;
+    animation:ripOut 5s cubic-bezier(.35,.7,.4,1) infinite}
+  @keyframes ripOut{
+    0%{stroke:rgba(134,205,199,.16);stroke-width:1.1}
+    7%{stroke:rgba(159,224,217,.85);stroke-width:2.2}
+    26%{stroke:rgba(134,205,199,.16);stroke-width:1.1}
+    100%{stroke:rgba(134,205,199,.16);stroke-width:1.1}
+  }
+  /* the drop at the centre, matching CBEDSynergy: teardrop, soft glow, CBEDS beneath.
+     It beats on the same 5s cycle as the rings, on the beat that starts the ripple. */
+  .intro-drop{fill:#eafffb;transform-box:fill-box;transform-origin:center;
+    animation:dropBeat 5s ease-in-out infinite}
+  @keyframes dropBeat{0%,100%{transform:scale(1)}5%{transform:scale(1.22)}20%{transform:scale(1)}}
+  .intro-wordmark{fill:#9fe0d9;font-family:var(--display);font-size:15px;font-weight:700;
+    letter-spacing:.18em;text-anchor:middle}
+  @media (prefers-reduced-motion:reduce){
+    .intro-rip .r,.intro-drop{animation:none}
+  }
   .scrollcue{position:absolute;bottom:22px;left:0;right:0;z-index:2;text-align:center;color:rgba(255,255,255,.55);font-family:var(--display);font-size:12.5px;letter-spacing:.08em;text-transform:uppercase}
   .scrollcue span{display:block;font-size:18px;margin-top:4px;animation:bob 1.8s ease-in-out infinite}
   @keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(5px)}}
@@ -211,8 +232,21 @@
   </div>
   <div class="intro-art">
     <svg class="intro-rip" viewBox="0 0 760 360" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
-      <ellipse cx="380" cy="180" rx="60" ry="30"/><ellipse cx="380" cy="180" rx="130" ry="62"/>
-      <ellipse cx="380" cy="180" rx="205" ry="96"/><ellipse cx="380" cy="180" rx="285" ry="132"/><ellipse cx="380" cy="180" rx="368" ry="168"/>
+      <defs>
+        <radialGradient id="dropGlow">
+          <stop offset="0" stop-color="#86cdc7" stop-opacity=".45"/>
+          <stop offset="1" stop-color="#86cdc7" stop-opacity="0"/>
+        </radialGradient>
+      </defs>
+      <!-- innermost ring first; the staggered delays are what carry the pulse outwards -->
+      <ellipse class="r" cx="380" cy="180" rx="60"  ry="30"  style="animation-delay:0s"/>
+      <ellipse class="r" cx="380" cy="180" rx="130" ry="62"  style="animation-delay:.16s"/>
+      <ellipse class="r" cx="380" cy="180" rx="205" ry="96"  style="animation-delay:.32s"/>
+      <ellipse class="r" cx="380" cy="180" rx="285" ry="132" style="animation-delay:.48s"/>
+      <ellipse class="r" cx="380" cy="180" rx="368" ry="168" style="animation-delay:.64s"/>
+      <circle cx="380" cy="180" r="40" fill="url(#dropGlow)"/>
+      <path class="intro-drop" d="M380 162 C391 175 391 192 380 192 C369 192 369 175 380 162 Z"/>
+      <text class="intro-wordmark" x="380" y="216">CBEDS</text>
     </svg>
   </div>
   <div class="scrollcue">Scroll to begin<span>&#8595;</span></div>

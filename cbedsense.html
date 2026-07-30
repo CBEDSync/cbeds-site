@@ -53,13 +53,11 @@
      suits a screen this size; the long fall read as things dropping. */
   @keyframes drift{0%{transform:translateY(14px);opacity:0}10%{opacity:1}90%{opacity:1}100%{transform:translateY(-38px);opacity:0}}
   .hero-inner{position:relative;z-index:2;text-align:center;width:100%;padding:0 26px}   /* the section owns the vertical spacing now */
-  /* An opaque card behind the copy. Chips are free to drift across the middle of the
-     hero because they pass *behind* this panel and out the other side, instead of
-     colliding with the words as they did when the copy sat on bare gradient. The
-     blur keeps the panel from reading as a flat rectangle on the gradient. */
-  .hero-card{max-width:820px;margin:0 auto;padding:44px 44px 46px;border-radius:24px;
-    background:rgba(6,30,42,.92);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
-    border:1px solid rgba(134,205,199,.18);box-shadow:0 26px 70px rgba(3,18,26,.5)}
+  /* No panel behind the copy. The chips are kept out of this block's box instead, so
+     they float around the words rather than over them, and the hero gradient stays
+     unbroken. The element remains because the chip layout measures it to know where
+     the words are. */
+  .hero-card{max-width:820px;margin:0 auto}
   .hero .tag{font-family:var(--display);font-size:12.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--green-bright);font-weight:600}
   .devpill{display:inline-block;font-family:var(--display);font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#06202c;background:var(--green-bright);border-radius:100px;padding:4px 11px;vertical-align:middle}
   .devtag{display:inline-block;margin-left:6px;font-family:var(--display);font-size:9px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#06202c;background:var(--green);border-radius:5px;padding:1px 5px;vertical-align:middle}
@@ -447,7 +445,10 @@ function layoutChips(){
       // left% positions the chip's left edge, so a long label can hang off the right
       if(r.right>hb.right-14||d.bottom>hb.bottom-6||d.top<hb.top+4)continue;
       if(chipHits(d,nb,10,6))continue;                   // clear of the nav bar
-      if(chipHits(d,cb,18,10))continue;                  // clear of the copy card
+      /* Clear of the copy, with a generous margin. There is no panel behind the words
+         any more, so this gap is the only thing keeping the cloud off them — it has to
+         read as deliberate space rather than a near miss. */
+      if(chipHits(d,cb,40,26))continue;
       // Neighbours are separated on their resting rects, not their drift envelopes.
       // Enforcing the envelope here left room for only four or five rows and the
       // cloud came out sparse; chips fade in and out as they drift, so the brief
