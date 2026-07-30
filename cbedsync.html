@@ -42,24 +42,26 @@
   .nav-cta{background:var(--green);color:var(--blue-deeper)!important;padding:10px 20px;border-radius:9px;font-weight:600;font-size:14px;font-family:var(--display)}
   .devtag{display:inline-block;margin-left:6px;font-family:var(--display);font-size:9px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#06202c;background:var(--green);border-radius:5px;padding:1px 5px;vertical-align:middle}
 
-  /* Full-screen hero, shared across all five pages via --hero-h. Copy centred at
-     the top exactly as on CBEDStory, artwork taking the height that is left. */
-  /* height, not just min-height: .synchero-art can only be handed "the space that is
-     left" if the section's own height is definite. The px floor means a very short
-     window scrolls rather than crushing the artwork. */
-  .synchero{position:relative;height:var(--hero-h);min-height:660px;display:flex;flex-direction:column;
-    /* the light in the gradient sits on the graph's centre rather than up in the top
-       right, so the artwork looks lit by it */
-    padding:calc(var(--nav-h) + 40px) 0 30px;background:radial-gradient(120% 120% at 50% 70%,#10566f 0%,#0a2f40 46%,#072330 100%);color:#fff;overflow:hidden;text-align:center}
-  .synchero>.wrap{width:100%;flex:0 0 auto;position:relative;z-index:2}
-  .synchero .tag{font-family:var(--display);font-size:12.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--green-bright);font-weight:600}
-  .synchero h1{font-size:var(--fs-h1);line-height:1.08;margin:14px auto 16px;max-width:20ch}
-  .synchero p{font-size:var(--fs-lead);color:#bcd6dc;max-width:66ch;margin:0 auto}
-  /* a column: the counts get their own line, the button sits under them. The spacing
-     through this hero is deliberately tight — giving the button its own row costs the
-     artwork below about 54px of height, and this is where that is won back. */
-  .hero-row{display:flex;flex-direction:column;align-items:center;gap:10px;margin-top:12px}
-  .stat-row{display:flex;gap:14px;flex-wrap:wrap;justify-content:center}
+  /* Full-screen hero, laid out like the homepage: copy on the left, graph filling the
+     space to its right. The gradient's light sits over on that side to follow it. */
+  .synchero{position:relative;height:var(--hero-h);min-height:660px;padding:0;display:flex;align-items:center;
+    background:radial-gradient(120% 120% at 70% 50%,#10566f 0%,#0a2f40 46%,#072330 100%);color:#fff;overflow:hidden}
+  #heroGraph{position:absolute;inset:0;width:100%;height:100%;z-index:2;display:block}
+  /* darkens the left so the copy reads over the graph, and fades to nothing on the
+     right so the graph itself stays clean. pointer-events:none or it would eat the
+     hover. */
+  .synchero-scrim{position:absolute;inset:0;z-index:3;pointer-events:none;
+    background:linear-gradient(90deg,rgba(7,35,48,.95) 0%,rgba(7,35,48,.85) 26%,rgba(7,35,48,.45) 50%,rgba(7,35,48,.05) 74%,rgba(7,35,48,0) 100%),
+               linear-gradient(to bottom,rgba(7,35,48,.5) 0%,transparent 18%,transparent 78%,rgba(7,35,48,.6) 100%)}
+  /* pointer-events:none so the graph behind stays hoverable; the copy takes its own
+     events back for the counts and the button */
+  .synchero-inner{position:relative;z-index:4;width:100%;padding:120px 26px 80px;pointer-events:none}
+  .synchero-copy{max-width:560px;pointer-events:auto}
+  .synchero h1{font-size:var(--fs-h1);line-height:1.08;margin:0 0 16px}
+  .synchero p{font-size:var(--fs-lead);color:#bcd6dc;max-width:52ch;margin:0}
+  /* the counts get their own line, the button sits under them, both ranged left */
+  .hero-row{display:flex;flex-direction:column;align-items:flex-start;gap:14px;margin-top:30px}
+  .stat-row{display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-start}
   .stat-chip{display:inline-flex;align-items:center;gap:9px;background:rgba(255,255,255,.06);
     border:1px solid rgba(255,255,255,.14);border-radius:100px;padding:8px 16px;
     font-family:var(--display);font-size:14px;color:inherit;cursor:pointer;
@@ -71,16 +73,8 @@
   .stat-chip b{color:#fff;font-weight:700}.stat-chip span{color:#9fc1c9}
   .openkg{display:inline-flex;align-items:center;gap:10px;background:var(--green);color:var(--blue-deeper);font-family:var(--display);font-weight:700;font-size:15px;padding:11px 20px;border-radius:12px;cursor:pointer;border:none;transition:transform .15s,box-shadow .2s}
   .openkg:hover{transform:translateY(-2px);box-shadow:0 12px 30px rgba(112,179,174,.4)}
-  .stat-row{justify-content:center}
-
-  /* ---------- hero artwork: the knowledge graph ----------
-     The real graph, at the same cluster layout the full overlay uses, walking a
-     random entity every few seconds and lighting its relations the way a hover does.
-     flex:1 hands it the height the copy did not use. */
-  .synchero-art{flex:1;min-height:0;position:relative;z-index:1;margin-top:0;padding-bottom:54px}
-  #heroGraph{display:block;width:100%;height:100%}
   /* shared scroll cue — the same element on every hero */
-  .scrollcue{position:absolute;bottom:22px;left:0;right:0;z-index:4;text-align:center;color:rgba(255,255,255,.55);font-family:var(--display);font-size:12.5px;letter-spacing:.08em;text-transform:uppercase;pointer-events:none}
+  .scrollcue{position:absolute;bottom:22px;left:0;right:0;z-index:5;text-align:center;color:rgba(255,255,255,.55);font-family:var(--display);font-size:12.5px;letter-spacing:.08em;text-transform:uppercase;pointer-events:none}
   .scrollcue span{display:block;font-size:18px;line-height:1;margin-top:5px;animation:bob 1.8s ease-in-out infinite}
   @keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(5px)}}
   @media (prefers-reduced-motion:reduce){.scrollcue span{animation:none}}
@@ -265,6 +259,14 @@
   .foot-brand{display:flex;align-items:center;gap:11px;color:#fff;font-family:var(--display);font-weight:700}
   .foot-brand .mk{width:34px;height:34px;--a1:#9fe0d9;--a2:#7fc6cd;--a3:#5fadc2;--a4:#3f93b6;--ad:#bdeee9}
   @media(max-width:920px){.ex-grid{grid-template-columns:1fr}nav ul{display:none}.results{max-height:none}.kg-body{grid-template-columns:1fr}.kg-resizer{display:none}.send{width:44px;height:44px}}
+  /* Below 980 the copy goes full width and the graph is fitted to the whole canvas
+     rather than a column beside it, so the side-to-side scrim no longer protects the
+     text — it becomes a top-down one, exactly as the homepage hero does. */
+  @media(max-width:980px){
+    .synchero-inner{padding:120px 26px 70px}
+    .synchero-copy{max-width:none}
+    .synchero-scrim{background:linear-gradient(to bottom,rgba(7,35,48,.92) 0%,rgba(7,35,48,.72) 45%,rgba(7,35,48,.5) 100%)}
+  }
 </style>
 </head>
 <body>
@@ -293,16 +295,18 @@
 </header>
 
 <section class="synchero">
-  <div class="wrap">
-    <h1>Explore the data solutions ecosystem</h1>
-    <p>Search the living knowledge graph of the built environment: the organisations, projects, outputs and technologies that already exist, and how they connect.</p>
-    <div class="hero-row">
-      <div class="stat-row" id="statRow"></div>
-      <button class="openkg" id="openKg"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="5" cy="6" r="2.4"/><circle cx="19" cy="7" r="2.4"/><circle cx="12" cy="17" r="2.4"/><path d="M7 7l3.5 8M17 8.5l-4 6"/></svg> Open full knowledge graph</button>
+  <canvas id="heroGraph"></canvas>
+  <div class="synchero-scrim"></div>
+  <div class="wrap synchero-inner">
+    <div class="synchero-copy">
+      <h1>Explore the data solutions ecosystem</h1>
+      <p>Search the living knowledge graph of the built environment: the organisations, projects, outputs and technologies that already exist, and how they connect.</p>
+      <div class="hero-row">
+        <div class="stat-row" id="statRow"></div>
+        <button class="openkg" id="openKg"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="5" cy="6" r="2.4"/><circle cx="19" cy="7" r="2.4"/><circle cx="12" cy="17" r="2.4"/><path d="M7 7l3.5 8M17 8.5l-4 6"/></svg> Open full knowledge graph</button>
+      </div>
     </div>
   </div>
-
-  <div class="synchero-art"><canvas id="heroGraph"></canvas></div>
   <div class="scrollcue">Scroll for more<span>&#8595;</span></div>
 </section>
 
@@ -635,8 +639,18 @@ function restoreBase(){for(var id in basePos){if(layout[id]){layout[id].x=basePo
     for(var id in pos){var p=pos[id];
       if(p.x<minx)minx=p.x; if(p.y<miny)miny=p.y; if(p.x>maxx)maxx=p.x; if(p.y>maxy)maxy=p.y;}
     var gw=maxx-minx||1, gh=maxy-miny||1;
-    S=Math.min(W/gw,H/gh)*0.9;           // fit the whole graph, both axes, same scale
-    TX=W/2-(minx+gw/2)*S; TY=H/2-(miny+gh/2)*S;
+    /* The canvas spans the whole hero but the copy sits over its left, so the graph is
+       fitted into the space to the right of that column rather than into the full
+       width — the same idea as the homepage hero, where the node field starts where
+       the headline ends. The right edge is the content column's, not the window's, so
+       the graph stays inside the page grid everything else lines up to. */
+    var wrapW=Math.min(W-52,1180), colL=(W-wrapW)/2+26, colR=colL+wrapW-52;
+    var wide=W>=980;
+    var bx0=wide?colL+Math.min(560,wrapW)+40:0, bx1=wide?colR:W;
+    var by0=100, by1=H-100;                        // clear of the nav and the scroll cue
+    var bw=Math.max(80,bx1-bx0), bh=Math.max(80,by1-by0);
+    S=Math.min(bw/gw,bh/gh)*0.9;         // fit the whole graph, both axes, same scale
+    TX=bx0+bw/2-(minx+gw/2)*S; TY=by0+bh/2-(miny+gh/2)*S;
     buildBase(); return true;
   }
 
