@@ -10,7 +10,7 @@
 <style>
   :root{
     --blue:#156082;--green:#70B3AE;--green-bright:#86cdc7;--blue-deep:#0a2f40;--blue-deeper:#072330;
-    --ink:#122a34;--muted:#5c727b;--bg:#ffffff;--bg-soft:#f5f9fa;--line:#e4eef0;--maxw:1180px;--nav-h:76px;--hero-h:clamp(480px,62vh,600px);--nav-gap:32px;--brand-mk:48px;--lh:1.65;--fs-h1:clamp(34px,4.8vw,56px);--fs-h2:clamp(26px,3.4vw,40px);--fs-lead:clamp(17px,1.7vw,19px);--sec-pad:96px;--foot-pad:48px;--fs-foot:14px;
+    --ink:#122a34;--muted:#5c727b;--bg:#ffffff;--bg-soft:#f5f9fa;--line:#e4eef0;--maxw:1180px;--nav-h:76px;--hero-h:100svh;--nav-gap:32px;--brand-mk:48px;--lh:1.65;--fs-h1:clamp(34px,4.8vw,56px);--fs-h2:clamp(26px,3.4vw,40px);--fs-lead:clamp(17px,1.7vw,19px);--sec-pad:96px;--foot-pad:48px;--fs-foot:14px;
     --c-agent:#3a8fd6;--c-project:#36c9b8;--c-output:#86cf5e;--c-tech:#e0a23c;
     --display:-apple-system,BlinkMacSystemFont,"SF Pro Display","Helvetica Neue","Inter",Helvetica,Arial,sans-serif;
     --body:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue","Inter",Helvetica,Arial,sans-serif;
@@ -42,19 +42,47 @@
   .nav-cta{background:var(--green);color:var(--blue-deeper)!important;padding:10px 20px;border-radius:9px;font-weight:600;font-size:14px;font-family:var(--display)}
   .devtag{display:inline-block;margin-left:6px;font-family:var(--display);font-size:9px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#06202c;background:var(--green);border-radius:5px;padding:1px 5px;vertical-align:middle}
 
-  /* interior-page hero — same height and vertical rhythm as CBEDStory and CBEDSense */
-  .synchero{position:relative;min-height:var(--hero-h);display:flex;align-items:center;
-    padding:var(--nav-h) 0 30px;background:radial-gradient(120% 120% at 78% 18%,#10566f 0%,#0a2f40 46%,#072330 100%);color:#fff;overflow:hidden}
-  .synchero>.wrap{width:100%}
+  /* Full-screen hero, shared across all five pages via --hero-h. Copy centred at
+     the top exactly as on CBEDStory, artwork taking the height that is left. */
+  /* height, not just min-height: .synchero-art can only be handed "the space that is
+     left" if the section's own height is definite. The px floor means a very short
+     window scrolls rather than crushing the artwork. */
+  .synchero{position:relative;height:var(--hero-h);min-height:660px;display:flex;flex-direction:column;
+    padding:calc(var(--nav-h) + 40px) 0 30px;background:radial-gradient(120% 120% at 78% 18%,#10566f 0%,#0a2f40 46%,#072330 100%);color:#fff;overflow:hidden;text-align:center}
+  .synchero>.wrap{width:100%;flex:0 0 auto;position:relative;z-index:2}
   .synchero .tag{font-family:var(--display);font-size:12.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--green-bright);font-weight:600}
-  .synchero h1{font-size:var(--fs-h1);margin:10px 0 12px}
-  .synchero p{font-size:var(--fs-lead);color:#bcd6dc;max-width:64ch}
-  .hero-row{display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap;margin-top:24px}
+  .synchero h1{font-size:var(--fs-h1);line-height:1.08;margin:14px auto 16px;max-width:20ch}
+  .synchero p{font-size:var(--fs-lead);color:#bcd6dc;max-width:66ch;margin:0 auto}
+  .hero-row{display:flex;align-items:center;justify-content:center;gap:20px;flex-wrap:wrap;margin-top:26px}
   .stat-row{display:flex;gap:14px;flex-wrap:wrap}
   .stat-chip{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14);border-radius:100px;padding:9px 18px;font-family:var(--display);font-size:14px}
   .stat-chip b{color:#fff;font-weight:700}.stat-chip span{color:#9fc1c9}
   .openkg{display:inline-flex;align-items:center;gap:10px;background:var(--green);color:var(--blue-deeper);font-family:var(--display);font-weight:700;font-size:15px;padding:13px 22px;border-radius:12px;cursor:pointer;border:none;transition:transform .15s,box-shadow .2s}
   .openkg:hover{transform:translateY(-2px);box-shadow:0 12px 30px rgba(112,179,174,.4)}
+  .stat-row{justify-content:center}
+
+  /* ---------- hero artwork: the knowledge graph ----------
+     PLACEHOLDER. This is a hand-laid SVG standing in for the real animation, which
+     is still to come. It occupies the slot at the right size and aspect so the
+     layout is settled; swap the <svg> inside .synchero-art and nothing else moves.
+     flex:1 hands it the height the copy did not use; preserveAspectRatio keeps the
+     graph undistorted whatever shape that box ends up. */
+  .synchero-art{flex:1;min-height:0;position:relative;z-index:1;margin-top:30px;
+    padding-bottom:34px;display:flex;align-items:center;justify-content:center}
+  .kgart{width:100%;height:100%}
+  .kgart .lnk{fill:none;stroke:rgba(134,205,199,.20);stroke-width:1.1}
+  .kgart .lnk.live{stroke:rgba(134,205,199,.5);stroke-width:1.4;stroke-dasharray:5 9;animation:kgflow 2.6s linear infinite}
+  @keyframes kgflow{to{stroke-dashoffset:-28}}
+  .kgart .nd{fill:#9fe0d9;animation:kgbeat 3.6s ease-in-out infinite}
+  .kgart .hub{fill:#eafffb}
+  .kgart .halo{fill:none;stroke:rgba(134,205,199,.4);stroke-width:1.2;
+    transform-box:fill-box;transform-origin:center;animation:kghalo 3.4s ease-in-out infinite}
+  @keyframes kgbeat{0%,100%{opacity:.45}50%{opacity:1}}
+  @keyframes kghalo{0%{transform:scale(.45);opacity:.55}100%{transform:scale(2.2);opacity:0}}
+  @media (prefers-reduced-motion:reduce){
+    .kgart .lnk.live,.kgart .nd,.kgart .halo{animation:none}
+    .kgart .nd{opacity:.8}.kgart .halo{opacity:.25}
+  }
 
   .explorer{padding:30px 0 90px;background:var(--bg-soft);min-height:70vh}
   .ex-grid{display:grid;grid-template-columns:380px 1fr;gap:24px;margin-top:14px}
@@ -272,6 +300,52 @@
       <div class="stat-row" id="statRow"></div>
       <button class="openkg" id="openKg"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="5" cy="6" r="2.4"/><circle cx="19" cy="7" r="2.4"/><circle cx="12" cy="17" r="2.4"/><path d="M7 7l3.5 8M17 8.5l-4 6"/></svg> Open full knowledge graph</button>
     </div>
+  </div>
+
+  <!-- PLACEHOLDER artwork — the real knowledge-graph animation replaces this <svg>.
+       Nodes and links are hand-laid in a 760x300 viewBox; the CSS above does the
+       pulsing and the flow along the lit links. -->
+  <div class="synchero-art">
+    <svg class="kgart" viewBox="0 0 760 300" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+      <g>
+        <path class="lnk live" d="M380 150 L250 95"/>
+        <path class="lnk" d="M380 150 L200 190"/>
+        <path class="lnk live" d="M380 150 L320 225"/>
+        <path class="lnk" d="M380 150 L470 215"/>
+        <path class="lnk live" d="M380 150 L530 120"/>
+        <path class="lnk" d="M380 150 L445 80"/>
+        <path class="lnk" d="M250 95 L130 120"/>
+        <path class="lnk" d="M250 95 L300 55"/>
+        <path class="lnk" d="M200 190 L90 205"/>
+        <path class="lnk" d="M200 190 L130 120"/>
+        <path class="lnk" d="M200 190 L320 225"/>
+        <path class="lnk" d="M320 225 L520 255"/>
+        <path class="lnk live" d="M470 215 L520 255"/>
+        <path class="lnk" d="M470 215 L640 180"/>
+        <path class="lnk" d="M530 120 L640 180"/>
+        <path class="lnk live" d="M530 120 L600 70"/>
+        <path class="lnk" d="M445 80 L600 70"/>
+        <path class="lnk" d="M640 180 L685 115"/>
+        <path class="lnk" d="M600 70 L685 115"/>
+      </g>
+      <circle class="halo" cx="380" cy="150" r="15"/>
+      <circle class="hub" cx="380" cy="150" r="12"/>
+      <g>
+        <circle class="nd" cx="250" cy="95"  r="6.5" style="animation-delay:-.2s"/>
+        <circle class="nd" cx="200" cy="190" r="6"   style="animation-delay:-1.1s"/>
+        <circle class="nd" cx="320" cy="225" r="6.5" style="animation-delay:-2.4s"/>
+        <circle class="nd" cx="470" cy="215" r="7"   style="animation-delay:-.7s"/>
+        <circle class="nd" cx="530" cy="120" r="7"   style="animation-delay:-1.8s"/>
+        <circle class="nd" cx="445" cy="80"  r="6"   style="animation-delay:-3s"/>
+        <circle class="nd" cx="130" cy="120" r="5"   style="animation-delay:-2.1s"/>
+        <circle class="nd" cx="300" cy="55"  r="5"   style="animation-delay:-.5s"/>
+        <circle class="nd" cx="90"  cy="205" r="4.5" style="animation-delay:-1.5s"/>
+        <circle class="nd" cx="520" cy="255" r="5"   style="animation-delay:-2.8s"/>
+        <circle class="nd" cx="640" cy="180" r="6"   style="animation-delay:-.9s"/>
+        <circle class="nd" cx="600" cy="70"  r="5.5" style="animation-delay:-2.2s"/>
+        <circle class="nd" cx="685" cy="115" r="4.5" style="animation-delay:-1.3s"/>
+      </g>
+    </svg>
   </div>
 </section>
 

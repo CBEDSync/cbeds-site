@@ -10,7 +10,7 @@
 <style>
   :root{
     --blue:#156082;--green:#70B3AE;--green-bright:#86cdc7;--blue-deep:#0a2f40;--blue-deeper:#072330;
-    --ink:#122a34;--muted:#5c727b;--bg:#ffffff;--bg-soft:#f5f9fa;--line:#e4eef0;--maxw:1180px;--nav-h:76px;--hero-h:clamp(480px,62vh,600px);--nav-gap:32px;--brand-mk:48px;--lh:1.65;--fs-h1:clamp(34px,4.8vw,56px);--fs-h2:clamp(26px,3.4vw,40px);--fs-lead:clamp(17px,1.7vw,19px);--sec-pad:96px;--foot-pad:48px;--fs-foot:14px;
+    --ink:#122a34;--muted:#5c727b;--bg:#ffffff;--bg-soft:#f5f9fa;--line:#e4eef0;--maxw:1180px;--nav-h:76px;--hero-h:100svh;--nav-gap:32px;--brand-mk:48px;--lh:1.65;--fs-h1:clamp(34px,4.8vw,56px);--fs-h2:clamp(26px,3.4vw,40px);--fs-lead:clamp(17px,1.7vw,19px);--sec-pad:96px;--foot-pad:48px;--fs-foot:14px;
     --probe:#3f8fa5;--sense:#d2962f;--respond:#156082;--output:#4f9e74;--track:#dfeaec;
     --display:-apple-system,BlinkMacSystemFont,"SF Pro Display","Helvetica Neue","Inter",Helvetica,Arial,sans-serif;
     --body:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue","Inter",Helvetica,Arial,sans-serif;
@@ -46,21 +46,33 @@
   header.nav.solid .burger span{background:var(--ink)}
 
   /* ---------- intro ---------- */
-  /* interior-page hero — same height and vertical rhythm as CBEDSync and CBEDSense */
-  .intro{position:relative;min-height:var(--hero-h);display:flex;align-items:center;
+  /* Full-screen hero, shared across all five pages via --hero-h. The copy sits at
+     the top and the artwork takes whatever height is left, so the two never
+     overlap and the whole thing always lands inside one screen. */
+  /* height, not just min-height: .intro-art can only be handed "the space that is
+     left" if the section's own height is definite. With min-height alone the svg
+     falls back to its intrinsic ratio and pushes the hero past one screen.
+     The px floor means a very short window scrolls rather than crushing the art. */
+  .intro{position:relative;height:var(--hero-h);min-height:660px;display:flex;flex-direction:column;
     background:radial-gradient(120% 120% at 78% 18%,#10566f 0%,#0a2f40 46%,#072330 100%);
-    padding:var(--nav-h) 0 30px;text-align:center;overflow:hidden}
-  .intro .wrap{position:relative;z-index:2;width:100%}
+    padding:calc(var(--nav-h) + 40px) 0 30px;text-align:center;overflow:hidden}
+  .intro .wrap{position:relative;z-index:2;width:100%;flex:0 0 auto}
   .intro .tag{font-family:var(--display);font-size:12.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--green-bright);font-weight:600}
-  .intro h1{font-size:var(--fs-h1);color:#fff;margin:14px auto 16px;max-width:20ch}
+  .intro h1{font-size:var(--fs-h1);line-height:1.08;color:#fff;margin:14px auto 16px;max-width:20ch}
   .intro p{font-size:var(--fs-lead);color:#bcd6dc;max-width:66ch;margin:0 auto}
   .intro p b{color:#eafffb;font-weight:600}
   .legend{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:26px}
   .lg{display:inline-flex;align-items:center;gap:8px;font-family:var(--display);font-size:13px;font-weight:600;color:#eafffb;background:rgba(255,255,255,.06);border:1px solid rgba(134,205,199,.28);border-radius:100px;padding:7px 14px}
   .lg i{width:10px;height:10px;border-radius:50%}
-  /* faint ripple rings behind the intro */
-  .intro-rip{position:absolute;top:16%;left:50%;transform:translateX(-50%);z-index:1;opacity:.5}
-  .intro-rip ellipse{fill:none;stroke:rgba(134,205,199,.16);stroke-width:1}
+  /* the ripple rings now sit below the copy rather than behind it. flex:1 hands
+     them the leftover height; preserveAspectRatio on the svg keeps them circular
+     however that box ends up shaped. */
+  .intro-art{flex:1;min-height:0;position:relative;z-index:1;margin-top:34px;
+    padding-bottom:54px;display:flex;align-items:center;justify-content:center}
+  /* a touch more present than when this was a backdrop behind the text — at .5 opacity
+     over a .16 stroke it read as almost nothing in a space this size */
+  .intro-rip{width:100%;height:100%;opacity:.8}
+  .intro-rip ellipse{fill:none;stroke:rgba(134,205,199,.26);stroke-width:1.2}
   .scrollcue{position:absolute;bottom:22px;left:0;right:0;z-index:2;text-align:center;color:rgba(255,255,255,.55);font-family:var(--display);font-size:12.5px;letter-spacing:.08em;text-transform:uppercase}
   .scrollcue span{display:block;font-size:18px;margin-top:4px;animation:bob 1.8s ease-in-out infinite}
   @keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(5px)}}
@@ -186,10 +198,6 @@
 </header>
 
 <section class="intro">
-  <svg class="intro-rip" width="760" height="360" viewBox="0 0 760 360" aria-hidden="true">
-    <ellipse cx="380" cy="150" rx="60" ry="30"/><ellipse cx="380" cy="150" rx="130" ry="62"/>
-    <ellipse cx="380" cy="150" rx="205" ry="96"/><ellipse cx="380" cy="150" rx="285" ry="132"/><ellipse cx="380" cy="150" rx="368" ry="168"/>
-  </svg>
   <div class="wrap">
     <span class="tag">CBEDStory</span>
     <h1>How we set out to support a complex ecosystem</h1>
@@ -200,6 +208,12 @@
       <span class="lg"><i style="background:var(--respond)"></i>Respond</span>
       <span class="lg"><i style="background:var(--output)"></i>Output</span>
     </div>
+  </div>
+  <div class="intro-art">
+    <svg class="intro-rip" viewBox="0 0 760 360" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+      <ellipse cx="380" cy="180" rx="60" ry="30"/><ellipse cx="380" cy="180" rx="130" ry="62"/>
+      <ellipse cx="380" cy="180" rx="205" ry="96"/><ellipse cx="380" cy="180" rx="285" ry="132"/><ellipse cx="380" cy="180" rx="368" ry="168"/>
+    </svg>
   </div>
   <div class="scrollcue">Scroll to begin<span>&#8595;</span></div>
 </section>
