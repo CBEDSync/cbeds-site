@@ -676,8 +676,8 @@ function restoreBase(){for(var id in basePos){if(layout[id]){layout[id].x=basePo
   }
 
   var i=0,t0=null,cur=null,running=false,rafId=null;
-  // halved: one entity every 2.6s rather than 5.2s
-  var FADE=400, HOLD=1800, CYCLE=HOLD+FADE*2;
+  // halved twice over: one entity every 1.3s, down from the original 5.2s
+  var FADE=200, HOLD=900, CYCLE=HOLD+FADE*2;
   function frame(ts){
     if(!running){rafId=null;return;}
     if(t0===null){t0=ts;cur=cast[i++%cast.length];}

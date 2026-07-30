@@ -74,7 +74,10 @@
     padding-bottom:54px;display:flex;align-items:center;justify-content:center}
   /* a touch more present than when this was a backdrop behind the text — at .5 opacity
      over a .16 stroke it read as almost nothing in a space this size */
-  .intro-rip{width:100%;height:100%;opacity:.9}
+  /* 85%: the whole mark — rings, droplet, wordmark and their strokes — scales with the
+     svg's box, so shrinking the box shrinks the artwork uniformly. Still centred by
+     .intro-art's flex centring. */
+  .intro-rip{width:85%;height:85%;opacity:.9}
   /* The rings light in turn from the centre outwards, which is the same "each cycle
      sends a ripple further out" idea the copy above states and the scroll map below
      plays out. One shared 5s cycle with a staggered delay per ring carries the pulse
@@ -82,6 +85,19 @@
      builds up to all five before fading out together in the order it arrived. */
   .intro-rip .r{fill:none;stroke:rgba(134,205,199,.16);stroke-width:1.1;
     animation:ripOut 5s cubic-bezier(.35,.7,.4,1) infinite}
+  /* !important because a CSS animation outranks a normal declaration — ripOut is
+     driving stroke on these same elements, so the hover state has to beat it */
+  .intro-rip .r.hot{stroke:#bdeee9!important;stroke-width:3.2!important}
+  /* the hit targets: no fill, a fat transparent stroke, and only the stroke listens */
+  .intro-rip .rhits ellipse{fill:none;stroke:transparent;stroke-width:26;
+    pointer-events:stroke;cursor:pointer}
+  .intro-art{position:relative}
+  .rip-tip{position:absolute;z-index:5;pointer-events:none;opacity:0;transition:opacity .15s;
+    transform:translate(-50%,-140%);white-space:nowrap;
+    background:rgba(7,35,48,.95);border:1px solid rgba(134,205,199,.4);color:#eafffb;
+    font-family:var(--display);font-size:13px;font-weight:600;padding:7px 12px;border-radius:8px}
+  .rip-tip.show{opacity:1}
+  .rip-tip i{font-style:normal;color:var(--green-bright);margin-right:7px}
   @keyframes ripOut{
     0%{stroke:rgba(134,205,199,.16);stroke-width:1.1}
     6%{stroke:rgba(159,224,217,.85);stroke-width:2.2}
@@ -252,15 +268,26 @@
       </defs>
       <!-- innermost ring first; the staggered delays are what carry the pulse outwards -->
       <ellipse class="r" cx="380" cy="180" rx="60"  ry="30"  style="animation-delay:0s"/>
-      <ellipse class="r" cx="380" cy="180" rx="130" ry="62"  style="animation-delay:.16s"/>
-      <ellipse class="r" cx="380" cy="180" rx="205" ry="96"  style="animation-delay:.32s"/>
-      <ellipse class="r" cx="380" cy="180" rx="285" ry="132" style="animation-delay:.48s"/>
-      <ellipse class="r" cx="380" cy="180" rx="368" ry="168" style="animation-delay:.64s"/>
+      <ellipse class="r" cx="380" cy="180" rx="130" ry="62"  style="animation-delay:.30s"/>
+      <ellipse class="r" cx="380" cy="180" rx="205" ry="96"  style="animation-delay:.60s"/>
+      <ellipse class="r" cx="380" cy="180" rx="285" ry="132" style="animation-delay:.90s"/>
+      <ellipse class="r" cx="380" cy="180" rx="368" ry="168" style="animation-delay:1.20s"/>
       <!-- droplet and glow scaled to a third about the ring centre (380,180) -->
       <circle cx="380" cy="180" r="13.3" fill="url(#dropGlow)"/>
       <path class="intro-drop" d="M380 174 C383.7 178.3 383.7 184 380 184 C376.3 184 376.3 178.3 380 174 Z"/>
       <text class="intro-wordmark" x="380" y="191">CBEDS</text>
+      <!-- Invisible fat-stroked copies of each ring, purely to catch the mouse: the real
+           rings are 1-2px of stroke on no fill, which is far too fine to hover. Each
+           carries the index of the cycle it stands for. -->
+      <g class="rhits">
+        <ellipse data-ring="0" cx="380" cy="180" rx="60"  ry="30"/>
+        <ellipse data-ring="1" cx="380" cy="180" rx="130" ry="62"/>
+        <ellipse data-ring="2" cx="380" cy="180" rx="205" ry="96"/>
+        <ellipse data-ring="3" cx="380" cy="180" rx="285" ry="132"/>
+        <ellipse data-ring="4" cx="380" cy="180" rx="368" ry="168"/>
+      </g>
     </svg>
+    <div class="rip-tip" id="ripTip"></div>
   </div>
   <div class="scrollcue">Scroll to begin<span>&#8595;</span></div>
 </section>
@@ -422,6 +449,38 @@ document.querySelectorAll('.out img').forEach(function(im){im.addEventListener('
 lb.addEventListener('click',function(){lb.classList.remove('on');});
 
 setTimeout(onScroll,60);
+
+/* The five intro rings are the five cycles, innermost first. Hovering one names it.
+   The names come from the stage list further down the page rather than being repeated
+   here, so the two can never drift apart. */
+(function(){
+  var svg=document.querySelector('.intro-rip'); if(!svg) return;
+  var art=document.querySelector('.intro-art'), tip=document.getElementById('ripTip');
+  if(!art||!tip) return;
+  var rings=[].slice.call(svg.querySelectorAll('.r'));
+  var hits=[].slice.call(svg.querySelectorAll('.rhits ellipse'));
+  var cycles=[].slice.call(document.querySelectorAll('#stages .st')).map(function(s){
+    var b=s.querySelector('b'), n=s.querySelector('.num');
+    return {name:b?b.textContent.trim():'', mark:n?n.textContent.trim():'',
+            colour:s.style.getPropertyValue('--stc')||'#86cdc7'};
+  });
+  if(!cycles.length) return;
+  function show(i,e){
+    var cy=cycles[i]; if(!cy) return;
+    rings.forEach(function(r,k){r.classList.toggle('hot',k===i);});
+    tip.innerHTML='<i>'+cy.mark+'</i>'+cy.name;
+    tip.style.borderColor=cy.colour;
+    var b=art.getBoundingClientRect();
+    tip.style.left=(e.clientX-b.left)+'px';
+    tip.style.top=(e.clientY-b.top)+'px';
+    tip.classList.add('show');
+  }
+  function hide(){rings.forEach(function(r){r.classList.remove('hot');});tip.classList.remove('show');}
+  hits.forEach(function(h,i){
+    h.addEventListener('mousemove',function(e){show(i,e);});
+    h.addEventListener('mouseleave',hide);
+  });
+})();
 </script>
 </body>
 </html>

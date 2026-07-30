@@ -48,19 +48,30 @@
      that used to do that job. */
   .hero{position:relative;min-height:var(--hero-h);overflow:hidden;background:radial-gradient(120% 120% at 50% 52%,#10566f 0%,#0a2f40 46%,#072330 100%);display:flex;align-items:center;padding:var(--nav-h) 0 30px}
   .chips{position:absolute;inset:0;z-index:1;overflow:hidden}
-  .chip{position:absolute;font-family:var(--display);font-size:13px;font-weight:600;color:rgba(159,224,217,.5);border:1px solid rgba(134,205,199,.22);border-radius:100px;padding:6px 14px;white-space:nowrap;animation:drift linear infinite}
+  .chip{position:absolute;font-family:var(--display);font-size:13px;font-weight:600;color:rgba(159,224,217,.5);border:1px solid rgba(134,205,199,.22);border-radius:100px;padding:6px 14px;white-space:nowrap;animation:drift linear infinite;
+    transition:color .18s,border-color .18s,background .18s,box-shadow .18s}
+  /* Hovering a chip lights it and holds it still. The drift keyframes animate opacity,
+     and a CSS animation outranks a normal declaration, so opacity needs !important to
+     be forced to full — otherwise a chip caught mid-fade would light up while barely
+     visible. Pausing stops it drifting out from under the cursor. */
+  .chip:hover{animation-play-state:paused;opacity:1!important;color:#eafffb;
+    border-color:rgba(134,205,199,.75);background:rgba(134,205,199,.14);
+    box-shadow:0 0 22px rgba(134,205,199,.22)}
   /* Travel shortened from 20/-60 to 14/-38. Each chip has to be kept clear of the
      nav, the copy card and its neighbours across its whole sweep, and the old 80px
      travel gave every chip a 111px envelope — on a full-screen hero that left room
      for only four or five rows and the cloud came out sparse. A gentler drift also
      suits a screen this size; the long fall read as things dropping. */
   @keyframes drift{0%{transform:translateY(14px);opacity:0}10%{opacity:1}90%{opacity:1}100%{transform:translateY(-38px);opacity:0}}
-  .hero-inner{position:relative;z-index:2;text-align:center;width:100%;padding:0 26px}   /* the section owns the vertical spacing now */
+  /* pointer-events:none so the chip cloud behind this block stays hoverable — it spans
+     the full hero width and would otherwise swallow the mouse across the gutters where
+     most of the chips are. The copy takes its events back for the buttons. */
+  .hero-inner{position:relative;z-index:2;text-align:center;width:100%;padding:0 26px;pointer-events:none}   /* the section owns the vertical spacing now */
   /* No panel behind the copy. The chips are kept out of this block's box instead, so
      they float around the words rather than over them, and the hero gradient stays
      unbroken. The element remains because the chip layout measures it to know where
      the words are. */
-  .hero-card{max-width:820px;margin:0 auto}
+  .hero-card{max-width:820px;margin:0 auto;pointer-events:auto}
   .hero .tag{font-family:var(--display);font-size:12.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--green-bright);font-weight:600}
   .devpill{display:inline-block;font-family:var(--display);font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#06202c;background:var(--green-bright);border-radius:100px;padding:4px 11px;vertical-align:middle}
   .devtag{display:inline-block;margin-left:6px;font-family:var(--display);font-size:9px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#06202c;background:var(--green);border-radius:5px;padding:1px 5px;vertical-align:middle}
