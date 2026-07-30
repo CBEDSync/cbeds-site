@@ -89,14 +89,19 @@
   .intro-drop{fill:#eafffb;transform-box:fill-box;transform-origin:center;
     animation:dropBeat 5s ease-in-out infinite}
   @keyframes dropBeat{0%,100%{transform:scale(1)}5%{transform:scale(1.22)}20%{transform:scale(1)}}
-  .intro-wordmark{fill:#9fe0d9;font-family:var(--display);font-size:15px;font-weight:700;
-    letter-spacing:.18em;text-anchor:middle}
+  /* Floored relative to the droplet: a third of 15px is 5px, which renders as a smudge
+     rather than a word. Set to 9px so it stays readable at the smaller mark. */
+  .intro-wordmark{fill:#9fe0d9;font-family:var(--display);font-size:9px;font-weight:700;
+    letter-spacing:.14em;text-anchor:middle}
   @media (prefers-reduced-motion:reduce){
     .intro-rip .r,.intro-drop{animation:none}
   }
-  .scrollcue{position:absolute;bottom:22px;left:0;right:0;z-index:2;text-align:center;color:rgba(255,255,255,.55);font-family:var(--display);font-size:12.5px;letter-spacing:.08em;text-transform:uppercase}
-  .scrollcue span{display:block;font-size:18px;margin-top:4px;animation:bob 1.8s ease-in-out infinite}
+  /* shared scroll cue — the same element on every hero. Wording differs only here:
+     this page opens a narrative, so it says "begin" rather than "for more". */
+  .scrollcue{position:absolute;bottom:22px;left:0;right:0;z-index:4;text-align:center;color:rgba(255,255,255,.55);font-family:var(--display);font-size:12.5px;letter-spacing:.08em;text-transform:uppercase;pointer-events:none}
+  .scrollcue span{display:block;font-size:18px;line-height:1;margin-top:5px;animation:bob 1.8s ease-in-out infinite}
   @keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(5px)}}
+  @media (prefers-reduced-motion:reduce){.scrollcue span{animation:none}}
 
   /* ---------- story layout ---------- */
   .story{display:grid;grid-template-columns:340px 1fr;gap:56px;align-items:start;margin:40px auto 20px}
@@ -244,9 +249,10 @@
       <ellipse class="r" cx="380" cy="180" rx="205" ry="96"  style="animation-delay:.32s"/>
       <ellipse class="r" cx="380" cy="180" rx="285" ry="132" style="animation-delay:.48s"/>
       <ellipse class="r" cx="380" cy="180" rx="368" ry="168" style="animation-delay:.64s"/>
-      <circle cx="380" cy="180" r="40" fill="url(#dropGlow)"/>
-      <path class="intro-drop" d="M380 162 C391 175 391 192 380 192 C369 192 369 175 380 162 Z"/>
-      <text class="intro-wordmark" x="380" y="216">CBEDS</text>
+      <!-- droplet and glow scaled to a third about the ring centre (380,180) -->
+      <circle cx="380" cy="180" r="13.3" fill="url(#dropGlow)"/>
+      <path class="intro-drop" d="M380 174 C383.7 178.3 383.7 184 380 184 C376.3 184 376.3 178.3 380 174 Z"/>
+      <text class="intro-wordmark" x="380" y="194">CBEDS</text>
     </svg>
   </div>
   <div class="scrollcue">Scroll to begin<span>&#8595;</span></div>

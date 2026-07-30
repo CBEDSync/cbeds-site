@@ -64,6 +64,11 @@
   .hero h1{font-size:var(--fs-h1);line-height:1.08;color:#fff;margin:12px auto 14px;max-width:18ch}
   .hero p{font-size:var(--fs-lead);color:#bcd6dc;max-width:60ch;margin:0 auto}
   .hero .cta-row{margin-top:28px;display:flex;gap:14px;justify-content:center;flex-wrap:wrap}
+  /* shared scroll cue — the same element on every hero */
+  .scrollcue{position:absolute;bottom:22px;left:0;right:0;z-index:4;text-align:center;color:rgba(255,255,255,.55);font-family:var(--display);font-size:12.5px;letter-spacing:.08em;text-transform:uppercase;pointer-events:none}
+  .scrollcue span{display:block;font-size:18px;line-height:1;margin-top:5px;animation:bob 1.8s ease-in-out infinite}
+  @keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(5px)}}
+  @media (prefers-reduced-motion:reduce){.scrollcue span{animation:none}}
   .btn{font-family:var(--display);display:inline-block;background:var(--green);color:var(--blue-deeper);padding:13px 26px;border-radius:11px;font-weight:600}
   .btn.ghost{background:transparent;color:#fff;border:1px solid rgba(255,255,255,.3)}
 
@@ -261,6 +266,7 @@
       </div>
     </div>
   </div>
+  <div class="scrollcue">Scroll for more<span>&#8595;</span></div>
 </section>
 
 <section>
@@ -421,11 +427,16 @@ function chipHits(a,b,padX,padY){
 // Keep these two numbers in step with the drift keyframes above.
 function driftBox(r){return {left:r.left,right:r.right,top:r.top-38,bottom:r.bottom+14};}
 function layoutChips(){
-  chips.textContent='';
+  /* Measure and bail before clearing, never after. Clearing first meant a single
+     zero-size measurement — the observer firing before the hero has laid out — wiped
+     the cloud and left it empty, because nothing repopulated it. */
   var hb=chips.getBoundingClientRect();
   if(hb.width<2||hb.height<2)return;
+  chips.textContent='';
   var cb=heroCard.getBoundingClientRect();
   var nb=document.querySelector('header.nav').getBoundingClientRect();
+  var cue=document.querySelector('.hero .scrollcue');
+  var qb=cue?cue.getBoundingClientRect():null;
   // the original hero ran about one chip per 19,000px². Measuring against the area
   // actually available — the screen less the card and the nav band — keeps a
   // full-screen hero as dense as the old one without crowding.
@@ -445,6 +456,7 @@ function layoutChips(){
       // left% positions the chip's left edge, so a long label can hang off the right
       if(r.right>hb.right-14||d.bottom>hb.bottom-6||d.top<hb.top+4)continue;
       if(chipHits(d,nb,10,6))continue;                   // clear of the nav bar
+      if(qb&&chipHits(d,qb,14,8))continue;               // clear of the scroll cue
       /* Clear of the copy, with a generous margin. There is no panel behind the words
          any more, so this gap is the only thing keeping the cloud off them — it has to
          read as deliberate space rather than a near miss. */

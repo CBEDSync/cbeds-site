@@ -54,8 +54,12 @@
   /* the canvas sits in normal flow rather than absolutely positioned: as a replaced
      element its width:auto falls back to the intrinsic 300x150, so insets alone
      collapsed it. In flow, height:100% resolves against this content box, which the
-     padding-bottom holds clear of the legend. */
-  .net-art{flex:1;min-height:0;position:relative;z-index:1;padding-bottom:52px}
+     padding-bottom holds clear of the legend and the scroll cue. */
+  .net-art{flex:1;min-height:0;position:relative;z-index:1;padding-bottom:120px}
+  /* The canvas is held to the page's content column, not the full window. Left
+     full-bleed it derived its radius from the whole window width, so the outer
+     organisations sat outside the column every other element lines up to. */
+  .net-art>.wrap{height:100%}
   #net{display:block;width:100%;height:100%}
   .net-intro{flex:0 0 auto;position:relative;z-index:3;text-align:center;padding:calc(var(--nav-h) + 40px) 26px 0}
   .net-intro .tag{font-family:var(--display);font-size:12.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--green-bright);font-weight:600}
@@ -63,8 +67,15 @@
   .devtag{display:inline-block;margin-left:6px;font-family:var(--display);font-size:9px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#06202c;background:var(--green);border-radius:5px;padding:1px 5px;vertical-align:middle}
   .net-intro h1{font-size:var(--fs-h1);line-height:1.08;color:#fff;margin:12px auto 14px;max-width:20ch}
   .net-intro p{font-size:var(--fs-lead);color:#bcd6dc;max-width:66ch;margin:0 auto}
-  .net-legend{position:absolute;bottom:26px;left:0;right:0;z-index:3;text-align:center;color:rgba(255,255,255,.6);font-size:13px;font-family:var(--display);letter-spacing:.02em;padding:0 26px}
+  /* lifted clear of the scroll cue beneath it — the cue's two lines occupy the bottom
+     ~76px, so this sits above that with room to spare */
+  .net-legend{position:absolute;bottom:88px;left:0;right:0;z-index:3;text-align:center;color:rgba(255,255,255,.6);font-size:13px;font-family:var(--display);letter-spacing:.02em;padding:0 26px}
   .net-legend b{color:var(--green-bright);font-weight:600}
+  /* shared scroll cue — the same element on every hero */
+  .scrollcue{position:absolute;bottom:22px;left:0;right:0;z-index:4;text-align:center;color:rgba(255,255,255,.55);font-family:var(--display);font-size:12.5px;letter-spacing:.08em;text-transform:uppercase;pointer-events:none}
+  .scrollcue span{display:block;font-size:18px;line-height:1;margin-top:5px;animation:bob 1.8s ease-in-out infinite}
+  @keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(5px)}}
+  @media (prefers-reduced-motion:reduce){.scrollcue span{animation:none}}
   .tip{position:fixed;z-index:50;pointer-events:none;background:rgba(7,35,48,.95);border:1px solid rgba(134,205,199,.4);color:#eafffb;
     font-family:var(--display);font-size:13px;font-weight:600;padding:7px 12px;border-radius:8px;opacity:0;transform:translate(-50%,-130%);transition:opacity .15s;white-space:nowrap}
   .tip.show{opacity:1}
@@ -120,8 +131,9 @@
     <h1>A network that connects itself</h1>
     <p>CBEDSynergy is where collaboration happens. CBEDS sits at the centre, the organisations around it form the network, connected to one another, not to us. We create the conditions; the connections are theirs.</p>
   </div>
-  <div class="net-art"><canvas id="net"></canvas></div>
+  <div class="net-art"><div class="wrap"><canvas id="net"></canvas></div></div>
   <div class="net-legend">Each dot is an organisation &middot; lines show connections between them &middot; <b>hover a dot to see who</b></div>
+  <div class="scrollcue">Scroll for more<span>&#8595;</span></div>
 </section>
 
 <div class="tip" id="tip"></div>
@@ -192,18 +204,23 @@ function build(){
 var mouse={x:null,y:null,cxp:0,cyp:0};
 c.addEventListener('mousemove',function(e){var r=c.getBoundingClientRect();mouse.x=e.clientX-r.left;mouse.y=e.clientY-r.top;mouse.cxp=e.clientX;mouse.cyp=e.clientY;});
 c.addEventListener('mouseleave',function(){mouse.x=mouse.y=null;});
+// The whole centre mark — glow, droplet and wordmark — at a third of its former size.
+var DROP=1/3;
 function drawDrop(dx,dy,k,stretch){
-  var glowR=base*0.05;
+  var glowR=base*0.05*DROP;
   var g=ctx.createRadialGradient(dx,dy,0,dx,dy,glowR);
   g.addColorStop(0,'rgba(134,205,199,'+(0.5*k).toFixed(3)+')');g.addColorStop(1,'rgba(134,205,199,0)');
   ctx.fillStyle=g;ctx.beginPath();ctx.arc(dx,dy,glowR,0,7);ctx.fill();
-  var S=0.2;   // tiny: about the size of an organisation dot
+  var S=0.2*DROP;   // tiny: about the size of an organisation dot
   ctx.save();ctx.translate(dx,dy);ctx.scale(S,S*stretch);
   ctx.fillStyle='#eafffb';
   ctx.beginPath();ctx.moveTo(0,-30);ctx.bezierCurveTo(18,-6,18,22,0,22);ctx.bezierCurveTo(-18,22,-18,-6,0,-30);ctx.closePath();ctx.fill();
   ctx.restore();
-  ctx.fillStyle='rgba(159,224,217,'+(0.5+0.45*k).toFixed(2)+')';ctx.font='700 '+(base*0.022)+'px '+getComputedStyle(document.body).fontFamily;
-  ctx.textAlign='center';ctx.textBaseline='top';ctx.fillText('CBEDS',dx,dy+10);
+  /* Floored at 9px: a third of the old size puts this under 4px, which renders as a
+     smudge rather than a word. Drop the floor if it should scale literally. */
+  var fs=Math.max(9,base*0.022*DROP);
+  ctx.fillStyle='rgba(159,224,217,'+(0.5+0.45*k).toFixed(2)+')';ctx.font='700 '+fs+'px '+getComputedStyle(document.body).fontFamily;
+  ctx.textAlign='center';ctx.textBaseline='top';ctx.fillText('CBEDS',dx,dy+22*S+4);
 }
 function clamp01(v){return Math.max(0,Math.min(1,v));}
 function cdist(d){return Math.hypot(d.x-cx,(d.y-cy)/RYF);}
