@@ -708,9 +708,23 @@ function restoreBase(){for(var id in basePos){if(layout[id]){layout[id].x=basePo
     if(named) label(n,x,y,r,a,hub);
     g.globalAlpha=1;
   }
+  /* The base layer holds every node dimmed. Hovering a count repaints just that kind
+     on top at its full colour and full size, so its blob comes up out of the dim while
+     the other three stay as they were. */
+  function drawCluster(kind,a){
+    if(!kind||a<=0) return;
+    g.globalAlpha=a; g.fillStyle=kindColor(kind);
+    for(var k=0;k<NODES.length;k++){
+      var n=NODES[k]; if(n.kind!==kind) continue;
+      var p=pos[n.id]; if(!p) continue;
+      g.beginPath(); g.arc(fx(p.x),fy(p.y),rOf(n),0,7); g.fill();
+    }
+    g.globalAlpha=1;
+  }
   function draw(a){
     g.clearRect(0,0,W,H);
     if(baseLayer) g.drawImage(baseLayer,0,0,W,H);
+    drawCluster(litKind,litA);
     lab.length=0;                        // label collision map is per frame
     if(!cur||a<=0) return;
     var p=pos[cur.id]; if(!p) return;
@@ -733,7 +747,7 @@ function restoreBase(){for(var id in basePos){if(layout[id]){layout[id].x=basePo
   /* Nothing moves on its own: the reader drives it. Hovering a node lights it and its
      relations, moving off lets them fade back. The loop only runs while that fade is
      in flight, so an idle hero costs nothing. */
-  var cur=null, alpha=0, rafId=null;
+  var cur=null, alpha=0, rafId=null, litKind=null, litA=0;
   var EASE=matchMedia('(prefers-reduced-motion:reduce)').matches?1:0.2;
   function nodeAt(mx,my){
     var best=null,bd=17;
@@ -746,11 +760,13 @@ function restoreBase(){for(var id in basePos){if(layout[id]){layout[id].x=basePo
   }
   function tick(){
     rafId=null;
-    var target=cur?1:0;
+    var target=cur?1:0, litTarget=litKind?1:0;
     alpha+=(target-alpha)*EASE;
+    litA+=(litTarget-litA)*EASE;
     if(Math.abs(target-alpha)<0.012) alpha=target;
+    if(Math.abs(litTarget-litA)<0.012) litA=litTarget;
     draw(alpha);
-    if(alpha!==target) rafId=requestAnimationFrame(tick);
+    if(alpha!==target||litA!==litTarget) rafId=requestAnimationFrame(tick);
   }
   /* Steps once straight away rather than waiting on the next frame, so the highlight
      answers the pointer immediately and the fade merely catches up. */
@@ -775,6 +791,15 @@ function restoreBase(){for(var id in basePos){if(layout[id]){layout[id].x=basePo
     var r=cv.getBoundingClientRect();
     var n=nodeAt(e.clientX-r.left,e.clientY-r.top);
     if(n && typeof openKG==='function') openKG(n);
+  });
+  /* Hovering a count brings its own blob up to full colour. focus/blur as well as
+     the pointer, since the counts are buttons and reachable by keyboard. */
+  [].forEach.call(document.querySelectorAll('.stat-chip'),function(el){
+    var k=el.getAttribute('data-kind');
+    function on(){ if(litKind!==k){ litKind=k; kick(); } }
+    function off(){ if(litKind===k){ litKind=null; kick(); } }
+    el.addEventListener('mouseenter',on); el.addEventListener('mouseleave',off);
+    el.addEventListener('focus',on);      el.addEventListener('blur',off);
   });
   /* The canvas box is whatever height the copy above it leaves, so it can change with
      no window resize at all — a web font landing late reflows the h1 onto another line.
