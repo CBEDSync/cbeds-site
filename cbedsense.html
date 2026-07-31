@@ -155,7 +155,10 @@
   .csc{font-family:var(--display);font-size:13px;font-weight:600;color:var(--blue);background:#fff;border:1px solid var(--line);border-radius:100px;padding:7px 14px;cursor:pointer;transition:.15s;user-select:none}
   .csc.sel{background:var(--blue);color:#fff;border-color:var(--blue)}
   .submit{font-family:var(--display);font-weight:600;font-size:15px;background:var(--green);color:var(--blue-deeper);border:none;border-radius:11px;padding:13px 30px;cursor:pointer}
+  .submit[disabled]{opacity:.55;cursor:default}
   .formnote{font-size:12.5px;color:#9fb1b6;margin-top:12px}
+  .formnote.err{color:#c2564d}
+  .hp{display:none}
   .done{display:none;background:#eef7f1;border:1px solid #bfe3cd;border-radius:18px;padding:30px;text-align:center}
   .done.show{display:block}
   .done h4{font-size:19px;color:var(--ink);margin-bottom:7px}
@@ -344,7 +347,13 @@
     </div>
 
     <div class="formwrap" id="formwrap"><div class="fwin">
-      <form class="form" id="shForm">
+      <!-- Netlify reads these attributes out of the deployed HTML and registers the form,
+           so the fields below are exactly what the admin sees in the submission. -->
+      <form class="form" id="shForm" name="cbedsense-submission" method="POST" data-netlify="true" netlify-honeypot="bot-field">
+        <input type="hidden" name="form-name" value="cbedsense-submission">
+        <!-- the aspect chips are spans, not inputs; the submit handler copies them here -->
+        <input type="hidden" name="aspects" id="aspectsField">
+        <p class="hp" aria-hidden="true"><label>Leave this field empty <input name="bot-field" tabindex="-1" autocomplete="off"></label></p>
         <div class="field">
           <label>Name <span class="hint">a clear title for what you are sharing</span></label>
           <input type="text" name="name" required placeholder="e.g. Open IFC to linked data converter">
@@ -374,8 +383,8 @@
           <label>Link <span class="hint">optional</span></label>
           <input type="url" name="link" placeholder="https://">
         </div>
-        <div style="margin-top:24px"><button type="submit" class="submit">Submit for review</button></div>
-        <p class="formnote">This is a preview, submissions are not sent yet.</p>
+        <div style="margin-top:24px"><button type="submit" class="submit" id="shSubmit">Submit for review</button></div>
+        <p class="formnote" id="shNote">The CBEDS team reads every submission before anything is added to the ecosystem.</p>
       </form>
       <div class="done" id="shDone">
         <h4>Thanks, that is in!</h4>
@@ -536,24 +545,54 @@ typeWrap.addEventListener('change',function(){
 });
 // aspect chips (the different aspects of CBEDSync)
 var aspects=['BIM','IFC','Digital Twins','DPP','Material Passports','ESPR','CPR','ISO 19650','Ontologies','Linked Data','IoT','Digital Building Logbooks','AI','Circular Economy','Semantic Interoperability'];
-var aWrap=document.getElementById('aspects');
+var aWrap=document.getElementById('aspects'),aspectsField=document.getElementById('aspectsField');
+function chosenAspects(){
+  return [].slice.call(aWrap.querySelectorAll('.csc.sel')).map(function(x){return x.textContent;});
+}
 aspects.forEach(function(a){
   var s=document.createElement('span');s.className='csc';s.textContent=a;
-  s.addEventListener('click',function(){s.classList.toggle('sel');});
+  s.addEventListener('click',function(){
+    s.classList.toggle('sel');
+    aspectsField.value=chosenAspects().join(', ');   // chips are spans, so mirror them into a real field
+  });
   aWrap.appendChild(s);
 });
+/* Netlify Forms accepts a URL-encoded POST to any path on the site; the form-name field
+   is what routes it to the right form. Sending it this way rather than letting the form
+   submit natively keeps the reader on the page for the confirmation panel. */
+function postForm(form,btn,note,ok){
+  var label=btn.textContent;
+  btn.disabled=true;btn.textContent='Sending…';
+  fetch('/',{method:'POST',
+             headers:{'Content-Type':'application/x-www-form-urlencoded'},
+             body:new URLSearchParams(new FormData(form)).toString()})
+    .then(function(r){if(!r.ok)throw new Error(r.status);ok();})
+    .catch(function(){
+      btn.disabled=false;btn.textContent=label;
+      note.textContent='That did not send. Check your connection and try again.';
+      note.classList.add('err');
+    });
+}
 // submit
-var shForm=document.getElementById('shForm'),shDone=document.getElementById('shDone'),doneMsg=document.getElementById('doneMsg');
+var shForm=document.getElementById('shForm'),shDone=document.getElementById('shDone'),doneMsg=document.getElementById('doneMsg'),
+    shSubmit=document.getElementById('shSubmit'),shNote=document.getElementById('shNote');
 shForm.addEventListener('submit',function(e){
   e.preventDefault();
-  var name=shForm.name.value.trim()||'Your submission';
+  /* The form now carries a name attribute of its own, for Netlify. shForm.name still
+     reaches the field rather than that attribute — a form's named elements are own
+     properties and shadow the prototype's name accessor — but reading it through the
+     elements collection says which one is meant without relying on that. */
+  var nameEl=shForm.elements.namedItem('name');
+  var name=(nameEl?nameEl.value.trim():'')||'Your submission';
   var typeEl=shForm.querySelector('input[name=type]:checked');
   var type=typeEl?typeEl.value:'';
-  var picked=[].slice.call(aWrap.querySelectorAll('.csc.sel')).map(function(x){return x.textContent;});
-  var dest=(type==='Post')?'shared to the CBEDSynergy network':('added to CBEDSync as a'+(/^[AEIOU]/.test(type)?'n ':' ')+type.toLowerCase()+' node');
-  var asp=picked.length?(' It will be linked to: '+picked.join(', ')+'.'):'';
-  doneMsg.textContent='“'+name+'” will be reviewed and, once approved, '+dest+'.'+asp;
-  shForm.style.display='none';shDone.classList.add('show');
+  var picked=chosenAspects();
+  postForm(shForm,shSubmit,shNote,function(){
+    var dest=(type==='Post')?'shared to the CBEDSynergy network':('added to CBEDSync as a'+(/^[AEIOU]/.test(type)?'n ':' ')+type.toLowerCase()+' node');
+    var asp=picked.length?(' It will be linked to: '+picked.join(', ')+'.'):'';
+    doneMsg.textContent='“'+name+'” will be reviewed and, once approved, '+dest+'.'+asp;
+    shForm.style.display='none';shDone.classList.add('show');
+  });
 });
 
 // ===== THE SPACE =====
