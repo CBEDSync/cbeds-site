@@ -10,7 +10,7 @@
 <style>
   :root{
     --blue:#156082;--green:#70B3AE;--green-bright:#86cdc7;--blue-deep:#0a2f40;--blue-deeper:#072330;
-    --ink:#122a34;--muted:#5c727b;--bg:#ffffff;--bg-soft:#f5f9fa;--line:#e4eef0;--maxw:1180px;--nav-h:76px;--hero-h:clamp(480px,62vh,600px);--nav-gap:32px;--brand-mk:48px;--lh:1.65;--fs-h1:clamp(34px,4.8vw,56px);--fs-h2:clamp(26px,3.4vw,40px);--fs-lead:clamp(17px,1.7vw,19px);--sec-pad:96px;--foot-pad:48px;--fs-foot:14px;
+    --ink:#122a34;--muted:#5c727b;--bg:#ffffff;--bg-soft:#f5f9fa;--line:#e4eef0;--maxw:1180px;--nav-h:76px;--hero-h:100svh;--nav-gap:32px;--brand-mk:48px;--lh:1.65;--fs-h1:clamp(34px,4.8vw,56px);--fs-h2:clamp(26px,3.4vw,40px);--fs-lead:clamp(17px,1.7vw,19px);--sec-pad:96px;--foot-pad:48px;--fs-foot:14px;
     --c-agent:#3a8fd6;--c-project:#36c9b8;--c-output:#86cf5e;--c-tech:#e0a23c;
     --display:-apple-system,BlinkMacSystemFont,"SF Pro Display","Helvetica Neue","Inter",Helvetica,Arial,sans-serif;
     --body:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue","Inter",Helvetica,Arial,sans-serif;
@@ -42,19 +42,43 @@
   .nav-cta{background:var(--green);color:var(--blue-deeper)!important;padding:10px 20px;border-radius:9px;font-weight:600;font-size:14px;font-family:var(--display)}
   .devtag{display:inline-block;margin-left:6px;font-family:var(--display);font-size:9px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#06202c;background:var(--green);border-radius:5px;padding:1px 5px;vertical-align:middle}
 
-  /* interior-page hero — same height and vertical rhythm as CBEDStory and CBEDSense */
-  .synchero{position:relative;min-height:var(--hero-h);display:flex;align-items:center;
-    padding:var(--nav-h) 0 30px;background:radial-gradient(120% 120% at 78% 18%,#10566f 0%,#0a2f40 46%,#072330 100%);color:#fff;overflow:hidden}
-  .synchero>.wrap{width:100%}
-  .synchero .tag{font-family:var(--display);font-size:12.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--green-bright);font-weight:600}
-  .synchero h1{font-size:var(--fs-h1);margin:10px 0 12px}
-  .synchero p{font-size:var(--fs-lead);color:#bcd6dc;max-width:64ch}
-  .hero-row{display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap;margin-top:24px}
-  .stat-row{display:flex;gap:14px;flex-wrap:wrap}
-  .stat-chip{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14);border-radius:100px;padding:9px 18px;font-family:var(--display);font-size:14px}
+  /* Full-screen hero: copy centred at the top like CBEDStory and CBEDSynergy, then the
+     graph below with each count sitting out beside the cluster it belongs to. */
+  .synchero{position:relative;height:var(--hero-h);min-height:660px;display:flex;flex-direction:column;
+    padding:calc(var(--nav-h) + 40px) 0 30px;
+    background:radial-gradient(120% 120% at 50% 70%,#10566f 0%,#0a2f40 46%,#072330 100%);
+    color:#fff;overflow:hidden;text-align:center}
+  .synchero>.wrap{width:100%;flex:0 0 auto;position:relative;z-index:4}
+  .synchero h1{font-size:var(--fs-h1);line-height:1.08;margin:14px auto 16px;max-width:20ch}
+  .synchero p{font-size:var(--fs-lead);color:#bcd6dc;max-width:66ch;margin:0 auto}
+  /* sits with the copy — the counts are out on the graph, so this is the button alone */
+  .hero-row{display:flex;flex-direction:column;align-items:center;gap:14px;margin-top:22px}
+  /* the graph takes everything below the copy, down to the scroll arrow */
+  .synchero-art{flex:1;min-height:0;position:relative;z-index:1;margin-top:14px;padding-bottom:44px}
+  #heroGraph{display:block;width:100%;height:100%}
+  /* Each count is pinned beside its own cluster, on the outward side: agents and
+     projects to the left of theirs, outputs and technologies to the right. placeChips()
+     in the renderer sets left/top from where the clusters actually land, so they follow
+     the graph at any size. The row itself is only a wrapper — its children are taken
+     out of flow, so it collapses and the button sits straight under the paragraph. */
+  .stat-chip{position:absolute;z-index:3;white-space:nowrap;
+    display:inline-flex;align-items:center;gap:9px;background:rgba(7,35,48,.55);
+    border:1px solid rgba(255,255,255,.16);border-radius:100px;padding:8px 16px;
+    font-family:var(--display);font-size:14px;color:inherit;cursor:pointer;
+    backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);
+    transition:background .18s,border-color .18s}
+  .stat-chip:hover{background:rgba(12,52,68,.85);border-color:rgba(134,205,199,.6)}
+  .stat-chip:focus-visible{outline:2px solid var(--green-bright);outline-offset:2px}
+  /* the dot carries the entity type's own colour, the same one the graph uses */
+  .stat-chip i{width:9px;height:9px;border-radius:50%;flex:0 0 auto}
   .stat-chip b{color:#fff;font-weight:700}.stat-chip span{color:#9fc1c9}
-  .openkg{display:inline-flex;align-items:center;gap:10px;background:var(--green);color:var(--blue-deeper);font-family:var(--display);font-weight:700;font-size:15px;padding:13px 22px;border-radius:12px;cursor:pointer;border:none;transition:transform .15s,box-shadow .2s}
+  .openkg{display:inline-flex;align-items:center;gap:10px;background:var(--green);color:var(--blue-deeper);font-family:var(--display);font-weight:700;font-size:15px;padding:11px 20px;border-radius:12px;cursor:pointer;border:none;transition:transform .15s,box-shadow .2s}
   .openkg:hover{transform:translateY(-2px);box-shadow:0 12px 30px rgba(112,179,174,.4)}
+  /* shared scroll cue — the same element on every hero */
+  .scrollcue{position:absolute;bottom:22px;left:0;right:0;z-index:5;text-align:center;color:rgba(255,255,255,.55);font-family:var(--display);font-size:12.5px;letter-spacing:.08em;text-transform:uppercase;pointer-events:none}
+  .scrollcue span{display:block;font-size:18px;line-height:1;margin-top:5px;animation:bob 1.8s ease-in-out infinite}
+  @keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(5px)}}
+  @media (prefers-reduced-motion:reduce){.scrollcue span{animation:none}}
 
   .explorer{padding:30px 0 90px;background:var(--bg-soft);min-height:70vh}
   .ex-grid{display:grid;grid-template-columns:380px 1fr;gap:24px;margin-top:14px}
@@ -236,6 +260,15 @@
   .foot-brand{display:flex;align-items:center;gap:11px;color:#fff;font-family:var(--display);font-weight:700}
   .foot-brand .mk{width:34px;height:34px;--a1:#9fe0d9;--a2:#7fc6cd;--a3:#5fadc2;--a4:#3f93b6;--ad:#bdeee9}
   @media(max-width:920px){.ex-grid{grid-template-columns:1fr}nav ul{display:none}.results{max-height:none}.kg-body{grid-template-columns:1fr}.kg-resizer{display:none}.send{width:44px;height:44px}}
+  /* Below 980 the graph is too small to hang labels off, so the counts drop back into
+     an ordinary row under the copy and placeChips() leaves them alone. */
+  @media(max-width:980px){
+    .stat-row{display:flex;flex-wrap:wrap;gap:10px;justify-content:center}
+    /* transform:none has to win here: placeChips() writes it inline, and if the width
+       crosses this breakpoint after it has run the chips would keep the offset that
+       pinned them to a cluster and sit well off the row */
+    .stat-chip{position:static;transform:none!important;background:rgba(255,255,255,.06)}
+  }
 </style>
 </head>
 <body>
@@ -265,14 +298,21 @@
 
 <section class="synchero">
   <div class="wrap">
-    <span class="tag">CBEDSync</span>
     <h1>Explore the data solutions ecosystem</h1>
     <p>Search the living knowledge graph of the built environment: the organisations, projects, outputs and technologies that already exist, and how they connect.</p>
+    <!-- The button belongs with the copy, not at the foot of the graph. At the bottom of
+         a full-screen section it read as "continue", which is where a scroll control
+         conventionally lives — it is a call to open the graph, not to move past it. The
+         counts are pinned out beside their clusters on wide screens, so this row is just
+         the button there; it lays them out again on narrow ones. -->
     <div class="hero-row">
       <div class="stat-row" id="statRow"></div>
       <button class="openkg" id="openKg"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="5" cy="6" r="2.4"/><circle cx="19" cy="7" r="2.4"/><circle cx="12" cy="17" r="2.4"/><path d="M7 7l3.5 8M17 8.5l-4 6"/></svg> Open full knowledge graph</button>
     </div>
   </div>
+  </div>
+  <div class="synchero-art"><canvas id="heroGraph"></canvas></div>
+  <div class="scrollcue"><span>&#8595;</span></div>
 </section>
 
 <section class="explorer">
@@ -366,11 +406,22 @@ var D=X.D, ENT=X.ENT, TECH=X.TECH, NODES=X.NODES, byId=X.byId, adj=X.adj, degOf=
 var kindLabel=X.kindLabel, kindColors=X.kindColors, relLabel=X.relLabel, relLabelIn=X.relLabelIn;
 function kindColor(k){return kindColors[k]||'#7e98a0';}
 
-document.getElementById('statRow').innerHTML=
-  '<div class="stat-chip"><b>'+D.counts.agent+'</b> <span>orgs &amp; experts</span></div>'+
-  '<div class="stat-chip"><b>'+D.counts.project+'</b> <span>projects</span></div>'+
-  '<div class="stat-chip"><b>'+D.counts.output+'</b> <span>outputs</span></div>'+
-  '<div class="stat-chip"><b>'+TECH.length+'</b> <span>technologies</span></div>';
+/* The counts double as the way in: each one carries its type's colour and, clicked,
+   drops the reader into the explorer with that type already filtered. */
+(function(){
+  var sr=document.getElementById('statRow');
+  [['agent',D.counts.agent,'orgs & experts'],
+   ['project',D.counts.project,'projects'],
+   ['output',D.counts.output,'outputs'],
+   ['tech',TECH.length,'technologies']].forEach(function(s){
+    var b=document.createElement('button');
+    b.type='button'; b.className='stat-chip'; b.setAttribute('data-kind',s[0]);
+    b.setAttribute('aria-label','Show '+s[2]+' in the explorer');
+    b.innerHTML='<i style="background:'+kindColor(s[0])+'"></i><b>'+s[1]+'</b> <span>'+esc(s[2])+'</span>';
+    b.onclick=function(){ selectKind(s[0]); toExplorer(); };
+    sr.appendChild(b);
+  });
+})();
 
 function esc(s){return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 function toExplorer(){var el=document.getElementById('detail');if(el){var y=el.getBoundingClientRect().top+window.pageYOffset-70;window.scrollTo({top:y,behavior:'smooth'});}}
@@ -380,7 +431,11 @@ function legendHTML(){return '<span><i style="background:#3a8fd6"></i>Agent</spa
 var state={q:'',kind:'all',theme:'',tech:'',depth:1};
 var kinds=[['all','All'],['agent','Agents'],['project','Projects'],['output','Outputs'],['tech','Technologies']];
 var kc=document.getElementById('kindChips');
-kinds.forEach(function(k){var b=document.createElement('div');b.className='chip'+(k[0]==='all'?' on':'');b.textContent=k[1];b.onclick=function(){state.kind=k[0];[].forEach.call(kc.children,function(c){c.classList.remove('on');});b.classList.add('on');render();};kc.appendChild(b);});
+kinds.forEach(function(k){var b=document.createElement('div');b.className='chip'+(k[0]==='all'?' on':'');b.setAttribute('data-kind',k[0]);b.textContent=k[1];b.onclick=function(){state.kind=k[0];[].forEach.call(kc.children,function(c){c.classList.remove('on');});b.classList.add('on');render();};kc.appendChild(b);});
+/* Lets the hero counts drive this filter. Going through the chip's own click keeps
+   one code path for selecting a type, so the state, the highlight and the re-render
+   can never fall out of step. */
+function selectKind(kind){var b=kc.querySelector('[data-kind="'+kind+'"]');if(b)b.click();}
 var ts=document.getElementById('themeSel');
 D.themes.forEach(function(t){var o=document.createElement('option');o.value=t;o.textContent=t.replace('Data Integration and Interoperability','Interoperability').replace(' and ',' & ').trim();ts.appendChild(o);});
 ts.onchange=function(){state.theme=this.value;render();};
@@ -536,6 +591,256 @@ function computeLayout(){
 }
 // snap every node back to its spiral home instantly (used when re-opening clean)
 function restoreBase(){for(var id in basePos){if(layout[id]){layout[id].x=basePos[id].x;layout[id].y=basePos[id].y;}}curFocusIds=null;}
+
+/* ---------- hero artwork: the knowledge graph hovering itself ----------
+   Draws the real graph at the same four-cluster layout the full overlay uses, then
+   walks a random entity every few seconds, lighting its relations and naming them
+   exactly the way hovering a node in the overlay does. */
+(function(){
+  var cv=document.getElementById('heroGraph'); if(!cv) return;
+  var g=cv.getContext('2d');
+  var FONT=getComputedStyle(document.body).fontFamily;
+  computeLayout();                       // deterministic, and initKG() re-runs it harmlessly
+  /* The hero keeps its own copy of the positions. Selecting a node in the full overlay
+     tweens `layout` into a radial arrangement, and the hero must not be dragged around
+     by that while it sits behind the overlay.
+
+     It also lays them out per node rather than per id. Thirty-four ids appear twice in
+     the data — an organisation and one of its products under the same name, ActivePlan
+     and Revizto among them — and computeLayout keys positions by id, so the second
+     entry overwrites the first. Both dots then land in the later one's cluster while
+     the earlier one's slot in its own spiral is left empty, which is the stray dots in
+     the wrong blob and the holes opposite them. The spiral maths here are the same, so
+     every node keeps the radius it always had; only the storage differs. */
+  var posOf=new Array(NODES.length), pos={};
+  (function(){
+    var idx={agent:0,project:0,output:0,tech:0};
+    NODES.forEach(function(n,k){
+      var m=clusterMeta[n.kind]; if(!m) return;
+      var i=idx[n.kind]++, step=n.kind==='tech'?60:30;
+      var r=step*Math.sqrt(i+1), a=(i+1)*2.39996;
+      posOf[k]={x:m.cx+Math.cos(a)*r, y:m.cy+Math.sin(a)*r};
+      // edges and relations are keyed by id, so those follow the first of a pair
+      if(!pos[n.id]) pos[n.id]=posOf[k];
+    });
+  })();
+  var seen={}, edges=[];
+  Object.keys(adj).forEach(function(a){(adj[a]||[]).forEach(function(e){
+    var k=a<e.id?a+'|'+e.id:e.id+'|'+a; if(!seen[k]){seen[k]=1;edges.push([a,e.id]);}});});
+  var LABEL_CAP=12;   // a hub can have dozens of relations; only name this many
+
+  var W=0,H=0,S=1,TX=0,TY=0,dpr=1,baseLayer=null;
+  function fx(x){return x*S+TX;} function fy(y){return y*S+TY;}
+  function rOf(n){var dg=degOf[n.id]||0; return (n.kind==='tech'?2.7:2.1)*(1+Math.min(1.4,Math.sqrt(dg)*0.15));}
+  function roundRect(x,y,w,h,r){g.beginPath();g.moveTo(x+r,y);g.arcTo(x+w,y,x+w,y+h,r);g.arcTo(x+w,y+h,x,y+h,r);g.arcTo(x,y+h,x,y,r);g.arcTo(x,y,x+w,y,r);g.closePath();}
+  function arrow(x1,y1,x2,y2,col,back){var a=Math.atan2(y2-y1,x2-x1);var ex=x2-Math.cos(a)*back,ey=y2-Math.sin(a)*back,s=6;
+    g.fillStyle=col;g.beginPath();g.moveTo(ex,ey);g.lineTo(ex-Math.cos(a-0.42)*s,ey-Math.sin(a-0.42)*s);g.lineTo(ex-Math.cos(a+0.42)*s,ey-Math.sin(a+0.42)*s);g.closePath();g.fill();}
+
+  /* The faint whole-graph layer never changes, so it is rendered once to an offscreen
+     canvas and blitted each frame. Re-stroking ~1,300 nodes and several thousand edges
+     every frame would cost far more than a hero backdrop is worth. */
+  function buildBase(){
+    baseLayer=document.createElement('canvas');
+    baseLayer.width=cv.width; baseLayer.height=cv.height;
+    var b=baseLayer.getContext('2d'); b.setTransform(dpr,0,0,dpr,0,0);
+    b.strokeStyle='rgba(134,205,199,.05)'; b.lineWidth=1; b.beginPath();
+    for(var i=0;i<edges.length;i++){var p=pos[edges[i][0]],q=pos[edges[i][1]]; if(!p||!q)continue;
+      b.moveTo(fx(p.x),fy(p.y)); b.lineTo(fx(q.x),fy(q.y));}
+    b.stroke();
+    // kept faint and small: this layer is context, and at hero scale the clusters read
+    // as solid discs if the dots are any heavier than this
+    for(var k=0;k<NODES.length;k++){var n=NODES[k],p=posOf[k]; if(!p)continue;
+      b.globalAlpha=.3; b.fillStyle=kindColor(n.kind);
+      b.beginPath(); b.arc(fx(p.x),fy(p.y),rOf(n)*0.85,0,7); b.fill();}
+    b.globalAlpha=1;
+  }
+  /* Pins each count beside the cluster it counts, on the outward side of the graph:
+     agents and projects sit left of theirs, outputs and technologies right. The chips
+     are positioned against the section rather than the canvas so that below 980px, where
+     the CSS drops them back into an ordinary row, they are still in the right place in
+     the flow. Above that the row's children are all out of flow, so it collapses and the
+     button sits directly under the paragraph. */
+  var SIDE={agent:'left',project:'left',output:'right',tech:'right'};
+  function placeChips(){
+    if(!clusterMeta||!clusterMeta.agent) return;
+    var wide=document.documentElement.clientWidth>980;
+    var cr=cv.getBoundingClientRect();
+    [].forEach.call(document.querySelectorAll('.stat-chip'),function(el){
+      if(!wide){ el.style.left=el.style.top=el.style.transform=''; return; }
+      var m=clusterMeta[el.getAttribute('data-kind')]; if(!m) return;
+      /* offsets are measured against whatever the chip's absolute position actually
+         resolves against — .wrap is position:relative, so it is that and not the
+         section, and assuming otherwise put every chip out by the wrap's own offset */
+      var host=el.offsetParent||cv.closest('.synchero'); if(!host) return;
+      var hr=host.getBoundingClientRect();
+      var x=cr.left-hr.left+fx(m.cx), y=cr.top-hr.top+fy(m.cy), r=m.R*S+16;
+      if(SIDE[el.getAttribute('data-kind')]==='left'){
+        el.style.left=(x-r)+'px'; el.style.transform='translate(-100%,-50%)';
+      } else {
+        el.style.left=(x+r)+'px'; el.style.transform='translate(0,-50%)';
+      }
+      el.style.top=y+'px';
+    });
+  }
+
+  function size(){
+    var w=cv.clientWidth,h=cv.clientHeight; if(w<2||h<2) return false;
+    dpr=Math.min(devicePixelRatio||1,2);
+    cv.width=Math.round(w*dpr); cv.height=Math.round(h*dpr); g.setTransform(dpr,0,0,dpr,0,0);
+    W=w; H=h;
+    var minx=1e9,miny=1e9,maxx=-1e9,maxy=-1e9;
+    for(var k=0;k<posOf.length;k++){var p=posOf[k]; if(!p)continue;
+      if(p.x<minx)minx=p.x; if(p.y<miny)miny=p.y; if(p.x>maxx)maxx=p.x; if(p.y>maxy)maxy=p.y;}
+    var gw=maxx-minx||1, gh=maxy-miny||1;
+    S=Math.min(W/gw,H/gh)*0.9;           // fit the whole graph, both axes, same scale
+    TX=W/2-(minx+gw/2)*S; TY=H/2-(miny+gh/2)*S;
+    buildBase(); placeChips(); return true;
+  }
+
+  var lab=[];                            // label boxes already placed this frame
+  function label(n,x,y,r,a,hub){
+    var s=n.id.length>26?n.id.slice(0,25)+'…':n.id;
+    g.font=(hub?'700 12px ':'600 11px ')+FONT; g.textAlign='left';
+    var tw=g.measureText(s).width;
+    // flip the label to the other side rather than let it run off the canvas
+    var bx=x+r+6; if(bx+tw+9>W-4) bx=x-r-6-tw-9;
+    /* Neighbours in the same cluster sit close together, so their labels collide.
+       Nudge alternately up and down until this one is clear — better than a stack of
+       unreadable overlapping names. */
+    var by=y-8;
+    for(var k=0;k<8;k++){
+      var hitAny=false;
+      for(var q=0;q<lab.length;q++){var L=lab[q];
+        if(bx<L.x+L.w+3&&bx+tw+9>L.x-3&&by<L.y+L.h+2&&by+16>L.y-2){hitAny=true;break;}}
+      if(!hitAny)break;
+      by=y-8+(k%2?-1:1)*15*Math.ceil((k+1)/2);
+    }
+    lab.push({x:bx,y:by,w:tw+9,h:16});
+    g.globalAlpha=a*0.9; g.fillStyle='rgba(6,32,44,0.66)';
+    roundRect(bx,by,tw+9,16,4.5); g.fill();
+    g.globalAlpha=a; g.fillStyle='rgba(238,251,248,0.98)';
+    g.fillText(s,bx+4.5,by+11.7);
+  }
+  function dot(n,p,a,hub,named){
+    var x=fx(p.x),y=fy(p.y),r=rOf(n)*(hub?2.5:1.8);
+    var rg=g.createRadialGradient(x,y,0,x,y,r*3.4);
+    rg.addColorStop(0,kindColor(n.kind)); rg.addColorStop(1,'rgba(6,32,44,0)');
+    g.globalAlpha=a*0.34; g.fillStyle=rg; g.beginPath(); g.arc(x,y,r*3.4,0,7); g.fill();
+    g.globalAlpha=a; g.fillStyle=hub?'#f4fffd':kindColor(n.kind);
+    g.beginPath(); g.arc(x,y,r,0,7); g.fill();
+    g.strokeStyle='rgba(255,255,255,'+(hub?0.95:0.72)+')'; g.lineWidth=hub?2:1.2; g.stroke();
+    if(named) label(n,x,y,r,a,hub);
+    g.globalAlpha=1;
+  }
+  /* The base layer holds every node dimmed. Hovering a count repaints just that kind
+     on top at its full colour and full size, so its blob comes up out of the dim while
+     the other three stay as they were. */
+  function drawCluster(kind,a){
+    if(!kind||a<=0) return;
+    g.globalAlpha=a; g.fillStyle=kindColor(kind);
+    for(var k=0;k<NODES.length;k++){
+      var n=NODES[k]; if(n.kind!==kind) continue;
+      var p=posOf[k]; if(!p) continue;
+      g.beginPath(); g.arc(fx(p.x),fy(p.y),rOf(n),0,7); g.fill();
+    }
+    g.globalAlpha=1;
+  }
+  function draw(a){
+    g.clearRect(0,0,W,H);
+    if(baseLayer) g.drawImage(baseLayer,0,0,W,H);
+    drawCluster(litKind,litA);
+    lab.length=0;                        // label collision map is per frame
+    if(curIdx<0||a<=0) return;
+    var cur=NODES[curIdx], p=posOf[curIdx]; if(!cur||!p) return;
+    var nbs=(adj[cur.id]||[]).filter(function(e){return byId[e.id]&&pos[e.id];});
+    // relations first, so every dot sits on top of its own lines
+    for(var j=0;j<nbs.length;j++){
+      var q=pos[nbs[j].id];
+      var d=nbs[j].dir==='in'?[q,p]:[p,q];      // draw the arrow the way the relation runs
+      g.strokeStyle='rgba(159,224,217,'+(0.8*a).toFixed(3)+')'; g.lineWidth=1.4;
+      g.beginPath(); g.moveTo(fx(d[0].x),fy(d[0].y)); g.lineTo(fx(d[1].x),fy(d[1].y)); g.stroke();
+      arrow(fx(d[0].x),fy(d[0].y),fx(d[1].x),fy(d[1].y),'rgba(159,224,217,'+(0.85*a).toFixed(3)+')',rOf(byId[nbs[j].id])*1.8+4);
+    }
+    // named in descending degree, so the busiest neighbours are the ones that get a label
+    var named=nbs.slice().sort(function(x,y){return (degOf[y.id]||0)-(degOf[x.id]||0);}).slice(0,LABEL_CAP);
+    var nameSet={}; named.forEach(function(e){nameSet[e.id]=1;});
+    for(var j=0;j<nbs.length;j++) dot(byId[nbs[j].id],pos[nbs[j].id],a,false,nameSet[nbs[j].id]);
+    dot(cur,p,a,true,true);
+  }
+
+  /* Nothing moves on its own: the reader drives it. Hovering a node lights it and its
+     relations, moving off lets them fade back. The loop only runs while that fade is
+     in flight, so an idle hero costs nothing. */
+  var curIdx=-1, alpha=0, rafId=null, litKind=null, litA=0;
+  var EASE=matchMedia('(prefers-reduced-motion:reduce)').matches?1:0.2;
+  /* Returns the index rather than the node, so the caller keeps hold of which of a
+     duplicated pair was actually under the pointer and can draw from its own position. */
+  function nodeAt(mx,my){
+    var best=-1,bd=17;
+    for(var k=0;k<NODES.length;k++){
+      var p=posOf[k]; if(!p) continue;
+      var d=Math.hypot(fx(p.x)-mx,fy(p.y)-my);
+      if(d<bd){bd=d;best=k;}
+    }
+    return best;
+  }
+  function tick(){
+    rafId=null;
+    var target=curIdx>=0?1:0, litTarget=litKind?1:0;
+    alpha+=(target-alpha)*EASE;
+    litA+=(litTarget-litA)*EASE;
+    if(Math.abs(target-alpha)<0.012) alpha=target;
+    if(Math.abs(litTarget-litA)<0.012) litA=litTarget;
+    draw(alpha);
+    if(alpha!==target||litA!==litTarget) rafId=requestAnimationFrame(tick);
+  }
+  /* Steps once straight away rather than waiting on the next frame, so the highlight
+     answers the pointer immediately and the fade merely catches up. */
+  function kick(){ if(rafId){cancelAnimationFrame(rafId);rafId=null;} tick(); }
+
+  /* No early return if the canvas has no size yet. It is sized from a flex slot whose
+     height depends on the copy above it, so the first measurement can legitimately come
+     back as zero; bailing here used to kill the whole thing silently, listeners and all.
+     Instead draw what we can and let the observer below finish the job. */
+  size();
+  draw(0);                                 // the graph at rest, no highlight
+  cv.addEventListener('mousemove',function(e){
+    var r=cv.getBoundingClientRect();
+    var k=nodeAt(e.clientX-r.left,e.clientY-r.top);
+    if(k!==curIdx){ curIdx=k; cv.style.cursor=k>=0?'pointer':'default'; kick(); }
+  });
+  cv.addEventListener('mouseleave',function(){
+    if(curIdx>=0){ curIdx=-1; cv.style.cursor='default'; kick(); }
+  });
+  // the hero graph is a way in, not just a picture: a node opens it in the full graph
+  cv.addEventListener('click',function(e){
+    var r=cv.getBoundingClientRect();
+    var k=nodeAt(e.clientX-r.left,e.clientY-r.top);
+    // the overlay is keyed by id, so hand it the node byId resolves to
+    if(k>=0 && typeof openKG==='function'){var t=byId[NODES[k].id]; if(t) openKG(t);}
+  });
+  /* Hovering a count brings its own blob up to full colour. focus/blur as well as
+     the pointer, since the counts are buttons and reachable by keyboard. */
+  [].forEach.call(document.querySelectorAll('.stat-chip'),function(el){
+    var k=el.getAttribute('data-kind');
+    function on(){ if(litKind!==k){ litKind=k; kick(); } }
+    function off(){ if(litKind===k){ litKind=null; kick(); } }
+    el.addEventListener('mouseenter',on); el.addEventListener('mouseleave',off);
+    el.addEventListener('focus',on);      el.addEventListener('blur',off);
+  });
+  /* The canvas box is whatever height the copy above it leaves, so it can change with
+     no window resize at all — a web font landing late reflows the h1 onto another line.
+     size() only touches the bitmap, never layout, so observing the canvas cannot loop. */
+  function resize(){ if(size()) draw(alpha); }
+  if(window.ResizeObserver) new ResizeObserver(resize).observe(cv);
+  /* The window listener is not a fallback for the observer, it is there as well: the
+     counts are pinned to clusters only above 980px, and crossing that width flips them
+     between pinned and an ordinary row. That is a change the canvas box may not report,
+     and getting it wrong leaves the counts stranded away from their clusters. */
+  addEventListener('resize',resize);
+  // one more pass once webfonts have settled, since they move the copy and so the canvas
+  if(document.fonts&&document.fonts.ready) document.fonts.ready.then(resize);
+})();
 // radial arrangement for a selection: chosen node in the centre, neighbours on depth rings
 function radialFocusTargets(n){
   var seen=computeFocus(n,kgDepth), byDepth={};

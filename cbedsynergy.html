@@ -10,7 +10,7 @@
 <style>
   :root{
     --blue:#156082;--green:#70B3AE;--green-bright:#86cdc7;--blue-deep:#0a2f40;--blue-deeper:#072330;
-    --ink:#122a34;--muted:#5c727b;--bg:#ffffff;--bg-soft:#f5f9fa;--line:#e4eef0;--maxw:1180px;--nav-h:76px;--hero-h:clamp(480px,62vh,600px);--nav-gap:32px;--brand-mk:48px;--lh:1.65;--fs-h1:clamp(34px,4.8vw,56px);--fs-h2:clamp(26px,3.4vw,40px);--fs-lead:clamp(17px,1.7vw,19px);--sec-pad:96px;--foot-pad:48px;--fs-foot:14px;
+    --ink:#122a34;--muted:#5c727b;--bg:#ffffff;--bg-soft:#f5f9fa;--line:#e4eef0;--maxw:1180px;--nav-h:76px;--hero-h:100svh;--nav-gap:32px;--brand-mk:48px;--lh:1.65;--fs-h1:clamp(34px,4.8vw,56px);--fs-h2:clamp(26px,3.4vw,40px);--fs-lead:clamp(17px,1.7vw,19px);--sec-pad:96px;--foot-pad:48px;--fs-foot:14px;
     --display:-apple-system,BlinkMacSystemFont,"SF Pro Display","Helvetica Neue","Inter",Helvetica,Arial,sans-serif;
     --body:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue","Inter",Helvetica,Arial,sans-serif;
   }
@@ -40,17 +40,44 @@
   nav a.lnk.active::after{content:"";position:absolute;left:0;right:0;bottom:-3px;height:2px;background:var(--green);border-radius:2px}
   .nav-cta{background:var(--green);color:var(--blue-deeper)!important;padding:10px 20px;border-radius:9px;font-weight:600;font-size:14px;font-family:var(--display)}
 
-  /* network hero */
-  .nethero{position:relative;height:100vh;min-height:680px;overflow:hidden;background:radial-gradient(120% 120% at 78% 18%,#10566f 0%,#0a2f40 46%,#072330 100%)}
-  #net{position:absolute;inset:0;width:100%;height:100%;display:block}
-  .net-intro{position:absolute;top:0;left:0;right:0;z-index:3;text-align:center;padding:120px 26px 0;pointer-events:none}
+  /* network hero — full screen, shared across all five pages via --hero-h.
+     The copy sits at the top in normal flow and the canvas takes the height that is
+     left, so the network is scaled to that box instead of spanning the whole hero
+     behind the text. build() reads the canvas's own clientWidth/clientHeight and
+     derives its radius from whichever axis is tighter, which is what keeps the
+     ellipses' proportions and holds the whole network inside the box. */
+  /* padding:0 overrides the generic section{padding:var(--sec-pad) 0} — inherited, it
+     left 96px of dead space at the foot of the hero and squashed the canvas by that
+     much again at the top. */
+  .nethero{position:relative;height:var(--hero-h);min-height:680px;padding:0;display:flex;flex-direction:column;
+    /* the light in the gradient sits on the network's centre — where the CBEDS drop
+       lands — rather than up in the top right, so the artwork looks lit by it */
+    overflow:hidden;background:radial-gradient(120% 120% at 50% 62%,#10566f 0%,#0a2f40 46%,#072330 100%)}
+  /* the canvas sits in normal flow rather than absolutely positioned: as a replaced
+     element its width:auto falls back to the intrinsic 300x150, so insets alone
+     collapsed it. In flow, height:100% resolves against this content box, which the
+     padding-bottom holds clear of the legend and the scroll cue. */
+  .net-art{flex:1;min-height:0;position:relative;z-index:1;padding-bottom:120px}
+  /* The canvas is held to the page's content column, not the full window. Left
+     full-bleed it derived its radius from the whole window width, so the outer
+     organisations sat outside the column every other element lines up to. */
+  .net-art>.wrap{height:100%}
+  #net{display:block;width:100%;height:100%}
+  .net-intro{flex:0 0 auto;position:relative;z-index:3;text-align:center;padding:calc(var(--nav-h) + 40px) 26px 0}
   .net-intro .tag{font-family:var(--display);font-size:12.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--green-bright);font-weight:600}
   .devpill{display:inline-block;font-family:var(--display);font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#06202c;background:var(--green-bright);border-radius:100px;padding:4px 11px;vertical-align:middle}
   .devtag{display:inline-block;margin-left:6px;font-family:var(--display);font-size:9px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#06202c;background:var(--green);border-radius:5px;padding:1px 5px;vertical-align:middle}
-  .net-intro h1{font-size:clamp(34px,5vw,56px);color:#fff;margin:12px 0 14px}
-  .net-intro p{font-size:clamp(16px,1.8vw,19px);color:#bcd6dc;max-width:60ch;margin:0 auto}
-  .net-legend{position:absolute;bottom:26px;left:0;right:0;z-index:3;text-align:center;color:rgba(255,255,255,.6);font-size:13px;font-family:var(--display);letter-spacing:.02em;padding:0 26px}
+  .net-intro h1{font-size:var(--fs-h1);line-height:1.08;color:#fff;margin:12px auto 14px;max-width:20ch}
+  .net-intro p{font-size:var(--fs-lead);color:#bcd6dc;max-width:66ch;margin:0 auto}
+  /* lifted clear of the scroll cue beneath it — the cue's two lines occupy the bottom
+     ~76px, so this sits above that with room to spare */
+  .net-legend{position:absolute;bottom:88px;left:0;right:0;z-index:3;text-align:center;color:rgba(255,255,255,.6);font-size:13px;font-family:var(--display);letter-spacing:.02em;padding:0 26px}
   .net-legend b{color:var(--green-bright);font-weight:600}
+  /* shared scroll cue — the same element on every hero */
+  .scrollcue{position:absolute;bottom:22px;left:0;right:0;z-index:4;text-align:center;color:rgba(255,255,255,.55);font-family:var(--display);font-size:12.5px;letter-spacing:.08em;text-transform:uppercase;pointer-events:none}
+  .scrollcue span{display:block;font-size:18px;line-height:1;margin-top:5px;animation:bob 1.8s ease-in-out infinite}
+  @keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(5px)}}
+  @media (prefers-reduced-motion:reduce){.scrollcue span{animation:none}}
   .tip{position:fixed;z-index:50;pointer-events:none;background:rgba(7,35,48,.95);border:1px solid rgba(134,205,199,.4);color:#eafffb;
     font-family:var(--display);font-size:13px;font-weight:600;padding:7px 12px;border-radius:8px;opacity:0;transform:translate(-50%,-130%);transition:opacity .15s;white-space:nowrap}
   .tip.show{opacity:1}
@@ -67,6 +94,56 @@
   .join h3{font-size:clamp(24px,3vw,34px);margin-bottom:12px}
   .join p{color:#c5dade;max-width:52ch;margin:0 auto 26px;font-size:17px}
   .btn{font-family:var(--display);display:inline-block;background:var(--green);color:var(--blue-deeper);padding:14px 28px;border-radius:11px;font-weight:600}
+  button.btn{border:none;cursor:pointer;font-size:15px;transition:background .2s}
+  button.btn:hover{background:#8cc9c4}
+
+  /* ---------- the charter form ----------
+     Same behaviour and theme as "Share your work" on CBEDSense: the button toggles a
+     panel that opens on a grid-template-rows transition, and the form itself is a light
+     card on the page's own surface colours. */
+  .formwrap{display:grid;grid-template-rows:0fr;transition:grid-template-rows .5s ease}
+  .formwrap.open{grid-template-rows:1fr;margin-top:30px}
+  .formwrap>.fwin{overflow:hidden}
+  .form{background:var(--bg-soft);border:1px solid var(--line);border-radius:18px;padding:34px;text-align:left}
+  .charter-head{border-bottom:1px solid var(--line);padding-bottom:20px;margin-bottom:22px}
+  .charter-head h3{font-size:clamp(22px,2.6vw,28px);color:var(--ink);margin-bottom:8px}
+  .charter-head p{color:var(--muted);font-size:16px;max-width:64ch}
+  .charter-note{background:#eef4f6;border:1px solid var(--line);border-left:3px solid var(--green);
+    border-radius:10px;padding:14px 16px;font-size:13.5px;color:var(--muted);margin-bottom:26px}
+  .charter h4{font-family:var(--display);font-size:17px;color:var(--ink);margin-bottom:9px}
+  .charter section{padding:0;margin-bottom:26px}
+  .charter p{font-size:15px;color:var(--muted);max-width:78ch;margin-bottom:10px}
+  .charter ul{list-style:none;margin:0}
+  .charter ul li{font-size:15px;color:var(--muted);padding-left:18px;position:relative;margin-bottom:8px}
+  .charter ul li::before{content:"";position:absolute;left:0;top:9px;width:6px;height:6px;border-radius:50%;background:var(--green)}
+  .charter ul li b{color:var(--ink);font-weight:600}
+  /* the five commitments, picked like the CBEDSense type cards but multi-select */
+  .commits{display:grid;grid-template-columns:repeat(auto-fit,minmax(184px,1fr));gap:10px;margin-top:4px}
+  .commit{cursor:pointer;border:1px solid var(--line);border-radius:12px;padding:14px;background:#fff;transition:.2s;display:block}
+  .commit:hover{border-color:var(--green)}
+  .commit input{position:absolute;opacity:0;pointer-events:none}
+  .commit .tn{font-family:var(--display);font-weight:700;font-size:15px;color:var(--ink);display:flex;align-items:center;gap:8px}
+  .commit .tn::before{content:"";width:11px;height:11px;border-radius:50%;background:var(--green);flex:0 0 auto;opacity:.32;transition:.2s}
+  .commit .td{font-size:12.5px;color:var(--muted);margin-top:6px;line-height:1.45}
+  .commit.sel{border-color:var(--green);box-shadow:inset 0 0 0 1px var(--green)}
+  .commit.sel .tn::before{opacity:1}
+  .commitcount{font-size:13px;color:var(--muted);margin-top:10px}
+  .commitcount.short{color:#a8622b}
+  /* the signature block that closes the charter */
+  .sig{border-top:1px solid var(--line);padding-top:22px;margin-top:6px}
+  .sig-grid{display:grid;grid-template-columns:1.4fr 1fr .8fr;gap:16px}
+  .field{margin-bottom:22px}
+  .field>label{display:block;font-family:var(--display);font-weight:600;font-size:14.5px;color:var(--ink);margin-bottom:9px}
+  .field .hint{font-weight:400;color:var(--muted);font-size:13px}
+  .field input{width:100%;font-family:var(--body);font-size:15px;color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:12px 14px;background:#fff}
+  .field input:focus{outline:none;border-color:var(--green)}
+  .submit{font-family:var(--display);font-weight:600;font-size:15px;background:var(--green);color:var(--blue-deeper);border:none;border-radius:11px;padding:13px 30px;cursor:pointer}
+  .formnote{font-size:12.5px;color:#9fb1b6;margin-top:12px}
+  .done{display:none;background:#eef7f1;border:1px solid #bfe3cd;border-radius:18px;padding:34px;text-align:center}
+  .done.show{display:block}
+  .done h4{font-size:19px;color:var(--ink);margin-bottom:7px}
+  .done p{font-size:14.5px;color:var(--muted);max-width:52ch;margin:0 auto}
+  @media(max-width:720px){.sig-grid{grid-template-columns:1fr}}
 
   footer{background:var(--blue-deeper);color:#88a6af;padding:var(--foot-pad) 0;font-size:var(--fs-foot)}
   .foot-inner{display:flex;justify-content:space-between;align-items:center;gap:20px;flex-wrap:wrap}
@@ -101,13 +178,14 @@
 </header>
 
 <section class="nethero">
-  <canvas id="net"></canvas>
   <div class="net-intro">
-    <span class="tag">CBEDSynergy</span> <span class="devpill">In development</span>
+    <span class="devpill">In development</span>
     <h1>A network that connects itself</h1>
     <p>CBEDSynergy is where collaboration happens. CBEDS sits at the centre, the organisations around it form the network, connected to one another, not to us. We create the conditions; the connections are theirs.</p>
   </div>
+  <div class="net-art"><div class="wrap"><canvas id="net"></canvas></div></div>
   <div class="net-legend">Each dot is an organisation &middot; lines show connections between them &middot; <b>hover a dot to see who</b></div>
+  <div class="scrollcue">Scroll for more<span>&#8595;</span></div>
 </section>
 
 <div class="tip" id="tip"></div>
@@ -121,8 +199,80 @@
     <div class="join">
       <h3>Add your organisation</h3>
       <p>If your organisation is working on data solutions in the built environment, there is a place for you in the network.</p>
-      <a class="btn" href="https://www.linkedin.com/groups/13264190/" target="_blank" rel="noopener">Join the network &#8594;</a>
+      <button class="btn" id="joinToggle">Join the network &#8594;</button>
     </div>
+
+    <div class="formwrap" id="joinWrap"><div class="fwin">
+      <form class="form charter" id="joinForm">
+        <div class="charter-head">
+          <h3>CBEDS Alliance Charter</h3>
+          <p>A shared commitment to connect built environment data sharing initiatives and working with a &ldquo;Best for Project and Sector&rdquo; mindset.</p>
+        </div>
+
+        <p class="charter-note"><b>Non-binding:</b> this Charter is a good-faith statement of shared intent. It is not a legally binding contract and creates no legal or financial obligations; it does not override members&rsquo; own agreements, procurement rules, or competition and IP obligations.</p>
+
+        <section>
+          <h4>Why this Charter</h4>
+          <p>The built environment has strong data-sharing activity, but it stays fragmented. Low visibility of who is doing what weakens coordination; weak coordination limits interoperability; without interoperability, outputs are not used and value is not proven; and without proven value, engagement stays low &mdash; which further reduces visibility. This self-reinforcing &ldquo;fragmentation stuck loop&rdquo; keeps the sector disconnected despite real effort. CBEDS &mdash; the Centre for Built Environment Data Solutions &mdash; is a network of networks that connects existing initiatives without replacing them. By signing, members commit to break this loop and to decide and act Best for Project and Sector: what is best for the shared outcome and the wider sector, inside and beyond their own boundaries.</p>
+        </section>
+
+        <section>
+          <h4>Our commitments: five ways to break the fragmentation loop</h4>
+          <p>By signing, each member commits to at least three of these five, and to the shared behaviours below.</p>
+          <div class="commits" id="commits">
+            <label class="commit"><input type="checkbox" name="commit" value="Visibility"><span class="tn">Visibility</span><span class="td">List your initiative, activities and relationships on CBEDSync and keep them current, so others can see who is doing what and avoid duplication.</span></label>
+            <label class="commit"><input type="checkbox" name="commit" value="Collaboration"><span class="tn">Collaboration</span><span class="td">Join coordination meetings, agree MoUs where useful, produce shared outputs, and connect the right people across initiatives.</span></label>
+            <label class="commit"><input type="checkbox" name="commit" value="Interoperability"><span class="tn">Interoperability</span><span class="td">Adopt shared standards, data formats and definitions; surface dependencies; and work on common schemas so data can flow.</span></label>
+            <label class="commit"><input type="checkbox" name="commit" value="Use cases &amp; value"><span class="tn">Use cases &amp; value</span><span class="td">Contribute real project use cases, case studies and evidence of value &mdash; and measure success by real-world use, not activity.</span></label>
+            <label class="commit"><input type="checkbox" name="commit" value="Engagement"><span class="tn">Engagement</span><span class="td">Share success stories, communicate openly, highlight scalable solutions, and support wider adoption across the sector.</span></label>
+          </div>
+          <p class="commitcount" id="commitCount">Choose at least three.</p>
+        </section>
+
+        <section>
+          <h4>How we work</h4>
+          <p>We put the collective goal, and the wider sector, ahead of any single organisation. We keep an open book with no blame, sharing data, progress and problems honestly and fixing issues together rather than assigning fault; we share pain and gain so benefits, costs and risks fall fairly across members; we act as one team with an aligned strategy, common terms, goals and KPIs, and the right partners at the table; and we deliver rather than just discuss, preferring simple actions with a named owner and a deadline.</p>
+        </section>
+
+        <section>
+          <h4>Our rhythm: the Alliance Meeting every 4 months (three times a year)</h4>
+          <ul>
+            <li><b>Each member brings and delivers:</b> progress against last cycle&rsquo;s commitments; one concrete contribution (a CBEDSync listing updated, an MoU, a standard adopted, data shared, or a use case tested); blockers needing joint action; and updated numbers for the shared measures.</li>
+            <li><b>The meeting produces:</b> an agreed action list with owners and deadlines; an updated risk-and-reward (pain/gain) view; and key decisions logged on a Best-for-Project-and-Sector basis.</li>
+            <li><b>We measure success by:</b> initiatives connected and duplication avoided &middot; standards jointly adopted &middot; use cases delivered and outputs actually used &middot; engagement and reach across the sector.</li>
+          </ul>
+        </section>
+
+        <section>
+          <h4>Joining the alliance</h4>
+          <p>Open to any initiative or organisation in the built-environment data-sharing ecosystem, of any size. To join: review the Charter, appoint a named lead, and sign. New members are listed on CBEDSync and welcomed into the CBEDS network of networks.</p>
+        </section>
+
+        <div class="sig">
+          <div class="sig-grid">
+            <div class="field">
+              <label>Signed, on behalf of <span class="hint">your organisation or initiative</span></label>
+              <input type="text" name="org" required placeholder="e.g. University College London">
+            </div>
+            <div class="field">
+              <label>Named lead</label>
+              <input type="text" name="lead" required placeholder="e.g. Dr Karim Farghaly">
+            </div>
+            <div class="field">
+              <label>Date</label>
+              <input type="date" name="date" required>
+            </div>
+          </div>
+          <div style="margin-top:4px"><button type="submit" class="submit">Sign the Charter</button></div>
+          <p class="formnote">This is a preview, signatures are not sent yet.</p>
+        </div>
+      </form>
+
+      <div class="done" id="joinDone">
+        <h4>Thank you for signing</h4>
+        <p id="joinDoneMsg"></p>
+      </div>
+    </div></div>
   </div>
 </section>
 
@@ -149,8 +299,12 @@ var RYF=0.42; // perspective flattening, matches the logo ripples
 function build(){
   dpr=Math.min(devicePixelRatio||1,2);
   w=c.clientWidth;h2=c.clientHeight;c.width=w*dpr;c.height=h2*dpr;ctx.setTransform(dpr,0,0,dpr,0,0);
-  cx=w*0.5;cy=h2*0.55;
-  base=Math.min(w*0.44,h2*0.66);
+  cx=w*0.5;cy=h2*0.5;
+  // The network is 2*base wide and 2*base*RYF tall. Taking the smaller of what each
+  // axis allows keeps it inside the canvas on any shape of box without ever
+  // squashing the rings — RYF alone sets their proportions. The 0.92 leaves room
+  // for the outer dots' glow, which sits outside the last ring.
+  base=Math.min(w*0.5,h2*0.5/RYF)*0.92;
   rings=[base*0.34,base*0.56,base*0.78,base*1.0];
   dots=[];var k=0;
   for(var r=0;r<rings.length;r++){
@@ -194,8 +348,9 @@ function draw(){
   var FALL=3000, REVEAL=1300;
   var landed=t>=FALL;
   var sp=Math.min(t/FALL,1), ease=sp*sp;
-  var introBottom=document.querySelector('.net-intro').getBoundingClientRect().bottom - c.getBoundingClientRect().top;
-  var startY=Math.min(cy-20, introBottom+38);
+  // The copy no longer overlays the canvas, so the drop just falls in from above the
+  // canvas's own top edge rather than from below the end of the intro text.
+  var startY=-base*0.12;
   var dropY=startY+(cy-startY)*ease;
   var stretch=landed?1:(1+0.45*sp);
   var revealP=Math.min(Math.max(0,t-FALL)/REVEAL,1), rippleR=revealP*base*1.3;
@@ -235,7 +390,14 @@ function draw(){
   else{tip.classList.remove('show');c.style.cursor='default';}
   requestAnimationFrame(draw);
 }
-addEventListener('resize',build);build();draw();
+// The canvas box is now whatever height the copy above it leaves, so it can change
+// without a window resize — a web font landing late can reflow the h1 onto another
+// line and move the whole thing. A ResizeObserver catches that; the resize listener
+// stays as the fallback. build() only touches the bitmap, never layout, so observing
+// the canvas cannot feed back into itself.
+if(window.ResizeObserver){new ResizeObserver(build).observe(c);}
+else{addEventListener('resize',build);}
+build();draw();
 
 // org grid (first tile = the Bartlett School logo; rest are placeholders for now)
 var grid=document.getElementById('orgGrid');
@@ -246,6 +408,56 @@ ORGS.slice(0,16).forEach(function(o,i){
   else { d.textContent=o; }
   grid.appendChild(d);
 });
+
+/* ---------- the Alliance Charter form ----------
+   Opens and closes the way "Share your work" does on CBEDSense: the button toggles the
+   panel, swaps its own label, and scrolls the panel into view once it is open. */
+(function(){
+  var wrap=document.getElementById('joinWrap'), toggle=document.getElementById('joinToggle');
+  var form=document.getElementById('joinForm'), done=document.getElementById('joinDone');
+  var doneMsg=document.getElementById('joinDoneMsg');
+  var commits=document.getElementById('commits'), count=document.getElementById('commitCount');
+  if(!wrap||!toggle||!form) return;
+  var MIN=3;                              // the Charter asks for at least three of the five
+
+  toggle.addEventListener('click',function(){
+    var open=wrap.classList.toggle('open');
+    toggle.innerHTML=open?'Close the Charter':'Join the network &#8594;';
+    if(open) setTimeout(function(){wrap.scrollIntoView({behavior:'smooth',block:'start'});},120);
+  });
+
+  function picked(){
+    return [].slice.call(commits.querySelectorAll('input:checked')).map(function(i){return i.value;});
+  }
+  function refresh(){
+    [].forEach.call(commits.querySelectorAll('.commit'),function(l){
+      l.classList.toggle('sel',l.querySelector('input').checked);});
+    var n=picked().length, short=n<MIN;
+    count.classList.toggle('short',short);
+    count.textContent=short
+      ? 'Choose at least three — '+n+' selected.'
+      : n+' of 5 selected.';
+  }
+  commits.addEventListener('change',refresh);
+  refresh();
+
+  form.addEventListener('submit',function(e){
+    e.preventDefault();
+    var chosen=picked();
+    if(chosen.length<MIN){                // the one rule the Charter itself sets
+      refresh();
+      commits.scrollIntoView({behavior:'smooth',block:'center'});
+      return;
+    }
+    var org=form.org.value.trim()||'Your organisation';
+    var lead=form.lead.value.trim();
+    var last=chosen.length>1?chosen.slice(0,-1).join(', ')+' and '+chosen[chosen.length-1]:chosen[0];
+    doneMsg.textContent=org+' has signed the CBEDS Alliance Charter'
+      +(lead?', with '+lead+' as named lead':'')
+      +', committing to '+last+'. You will be listed on CBEDSync and welcomed into the network.';
+    form.style.display='none'; done.classList.add('show');
+  });
+})();
 </script>
 </body>
 </html>
