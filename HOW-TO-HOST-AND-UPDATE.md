@@ -168,7 +168,7 @@ Entries marked `Public` show a small **Contributed** badge on the CBEDSync page,
 
    To look before you publish, double-click **`rebuild-only.bat`** instead. It does the same rebuild and then stops, so you can open the pages locally and check. `update-website.bat` publishes when you are happy.
 5. If you do not want it, delete it in Netlify. Nothing else happens.
-6. Charter signatures are **not** CBEDSync entities and do not go on the Agent/Project/Output sheets. They are a record of who has signed; keep them wherever the team keeps that list.
+6. A **Charter signature** produces two things, not one. The signing organisation becomes an **Agent** row like any other approved submission, with `Public` in its `Source` cell — the Charter promises that new members are listed on CBEDSync, and this is how that happens. The rest of the signature — the named lead, the date, and which commitments they chose — has nowhere to live on the Agent sheet; keep that with whatever record the team holds of who has signed.
 
 Spam is filtered automatically, and each form carries a hidden trap field that bots fill in and people cannot see. Some junk will still get through — delete it and move on.
 
