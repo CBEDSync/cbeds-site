@@ -146,7 +146,7 @@ Netlify collects the submissions — there is nothing to install and no extra ac
 
 ### The `Source` column
 
-Each of the Agent, Project and Output sheets has a **`Source`** column as its **last** column — `BD` on Agent, `AR` on Project, `AS` on Output. It records where an entry came from:
+Each of the Agent, Project and Output sheets has a **`Source`** column — currently `BM` on all three. It records where an entry came from:
 
 | Value | Meaning |
 |-------|---------|
@@ -156,6 +156,8 @@ Each of the Agent, Project and Output sheets has a **`Source`** column as its **
 Fill it in **at the moment you approve a submission**. It cannot be reconstructed later: once a row is in the workbook unmarked, there is no way to tell afterwards where it came from.
 
 Entries marked `Public` show a small **Contributed** badge on the CBEDSync page, in the entity panel and in the full knowledge graph. Leaving the cell blank simply means no badge.
+
+> This one column is found by its **heading**, not its position — unlike every other field on the sheet. So you can move it, and the three sheets do not have to agree on where it sits; keep the heading spelled `Source` and the build will find it. If it cannot, the update script says so instead of quietly recording nothing.
 
 ### Reading and approving
 

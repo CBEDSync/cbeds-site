@@ -25,11 +25,11 @@ DESC_MAX = 240
 SUB_MAX = 60
 WEB_MAX = 300
 
-# "Source" is the last column on each sheet: blank when the team added the row,
-# "Public" when it arrived through a form on the website and was approved.
-# It has to stay last - every other column here is read by position, so a column
-# inserted in the middle would silently shift the themes, stages and links.
-SOURCE_COL = {"Agent": 55, "Project": 43, "Output": 44}   # BD, AR, AS
+# "Source" says where a row came from: blank when the team added it, "Public" when it
+# arrived through a form on the website and was approved. Unlike every other field
+# here, it is found by its heading rather than its position, so it can sit in any
+# column and can be moved later without touching this file.
+SOURCE_HEAD = "Source"
 
 THEMES = [
     "Data Integration and Interoperability",
@@ -67,13 +67,27 @@ def txt(v, maxlen=None):
     return d
 
 
-def source(row, sheet):
-    """The Source cell, or "" if the sheet has not been given that column yet.
+def find_col(ws, head):
+    """Index of the column with this heading in row 1, or None if there is not one.
 
-    Rows come back only as wide as the sheet, so asking for a column that does not
-    exist is a short row rather than an error - the build carries on without it."""
-    i = SOURCE_COL[sheet]
-    return s(row[i]) if i < len(row) else ""
+    Everything else on these sheets is read by position, which is why a column must
+    never be inserted in the middle of one. This is looked up by name instead, so
+    the Source column can live anywhere and be moved without breaking the build."""
+    for row in ws.iter_rows(min_row=1, max_row=1, values_only=True):
+        for i, v in enumerate(row):
+            if s(v).lower() == head.lower():
+                return i
+    return None
+
+
+def source(row, col):
+    """The Source cell for this row, or "" if the sheet has no such column.
+
+    Rows come back only as wide as the sheet has data, so a trailing empty cell can
+    make a row shorter than the heading - that is a blank Source, not an error."""
+    if col is None or col >= len(row):
+        return ""
+    return s(row[col])
 
 
 def flags(row, cols, labels):
@@ -107,8 +121,13 @@ def build():
         sys.exit("Cannot find workbook: %s" % XLSX)
     wb = openpyxl.load_workbook(XLSX, read_only=True, data_only=True)
     nodes = []
+    no_source = []          # sheets with no Source column, reported at the end
 
-    for row in wb["Agent"].iter_rows(min_row=2, values_only=True):
+    ws = wb["Agent"]
+    src_col = find_col(ws, SOURCE_HEAD)
+    if src_col is None:
+        no_source.append("Agent")
+    for row in ws.iter_rows(min_row=2, values_only=True):
         name = s(row[0])
         if not name:
             continue
@@ -121,12 +140,16 @@ def build():
             "tech": values(row, range(33, 39)),
             "rel": rels(row, range(9, 21), "partOf") + rels(row, range(39, 55), "link"),
         }
-        src = source(row, "Agent")
+        src = source(row, src_col)
         if src:                       # left out when blank, which is nearly every row
             node["src"] = src
         nodes.append(node)
 
-    for row in wb["Project"].iter_rows(min_row=2, values_only=True):
+    ws = wb["Project"]
+    src_col = find_col(ws, SOURCE_HEAD)
+    if src_col is None:
+        no_source.append("Project")
+    for row in ws.iter_rows(min_row=2, values_only=True):
         name = s(row[0])
         if not name:
             continue
@@ -139,12 +162,16 @@ def build():
             "tech": values(row, range(21, 27)),
             "rel": rels(row, [7, 8], "managedBy") + rels(row, range(27, 43), "link"),
         }
-        src = source(row, "Project")
+        src = source(row, src_col)
         if src:
             node["src"] = src
         nodes.append(node)
 
-    for row in wb["Output"].iter_rows(min_row=2, values_only=True):
+    ws = wb["Output"]
+    src_col = find_col(ws, SOURCE_HEAD)
+    if src_col is None:
+        no_source.append("Output")
+    for row in ws.iter_rows(min_row=2, values_only=True):
         name = s(row[0])
         if not name:
             continue
@@ -158,7 +185,7 @@ def build():
             "tech": values(row, range(22, 28)),
             "rel": rels(row, [8, 9], "producedBy") + rels(row, range(28, 44), "link"),
         }
-        src = source(row, "Output")
+        src = source(row, src_col)
         if src:
             node["src"] = src
         nodes.append(node)
@@ -176,11 +203,12 @@ def build():
         "public": sum(1 for n in nodes if n.get("src") == "Public"),
     }
     return {"nodes": nodes, "themes": THEMES, "stages": STAGES,
-            "techcat": techcat, "counts": counts}
+            "techcat": techcat, "counts": counts, "noSource": no_source}
 
 
 def main():
     data = build()
+    missing = data.pop("noSource")          # a message for you, not data for the site
     payload = json.dumps(data, ensure_ascii=False, separators=(",", ":"))
     OUT.write_text("window.CBEDS_DATA=" + payload, encoding="utf-8")
     c = data["counts"]
@@ -190,6 +218,10 @@ def main():
     # A quick check that approved submissions were actually marked in the Source
     # column - if you approved one today and this still says 0, the cell is empty.
     print("    from public submissions=%d" % c["public"])
+    if missing:
+        print('    note: no "%s" column on %s - add one at the far right of the '
+              "sheet to record which entries came from the public"
+              % (SOURCE_HEAD, ", ".join(missing)))
 
 
 if __name__ == "__main__":
