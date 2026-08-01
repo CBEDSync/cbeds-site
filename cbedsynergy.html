@@ -131,7 +131,7 @@
   .commitcount.short{color:#a8622b}
   /* the signature block that closes the charter */
   .sig{border-top:1px solid var(--line);padding-top:22px;margin-top:6px}
-  .sig-grid{display:grid;grid-template-columns:1.4fr 1fr .8fr;gap:16px}
+  .sig-grid{display:grid;grid-template-columns:1.4fr 1fr;gap:16px}
   .field{margin-bottom:22px}
   .field>label{display:block;font-family:var(--display);font-weight:600;font-size:14.5px;color:var(--ink);margin-bottom:9px}
   .field .hint{font-weight:400;color:var(--muted);font-size:13px}
@@ -266,12 +266,16 @@
               <input type="text" name="lead" required placeholder="e.g. Dr Karim Farghaly">
             </div>
             <div class="field">
+              <label>Email <span class="hint">so we can confirm your listing</span></label>
+              <input type="email" name="email" required placeholder="e.g. k.farghaly@ucl.ac.uk">
+            </div>
+            <div class="field">
               <label>Date</label>
               <input type="date" name="date" required>
             </div>
           </div>
           <div style="margin-top:4px"><button type="submit" class="submit" id="joinSubmit">Sign the Charter</button></div>
-          <p class="formnote" id="joinNote">Your name, organisation and the date are sent to the CBEDS team at UCL, who use them to record this signature and list your organisation on CBEDSync.</p>
+          <p class="formnote" id="joinNote">Your name, email, organisation and the date are sent to the CBEDS team at UCL, who use them to record this signature, confirm it with you, and list your organisation on CBEDSync. Your email is not published.</p>
         </div>
       </form>
 
