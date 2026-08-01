@@ -57,6 +57,8 @@ That rebuilds the data and pushes it. The live site refreshes in about a minute.
 
 > New rows appear automatically — the only rule is that an entry needs a **name** in the first column of its sheet (Agent / Project / Output). Empty-name rows are ignored.
 
+> ⚠️ **Rows are safe, columns are not.** `build.py` finds each field by its **position**, not by its heading — so never insert or delete a column in the middle of the Agent, Project or Output sheets. Doing so shifts everything to its right by one, and the build will run without complaining while writing a graph in which themes, technologies and links are all misread. If you need a new column, **add it at the far right end** of the sheet, past the last `LinksTo` column. Anything out there is ignored unless `build.py` is told about it.
+
 ---
 
 ## Working with Khalid
@@ -142,13 +144,27 @@ Netlify collects the submissions — there is nothing to install and no extra ac
 
 > Form detection reads the deployed pages, so a form only appears in the list **after a deploy that contains it**, and only once at least one submission has arrived does the list show anything under it.
 
+### The `Source` column
+
+Each of the Agent, Project and Output sheets has a **`Source`** column as its **last** column — `BD` on Agent, `AR` on Project, `AS` on Output. It records where an entry came from:
+
+| Value | Meaning |
+|-------|---------|
+| *(blank)* | the team added it — this is nearly every row, and there is nothing to backfill |
+| `Public` | it arrived through a form on the website and was approved |
+
+Fill it in **at the moment you approve a submission**. It cannot be reconstructed later: once a row is in the workbook unmarked, there is no way to tell afterwards where it came from.
+
+Entries marked `Public` show a small **Contributed** badge on the CBEDSync page, in the entity panel and in the full knowledge graph. Leaving the cell blank simply means no badge.
+
 ### Reading and approving
 
 1. An email arrives with the submission in it. Nothing is public at this stage.
 2. To see them all: Netlify → **Forms** → pick the form. Each submission is one row, and **Download as CSV** on that page gives you the lot in a spreadsheet.
-3. If you want it on the site, open `draft/CBEDSync.xlsx` and add it as a row on the matching sheet — **Agent**, **Project** or **Output** — then double-click `update-website.bat`. That is the same update you already do; a submission is just a new row like any other.
-4. If you do not want it, delete it in Netlify. Nothing else happens.
-5. Charter signatures are **not** CBEDSync entities and do not go on the Agent/Project/Output sheets. They are a record of who has signed; keep them wherever the team keeps that list.
+3. If you want it on the site, open `draft/CBEDSync.xlsx` and add it as a row on the matching sheet — **Agent**, **Project** or **Output** — and put `Public` in that row's **`Source`** cell. Then double-click `update-website.bat`. That is the same update you already do; a submission is just a new row like any other.
+4. Check the script's last line: it prints `from public submissions=N`. If you approved one today and it still says 0, the `Source` cell is empty.
+5. If you do not want it, delete it in Netlify. Nothing else happens.
+6. Charter signatures are **not** CBEDSync entities and do not go on the Agent/Project/Output sheets. They are a record of who has signed; keep them wherever the team keeps that list.
 
 Spam is filtered automatically, and each form carries a hidden trap field that bots fill in and people cannot see. Some junk will still get through — delete it and move on.
 
