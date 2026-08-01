@@ -165,6 +165,8 @@ Entries marked `Public` show a small **Contributed** badge on the CBEDSync page,
 2. To see them all: Netlify → **Forms** → pick the form. Each submission is one row, and **Download as CSV** on that page gives you the lot in a spreadsheet.
 3. If you want it on the site, open `draft/CBEDSync.xlsx` and add it as a row on the matching sheet — **Agent**, **Project** or **Output** — and put `Public` in that row's **`Source`** cell. Then double-click `update-website.bat`. That is the same update you already do; a submission is just a new row like any other.
 4. Check the script's last line: it prints `from public submissions=N`. If you approved one today and it still says 0, the `Source` cell is empty.
+
+   To look before you publish, double-click **`rebuild-only.bat`** instead. It does the same rebuild and then stops, so you can open the pages locally and check. `update-website.bat` publishes when you are happy.
 5. If you do not want it, delete it in Netlify. Nothing else happens.
 6. Charter signatures are **not** CBEDSync entities and do not go on the Agent/Project/Output sheets. They are a record of who has signed; keep them wherever the team keeps that list.
 
@@ -184,6 +186,7 @@ Spam is filtered automatically, and each form carries a hidden trap field that b
 | `draft/CBEDSync.xlsx` | the master data — **edit this** |
 | `build.py` | converts the Excel into `cbedsync-data.js` |
 | `update-website.bat` / `.command` | one-click: rebuild + publish |
+| `rebuild-only.bat` | one-click: rebuild and stop, so you can check before publishing |
 | `cbedsync-data.backup.js` | a backup of the previous data file |
 | `Slide1-3.JPG`, `favicon.svg` | site images |
 | `netlify/functions/ask.mjs` | server code for AI answers — holds no key, reads it from Netlify |
