@@ -579,7 +579,7 @@ function bindNodeHover(el,t){
   el.onmouseleave=function(){if(!entHover)return;entHover=null;kgHover=null;kgDraw();};
 }
 var kgFilter={agent:true,project:true,output:true,tech:true,theme:'',tech2:''};
-var basePos={}, animId=null, curFocusIds=null, clusterMeta={}, kgD1Count=0, kgD1LabelSet={};   // basePos = default spiral home; kgD1LabelSet = which 1st-connection names to show
+var basePos={}, animId=null, curFocusIds=null, kgD1Count=0, kgD1LabelSet={};   // basePos = default spiral home; kgD1LabelSet = which 1st-connection names to show
 function hashFrac(s){var h=2166136261;for(var i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619);}return ((h>>>0)%1000)/1000;}
 function computeLayout(){
   var kinds=['agent','project','output','tech'];
@@ -594,8 +594,8 @@ function computeLayout(){
   // place the four regions on a 2x2 grid, spaced so the biggest two never overlap
   var cell=2*Math.max(maxR.agent,maxR.project,maxR.output,maxR.tech)+420;
   var centers={agent:[0,0], output:[cell,0], project:[0,cell], tech:[cell,cell]};
-  clusterMeta={};
-  kinds.forEach(function(k){clusterMeta[k]={cx:centers[k][0],cy:centers[k][1],R:maxR[k]};});
+  // (the hero works out its own centres and radii from its caps, so nothing is
+  //  published from here for it any more — this layout is the full graph's)
   NODES.forEach(function(n){var c=centers[n.kind];layout[n.id]={x:c[0]+local[n.id].x, y:c[1]+local[n.id].y};});
   basePos={}; for(var id in layout) basePos[id]={x:layout[id].x,y:layout[id].y};
 }
@@ -622,12 +622,50 @@ function restoreBase(){for(var id in basePos){if(layout[id]){layout[id].x=basePo
      the earlier one's slot in its own spiral is left empty, which is the stray dots in
      the wrong blob and the holes opposite them. The spiral maths here are the same, so
      every node keeps the radius it always had; only the storage differs. */
+  /* How many of each kind this preview draws, whatever the workbook grows to. These are
+     the counts as they stood when the site went live, so nothing about the artwork
+     changes today; entities added later simply do not get a dot here.
+
+     The cap is worth having because everything about this canvas scales with the number
+     of entities: the base layer restrokes every node and edge on each resize, lighting a
+     cluster walks the whole list per frame, and a spiral's radius grows with the square
+     root of its count, so the blobs would swell until the fit shrank every dot into
+     mush. It is a backdrop, and a backdrop does not need to keep pace with the data.
+
+     Nothing else is capped. The counts beside the clusters come from the real totals,
+     and the explorer, the search and the full knowledge graph all stay complete. */
+  var HERO_CAP={agent:428,project:150,output:753,tech:33};
+
+  /* The hero works out its own cluster centres and radii from those caps rather than
+     borrowing computeLayout's, which are sized for the whole workbook and are what the
+     full graph needs. Sharing them would have left the four regions drifting further
+     apart as entities were added — the spacing is derived from the largest radius — so
+     the capped blobs would have shrunk into the middle of an ever-emptier canvas. It
+     also means this canvas no longer depends on computeLayout having run first. */
+  var KINDS=['agent','project','output','tech'];
+  var META=(function(){
+    var count={agent:0,project:0,output:0,tech:0};
+    NODES.forEach(function(n){if(count[n.kind]!==undefined)count[n.kind]++;});
+    var maxR={};
+    KINDS.forEach(function(k){
+      var n=Math.min(count[k],HERO_CAP[k]===undefined?count[k]:HERO_CAP[k]);
+      maxR[k]=n?(k==='tech'?60:30)*Math.sqrt(n):1;
+    });
+    var cell=2*Math.max(maxR.agent,maxR.project,maxR.output,maxR.tech)+420;
+    var c={agent:[0,0], output:[cell,0], project:[0,cell], tech:[cell,cell]};
+    var m={};
+    KINDS.forEach(function(k){m[k]={cx:c[k][0],cy:c[k][1],R:maxR[k]};});
+    return m;
+  })();
+
   var posOf=new Array(NODES.length), pos={};
   (function(){
     var idx={agent:0,project:0,output:0,tech:0};
     NODES.forEach(function(n,k){
-      var m=clusterMeta[n.kind]; if(!m) return;
+      var m=META[n.kind]; if(!m) return;
       var i=idx[n.kind]++, step=n.kind==='tech'?60:30;
+      // counted before the test, so every entity keeps the slot it has always had
+      if(i>=(HERO_CAP[n.kind]||Infinity)) return;
       var r=step*Math.sqrt(i+1), a=(i+1)*2.39996;
       posOf[k]={x:m.cx+Math.cos(a)*r, y:m.cy+Math.sin(a)*r};
       // edges and relations are keyed by id, so those follow the first of a pair
@@ -672,12 +710,12 @@ function restoreBase(){for(var id in basePos){if(layout[id]){layout[id].x=basePo
      button sits directly under the paragraph. */
   var SIDE={agent:'left',project:'left',output:'right',tech:'right'};
   function placeChips(){
-    if(!clusterMeta||!clusterMeta.agent) return;
+    if(!META||!META.agent) return;
     var wide=document.documentElement.clientWidth>980;
     var cr=cv.getBoundingClientRect();
     [].forEach.call(document.querySelectorAll('.stat-chip'),function(el){
       if(!wide){ el.style.left=el.style.top=el.style.transform=''; return; }
-      var m=clusterMeta[el.getAttribute('data-kind')]; if(!m) return;
+      var m=META[el.getAttribute('data-kind')]; if(!m) return;
       /* offsets are measured against whatever the chip's absolute position actually
          resolves against — .wrap is position:relative, so it is that and not the
          section, and assuming otherwise put every chip out by the wrap's own offset */
