@@ -145,11 +145,19 @@ def master_headers():
     wb = openpyxl.load_workbook(MASTER, read_only=True, data_only=True)
     heads = {}
     for name in SHEETS:
-        row = next(wb[name].iter_rows(min_row=1, max_row=1, values_only=True))
-        cells = ["" if v is None else str(v).strip() for v in row]
-        while cells and not cells[-1]:          # drop trailing blanks
-            cells.pop()
-        heads[name] = cells
+        # Each heading is placed by the cell's own column number rather than by its
+        # position in the row. The master has empty columns between LinksTo 16 and
+        # Source, and a row read positionally closes that gap - which would put
+        # Source nine columns to the left of where it really is, and every staged
+        # row out of step with the sheet it is meant to be pasted into.
+        by_col = {}
+        for row in wb[name].iter_rows(min_row=1, max_row=1):
+            for cell in row:
+                v = "" if cell.value is None else str(cell.value).strip()
+                if v:
+                    by_col[cell.column] = v          # 1-based, the true column
+        width = max(by_col) if by_col else 0
+        heads[name] = [by_col.get(i, "") for i in range(1, width + 1)]
     wb.close()
     heads["Posts"] = list(POST_COLS)
     return heads
