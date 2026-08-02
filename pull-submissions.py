@@ -115,6 +115,29 @@ def api(path, token):
         sys.exit("Could not reach Netlify: %s" % e.reason)
 
 
+def resolve_site(want, token):
+    """Find the project, whether NETLIFY_SITE is its domain, its name or its API id.
+
+    The API wants its own site id, but nobody has that to hand - what people know is
+    the address the site answers on. So ask for the list and match against every name
+    it might be known by, and if nothing matches say which projects the token can see
+    rather than a bare 404."""
+    sites = api("/sites", token)
+    want = (want or "").strip().lower().rstrip("/")
+    bare = want.replace("https://", "").replace("http://", "")
+    for s in sites:
+        known = {str(s.get(k) or "").lower().replace("https://", "").rstrip("/")
+                 for k in ("id", "site_id", "name", "url", "ssl_url",
+                           "default_domain", "custom_domain")}
+        known.discard("")
+        if bare in known or want in known or bare.split(".")[0] == str(s.get("name", "")).lower():
+            return s["id"], (s.get("name") or bare)
+    names = ", ".join(sorted(str(s.get("name")) for s in sites)) or "(none)"
+    sys.exit('Could not find a Netlify project matching "%s".\n'
+             "This token can see: %s\n"
+             "Set NETLIFY_SITE in .env to one of those names." % (want, names))
+
+
 def master_headers():
     """Row 1 of each master sheet, so the staging file mirrors it exactly."""
     if not MASTER.exists():
@@ -281,12 +304,19 @@ def main():
         wb = new_book(heads)
     already = staged_ids(wb)
 
-    forms = api("/sites/%s/forms" % site, token)
+    site_id, site_name = resolve_site(site, token)
+    print("  project: %s" % site_name)
+
+    forms = api("/sites/%s/forms" % site_id, token)
     wanted = {f["name"]: f["id"] for f in forms
               if f.get("name") in ("cbeds-charter", "cbedsense-submission")}
     if not wanted:
-        sys.exit("No CBEDS forms found on %s. Has a deploy with the forms gone out?"
-                 % site)
+        seen = ", ".join(sorted(str(f.get("name")) for f in forms)) or "(none)"
+        sys.exit("No CBEDS forms on %s.\n"
+                 "Forms this project has: %s\n"
+                 "If that is empty, no deploy carrying the forms has gone out yet."
+                 % (site_name, seen))
+    print("  forms  : %s" % ", ".join(sorted(wanted)))
 
     added = skipped = 0
     for name, fid in sorted(wanted.items()):
