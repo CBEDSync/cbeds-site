@@ -62,6 +62,7 @@ REVIEW = [
     "Review: Email",
     "Review: Named lead",      # Charter only
     "Review: Commitments",     # Charter only
+    "Review: Extra aspects",   # the ones past Technology 6, so none are lost
     "Review: Form",
     "Review: Netlify id",      # how a submission is recognised as already staged
 ]
@@ -263,10 +264,13 @@ def stage(ws, heads, sub):
     ws.cell(row=row, column=1, value=entity_name(form, data))
     for src, head in FIELD_TO_HEAD.items():
         put_head(head, (data.get(src) or "").strip())
-    # CBEDSense's aspects are the closest thing we collect to technologies
+    # CBEDSense's aspects are the closest thing we collect to technologies. The form
+    # offers fifteen and the master has six columns, so the rest go to a review column
+    # rather than being dropped on the floor - the reviewer decides what to keep.
     aspects = [a.strip() for a in (data.get("aspects") or "").split(",") if a.strip()]
     for head, value in zip(TECH_HEADS, aspects):
         put_head(head, value)
+    overflow = aspects[len(TECH_HEADS):]
     put_head(SOURCE_HEAD, "Public")          # the whole point: it came from outside
 
     commits = field(data, "commitments")
@@ -279,6 +283,7 @@ def stage(ws, heads, sub):
         "Review: Email": data.get("email") or "",
         "Review: Named lead": data.get("lead") or "",
         "Review: Commitments": commits or "",
+        "Review: Extra aspects": ", ".join(overflow),
         "Review: Form": form,
         ID_COL: str(sub.get("id") or ""),
     }
