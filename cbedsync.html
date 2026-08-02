@@ -105,6 +105,11 @@
   .item .mt{display:flex;align-items:center;gap:8px;margin-top:5px}
   .kind{font-family:var(--display);font-size:10.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:3px 8px;border-radius:6px;color:#fff}
   .k-agent{background:var(--c-agent);color:#fff}.k-project{background:var(--c-project);color:#06302b}.k-output{background:var(--c-output);color:#1d3a0f}.k-tech{background:var(--c-tech);color:#3a2206}
+  /* an entry that came in through a form on the site rather than from the team.
+     Outlined rather than filled, so it reads as a note beside the kind chip and not
+     as another kind. The overlay is dark, so it takes that panel's own text colour. */
+  .kind.k-pub{background:none;color:var(--muted);box-shadow:inset 0 0 0 1px currentColor}
+  .kg .kind.k-pub{color:#9fc1c9}
   .item .sub{font-size:12.5px;color:var(--muted)}
 
   .detail{padding:26px 28px;min-height:60vh}
@@ -465,10 +470,15 @@ function render(){
   if(!list.length) resultsEl.innerHTML='<div style="color:var(--muted);font-size:14px;padding:14px">No matches. Try clearing a filter.</div>';
 }
 
+/* Rows whose Source column says Public came in through a form and were approved by
+   the team; everything else the team entered itself, and carries no badge. */
+function pubBadge(n,style){
+  return n.src==='Public' ? '<span class="kind k-pub"'+(style||'')+' title="Contributed through a form on this site and approved by the CBEDS team">Contributed</span>' : '';
+}
 function infoBlocks(n){
   var web = n.web&&/^https?:\/\//.test(n.web) ? '<a href="'+n.web+'" target="_blank" rel="noopener">Visit &#8594;</a>' : '';
   var meta=[kindLabel[n.kind]+(n.sub?' &middot; '+esc(n.sub):''), n.loc?esc(n.loc):'', n.year?esc(n.year):'', web].filter(Boolean).join(' &middot; ');
-  var h='<div class="d-head"><h2>'+esc(n.id)+'</h2><span class="kind k-'+n.kind+'" style="margin-top:6px">'+kindLabel[n.kind]+'</span></div><div class="d-meta">'+meta+'</div>';
+  var h='<div class="d-head"><h2>'+esc(n.id)+'</h2><span class="kind k-'+n.kind+'" style="margin-top:6px">'+kindLabel[n.kind]+'</span>'+pubBadge(n,' style="margin-top:6px"')+'</div><div class="d-meta">'+meta+'</div>';
   if(n.desc) h+='<div class="d-desc">'+esc(n.desc)+'</div>';
   if(n.tech&&n.tech.length) h+='<div class="sec-h">Technologies</div><div class="tagset">'+n.tech.map(function(t){return '<span class="t tech">'+esc(t.trim())+'</span>';}).join('')+'</div>';
   if(n.themes&&n.themes.length) h+='<div class="sec-h">Value themes</div><div class="tagset">'+n.themes.map(function(t){return '<span class="t green">'+esc(t.replace(' and ',' & ').trim())+'</span>';}).join('')+'</div>';
@@ -1012,7 +1022,7 @@ function selectKG(n){
 function renderKGInfo(n){
   var web=n.web&&/^https?:\/\//.test(n.web)?'<a href="'+n.web+'" target="_blank" rel="noopener" style="color:var(--green-bright)">Visit &#8594;</a>':'';
   var h='<div class="kg-sec">Selected</div><h3>'+esc(n.id)+'</h3>';
-  h+='<div class="meta"><span class="kind k-'+n.kind+'">'+kindLabel[n.kind]+'</span> &nbsp;'+esc(n.sub||'')+(web?' &middot; '+web:'')+'</div>';
+  h+='<div class="meta"><span class="kind k-'+n.kind+'">'+kindLabel[n.kind]+'</span>'+pubBadge(n,' style="margin-left:5px"')+' &nbsp;'+esc(n.sub||'')+(web?' &middot; '+web:'')+'</div>';
   if(n.desc)h+='<div class="desc">'+esc(n.desc)+'</div>';
   if(n.tech&&n.tech.length)h+='<div class="kg-sec">Technologies</div><div>'+n.tech.map(function(t){return '<span class="kg-tag">'+esc(t.trim())+'</span>';}).join('')+'</div>';
   if(n.themes&&n.themes.length)h+='<div class="kg-sec">Value themes</div><div>'+n.themes.map(function(t){return '<span class="kg-tag">'+esc(t.replace(' and ',' & ').trim())+'</span>';}).join('')+'</div>';

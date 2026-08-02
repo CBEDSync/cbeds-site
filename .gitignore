@@ -15,6 +15,9 @@ node_modules/
 .env.*
 !.env.example
 
+# Local editor / assistant settings, including a preview server config
+.claude/
+
 # OS junk
 .DS_Store
 Thumbs.db
