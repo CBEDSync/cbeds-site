@@ -227,11 +227,11 @@
           <h4>Our commitments: five ways to break the fragmentation loop</h4>
           <p>By signing, each member commits to at least three of these five, and to the shared behaviours below.</p>
           <div class="commits" id="commits">
-            <label class="commit"><input type="checkbox" name="commit" value="Visibility"><span class="tn">Visibility</span><span class="td">List your initiative, activities and relationships on CBEDSync and keep them current, so others can see who is doing what and avoid duplication.</span></label>
-            <label class="commit"><input type="checkbox" name="commit" value="Collaboration"><span class="tn">Collaboration</span><span class="td">Join coordination meetings, agree MoUs where useful, produce shared outputs, and connect the right people across initiatives.</span></label>
-            <label class="commit"><input type="checkbox" name="commit" value="Interoperability"><span class="tn">Interoperability</span><span class="td">Adopt shared standards, data formats and definitions; surface dependencies; and work on common schemas so data can flow.</span></label>
-            <label class="commit"><input type="checkbox" name="commit" value="Use cases &amp; value"><span class="tn">Use cases &amp; value</span><span class="td">Contribute real project use cases, case studies and evidence of value &mdash; and measure success by real-world use, not activity.</span></label>
-            <label class="commit"><input type="checkbox" name="commit" value="Engagement"><span class="tn">Engagement</span><span class="td">Share success stories, communicate openly, highlight scalable solutions, and support wider adoption across the sector.</span></label>
+            <label class="commit"><input type="checkbox" name="commitments" value="Visibility"><span class="tn">Visibility</span><span class="td">List your initiative, activities and relationships on CBEDSync and keep them current, so others can see who is doing what and avoid duplication.</span></label>
+            <label class="commit"><input type="checkbox" name="commitments" value="Collaboration"><span class="tn">Collaboration</span><span class="td">Join coordination meetings, agree MoUs where useful, produce shared outputs, and connect the right people across initiatives.</span></label>
+            <label class="commit"><input type="checkbox" name="commitments" value="Interoperability"><span class="tn">Interoperability</span><span class="td">Adopt shared standards, data formats and definitions; surface dependencies; and work on common schemas so data can flow.</span></label>
+            <label class="commit"><input type="checkbox" name="commitments" value="Use cases &amp; value"><span class="tn">Use cases &amp; value</span><span class="td">Contribute real project use cases, case studies and evidence of value &mdash; and measure success by real-world use, not activity.</span></label>
+            <label class="commit"><input type="checkbox" name="commitments" value="Engagement"><span class="tn">Engagement</span><span class="td">Share success stories, communicate openly, highlight scalable solutions, and support wider adoption across the sector.</span></label>
           </div>
           <p class="commitcount" id="commitCount">Choose at least three.</p>
         </section>
@@ -259,7 +259,7 @@
           <div class="sig-grid">
             <div class="field">
               <label>Signed, on behalf of <span class="hint">your organisation or initiative</span></label>
-              <input type="text" name="org" required placeholder="e.g. University College London">
+              <input type="text" name="organisation" required placeholder="e.g. University College London">
             </div>
             <div class="field">
               <label>Named lead</label>
@@ -478,7 +478,7 @@ ORGS.slice(0,16).forEach(function(o,i){
       commits.scrollIntoView({behavior:'smooth',block:'center'});
       return;
     }
-    var org=form.elements.namedItem('org').value.trim()||'Your organisation';
+    var org=form.elements.namedItem('organisation').value.trim()||'Your organisation';
     var lead=form.elements.namedItem('lead').value.trim();
     var last=chosen.length>1?chosen.slice(0,-1).join(', ')+' and '+chosen[chosen.length-1]:chosen[0];
     postForm(function(){

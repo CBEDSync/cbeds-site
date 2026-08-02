@@ -196,9 +196,22 @@ def target_sheet(form_name, data):
             "output": "Output", "post": "Posts"}.get(kind, "Posts")
 
 
+# The Charter's fields were renamed once, so that Netlify's emails and CSV exports
+# read "Organisation" and "Commitments" rather than "Org" and "Commit". Submissions
+# taken before that still carry the old names, so both are accepted.
+WAS_CALLED = {"organisation": "org", "commitments": "commit"}
+
+
+def field(data, name):
+    v = data.get(name)
+    if v in (None, "") and name in WAS_CALLED:
+        v = data.get(WAS_CALLED[name])
+    return v
+
+
 def entity_name(form_name, data):
     if form_name == "cbeds-charter":
-        return (data.get("org") or "").strip()
+        return (field(data, "organisation") or "").strip()
     return (data.get("name") or "").strip()
 
 
@@ -217,21 +230,21 @@ def stage(ws, heads, sub):
 
     # the entity's name is always the sheet's first column
     ws.cell(row=row, column=1, value=entity_name(form, data))
-    for field, head in FIELD_TO_HEAD.items():
-        put_head(head, (data.get(field) or "").strip())
+    for src, head in FIELD_TO_HEAD.items():
+        put_head(head, (data.get(src) or "").strip())
     # CBEDSense's aspects are the closest thing we collect to technologies
     aspects = [a.strip() for a in (data.get("aspects") or "").split(",") if a.strip()]
     for head, value in zip(TECH_HEADS, aspects):
         put_head(head, value)
     put_head(SOURCE_HEAD, "Public")          # the whole point: it came from outside
 
-    commits = data.get("commit")
+    commits = field(data, "commitments")
     if isinstance(commits, list):
         commits = ", ".join(commits)
 
     values = {
         "Review: Submitted": (sub.get("created_at") or "")[:19].replace("T", " "),
-        "Review: Submitted by": data.get("by") or data.get("org") or "",
+        "Review: Submitted by": data.get("by") or field(data, "organisation") or "",
         "Review: Email": data.get("email") or "",
         "Review: Named lead": data.get("lead") or "",
         "Review: Commitments": commits or "",
