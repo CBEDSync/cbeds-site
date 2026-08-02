@@ -15,6 +15,11 @@ node_modules/
 .env.*
 !.env.example
 
+# Submissions waiting to be checked. This repository is public, and the file holds
+# the names and email addresses of people who used the forms, so it must not be
+# committed. It is rebuilt from Netlify by get-submissions.bat whenever it is needed.
+draft/Submissions.xlsx
+
 # Local editor / assistant settings, including a preview server config
 .claude/
 

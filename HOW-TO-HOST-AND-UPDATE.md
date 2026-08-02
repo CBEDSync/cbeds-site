@@ -159,6 +159,26 @@ Entries marked `Public` show a small **Contributed** badge on the CBEDSync page,
 
 > This one column is found by its **heading**, not its position — unlike every other field on the sheet. So you can move it, and the three sheets do not have to agree on where it sits; keep the heading spelled `Source` and the build will find it. If it cannot, the update script says so instead of quietly recording nothing.
 
+### Collecting them into a spreadsheet
+
+Reading submissions one at a time in Netlify works, but it means retyping. `get-submissions.bat` does the transcription for you.
+
+**One-time setup.** Create a personal access token at [app.netlify.com/user/applications](https://app.netlify.com/user/applications) → **New access token**, and put it in the `.env` file next to `build.py`:
+
+    NETLIFY_TOKEN=your-token-here
+
+`.env` is git-ignored, so the token stays on your computer. Copy `.env.example` to `.env` if you do not have one yet.
+
+**Then, whenever you like,** double-click **`get-submissions.bat`**. It writes `draft/Submissions.xlsx` — one row per submission, on an **Agent**, **Project**, **Output** or **Posts** sheet according to what was submitted. Running it again only adds what is new; anything already staged, and any notes you have written, are left alone.
+
+That file is laid out so approving is a copy and paste:
+
+- **Columns A onwards match `CBEDSync.xlsx` exactly**, including `Source`, which already says `Public`. Select that part of a row, copy, and paste it as a new row on the matching sheet of the master.
+- After one **blank gutter column** come the green **`Review:`** columns — when it arrived, who sent it, their email, and for a Charter signature the named lead and the commitments they chose. These are for you. They are not part of the master and are not copied across.
+- `Review: Status` is yours to fill in — `approved`, `rejected`, or whatever suits.
+
+The staging file's columns are rebuilt from the master's own headings on every run, so if you add a column to `CBEDSync.xlsx` the staging file follows it. The script never writes to the master.
+
 ### Reading and approving
 
 1. An email arrives with the submission in it. Nothing is public at this stage.
@@ -187,6 +207,8 @@ Spam is filtered automatically, and each form carries a hidden trap field that b
 | `build.py` | converts the Excel into `cbedsync-data.js` |
 | `update-website.bat` / `.command` | one-click: rebuild + publish |
 | `rebuild-only.bat` | one-click: rebuild and stop, so you can check before publishing |
+| `get-submissions.bat` / `pull-submissions.py` | one-click: collect form submissions into `draft/Submissions.xlsx` |
+| `draft/Submissions.xlsx` | submissions waiting to be checked — **generated, safe to delete** |
 | `cbedsync-data.backup.js` | a backup of the previous data file |
 | `Slide1-3.JPG`, `favicon.svg` | site images |
 | `netlify/functions/ask.mjs` | server code for AI answers — holds no key, reads it from Netlify |
