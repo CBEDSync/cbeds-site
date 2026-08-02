@@ -228,10 +228,11 @@ def target_sheet(form_name, data):
             "output": "Output", "post": "Posts"}.get(kind, "Posts")
 
 
-# The Charter's fields were renamed once, so that Netlify's emails and CSV exports
-# read "Organisation" and "Commitments" rather than "Org" and "Commit". Submissions
-# taken before that still carry the old names, so both are accepted.
-WAS_CALLED = {"organisation": "org", "commitments": "commit"}
+# Fields were renamed so that Netlify's emails and CSV exports read as labels rather
+# than as shorthand - "Organisation" not "Org", "Commitments" not "Commit",
+# "Submitted-by" not "By". Submissions taken before each rename still carry the old
+# name, so both spellings are accepted and nothing already collected is lost.
+WAS_CALLED = {"organisation": "org", "commitments": "commit", "submitted-by": "by"}
 
 
 def field(data, name):
@@ -279,7 +280,7 @@ def stage(ws, heads, sub):
 
     values = {
         "Review: Submitted": (sub.get("created_at") or "")[:19].replace("T", " "),
-        "Review: Submitted by": data.get("by") or field(data, "organisation") or "",
+        "Review: Submitted by": field(data, "submitted-by") or field(data, "organisation") or "",
         "Review: Email": data.get("email") or "",
         "Review: Named lead": data.get("lead") or "",
         "Review: Commitments": commits or "",
