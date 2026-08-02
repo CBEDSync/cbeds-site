@@ -351,8 +351,13 @@
            so the fields below are exactly what the admin sees in the submission. -->
       <form class="form" id="shForm" name="cbedsense-submission" method="POST" data-netlify="true" netlify-honeypot="bot-field">
         <input type="hidden" name="form-name" value="cbedsense-submission">
-        <!-- the aspect chips are spans, not inputs; the submit handler copies them here -->
-        <input type="hidden" name="aspects" id="aspectsField">
+        <!-- The aspect chips are spans, not inputs, so the handler copies them here. They
+             are split by what they are: a chip stands for a technology in the CBEDSync
+             vocabulary, one of the seven value themes, or an entity already in the graph.
+             Three fields rather than one means the review step never has to guess which. -->
+        <input type="hidden" name="technologies" id="fTech">
+        <input type="hidden" name="themes" id="fThemes">
+        <input type="hidden" name="related" id="fRelated">
         <p class="hp" aria-hidden="true"><label>Leave this field empty <input name="bot-field" tabindex="-1" autocomplete="off"></label></p>
         <div class="field">
           <label>Name <span class="hint">a clear title for what you are sharing</span></label>
@@ -548,17 +553,50 @@ typeWrap.addEventListener('change',function(){
   typeWrap.querySelectorAll('.type').forEach(function(l){l.classList.toggle('sel',l.querySelector('input').checked);});
 });
 // aspect chips (the different aspects of CBEDSync)
-var aspects=['BIM','IFC','Digital Twins','DPP','Material Passports','ESPR','CPR','ISO 19650','Ontologies','Linked Data','IoT','Digital Building Logbooks','AI','Circular Economy','Semantic Interoperability'];
-var aWrap=document.getElementById('aspects'),aspectsField=document.getElementById('aspectsField');
-function chosenAspects(){
-  return [].slice.call(aWrap.querySelectorAll('.csc.sel')).map(function(x){return x.textContent;});
+/* Each chip keeps the short label people recognise but carries the exact name the
+   workbook uses, so an approved submission needs no translating:
+     tech  - one of the 31 entries on the Technologies sheet
+     theme - one of the seven value themes
+     link  - an entity already in the graph, so it becomes a LinksTo
+   Picking a specific version is deliberate. "ISO 19650" matches six entities and
+   names none of them; ISO 19650-1 is the part the other five rest on. IFC 4.3 is the
+   current release, ISO 16739-1:2024 - IFC 5 is a development track, now IFC X. */
+var ASPECTS=[
+  {l:'BIM',                       v:'Building Information Modelling (BIM)',                    k:'tech'},
+  {l:'IFC',                       v:'IFC 4.3.2 ADD 2',                                         k:'link'},
+  {l:'Digital Twins',             v:'Digital Twin (DT)',                                       k:'tech'},
+  {l:'DPP',                       v:'Digital Product Passport (DPP)',                          k:'tech'},
+  {l:'Material Passports',        v:'Material Passport (MP)',                                  k:'tech'},
+  {l:'ESPR',                      v:'Ecodesign for Sustainable Products Regulation (ESPR)',    k:'link'},
+  {l:'CPR',                       v:'Construction Products Regulation (CPR)',                  k:'link'},
+  {l:'ISO 19650',                 v:'ISO 19650-1:2018',                                        k:'link'},
+  {l:'Ontologies',                v:'Ontologies',                                              k:'tech'},
+  {l:'Linked Data',               v:'Linked Data and semantic vocabularies',                   k:'tech'},
+  {l:'IoT',                       v:'Internet of Things (IoT) networks',                       k:'tech'},
+  {l:'Digital Building Logbooks', v:'Digital Building Logbook (DBL)',                          k:'tech'},
+  {l:'AI',                        v:'Artificial Intelligence (AI) models',                     k:'tech'},
+  {l:'Circular Economy',          v:'Sustainability and Circularity',                          k:'theme'},
+  {l:'Semantic Interoperability', v:'Semantic Interoperability for Digital Product Passports', k:'link'}
+];
+var aWrap=document.getElementById('aspects');
+var FIELD={tech:document.getElementById('fTech'),theme:document.getElementById('fThemes'),link:document.getElementById('fRelated')};
+function chosen(){
+  return [].slice.call(aWrap.querySelectorAll('.csc.sel')).map(function(x){return ASPECTS[+x.dataset.i];});
 }
-aspects.forEach(function(a){
-  var s=document.createElement('span');s.className='csc';s.textContent=a;
-  s.addEventListener('click',function(){
-    s.classList.toggle('sel');
-    aspectsField.value=chosenAspects().join(', ');   // chips are spans, so mirror them into a real field
+function chosenAspects(){                       // labels, for the confirmation the reader sees
+  return chosen().map(function(a){return a.l;});
+}
+function syncAspects(){
+  var picked=chosen();
+  Object.keys(FIELD).forEach(function(k){
+    FIELD[k].value=picked.filter(function(a){return a.k===k;})
+                         .map(function(a){return a.v;}).join(', ');
   });
+}
+ASPECTS.forEach(function(a,i){
+  var s=document.createElement('span');s.className='csc';s.textContent=a.l;
+  s.dataset.i=i;s.title=a.v;                    // the full name, on hover
+  s.addEventListener('click',function(){s.classList.toggle('sel');syncAspects();});
   aWrap.appendChild(s);
 });
 /* Netlify Forms accepts a URL-encoded POST to any path on the site; the form-name field

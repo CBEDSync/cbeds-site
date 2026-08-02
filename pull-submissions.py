@@ -62,7 +62,7 @@ REVIEW = [
     "Review: Email",
     "Review: Named lead",      # Charter only
     "Review: Commitments",     # Charter only
-    "Review: Extra aspects",   # the ones past Technology 6, so none are lost
+    "Review: Unplaced",        # anything with no column to go in, so none is lost
     "Review: Form",
     "Review: Netlify id",      # how a submission is recognised as already staged
 ]
@@ -76,6 +76,9 @@ FIELD_TO_HEAD = {
 }
 TECH_HEADS = ["Technology 1", "Technology2", "Technology 3",
               "Technology 4", "Technology 5", "Technology 6"]
+LINK_HEADS = ["LinksTo %d" % i for i in range(1, 17)]
+# A theme column is a flag: build.py counts it as set if the cell holds anything.
+THEME_MARK = "x"
 
 
 def env(name, default=None):
@@ -265,13 +268,25 @@ def stage(ws, heads, sub):
     ws.cell(row=row, column=1, value=entity_name(form, data))
     for src, head in FIELD_TO_HEAD.items():
         put_head(head, (data.get(src) or "").strip())
-    # CBEDSense's aspects are the closest thing we collect to technologies. The form
-    # offers fifteen and the master has six columns, so the rest go to a review column
-    # rather than being dropped on the floor - the reviewer decides what to keep.
-    aspects = [a.strip() for a in (data.get("aspects") or "").split(",") if a.strip()]
-    for head, value in zip(TECH_HEADS, aspects):
-        put_head(head, value)
-    overflow = aspects[len(TECH_HEADS):]
+    # The chips arrive already split by what they are, and already carrying the exact
+    # names the workbook uses, so each goes straight to its own columns. Whatever will
+    # not fit goes to a review column rather than being dropped on the floor.
+    def listed(name):
+        return [x.strip() for x in (data.get(name) or "").split(",") if x.strip()]
+
+    overflow = []
+    for values, cols in ((listed("technologies"), TECH_HEADS),
+                         (listed("related"), LINK_HEADS)):
+        for head, value in zip(cols, values):
+            put_head(head, value)
+        overflow += values[len(cols):]
+    for theme in listed("themes"):
+        if head_index(heads, theme) is None:
+            overflow.append(theme)          # no column for it on this sheet
+        else:
+            put_head(theme, THEME_MARK)
+    # submissions taken before the chips carried canonical names
+    overflow += listed("aspects")
     put_head(SOURCE_HEAD, "Public")          # the whole point: it came from outside
 
     commits = field(data, "commitments")
@@ -284,7 +299,7 @@ def stage(ws, heads, sub):
         "Review: Email": data.get("email") or "",
         "Review: Named lead": data.get("lead") or "",
         "Review: Commitments": commits or "",
-        "Review: Extra aspects": ", ".join(overflow),
+        "Review: Unplaced": ", ".join(overflow),
         "Review: Form": form,
         ID_COL: str(sub.get("id") or ""),
     }
