@@ -553,31 +553,38 @@ typeWrap.addEventListener('change',function(){
   typeWrap.querySelectorAll('.type').forEach(function(l){l.classList.toggle('sel',l.querySelector('input').checked);});
 });
 // aspect chips (the different aspects of CBEDSync)
-/* A chip is named for the thing it actually stands for, so what the reader picks and
-   what reaches the workbook are the same words. Three kinds, and each goes to its own
-   columns when a submission is staged:
+/* A chip shows a short form and sends the full name. The short form is the entity's
+   own abbreviation wherever it declares one in brackets - BIM, DT, DPP, MP, DBL - and
+   otherwise enough of the name to identify that entity and no other. That last part is
+   what matters: "IFC" and "ISO 19650" each match several entities and name none of
+   them, so these labels carry the version. Hovering a chip gives the full name, and
+   the confirmation lists the full names as well.
+
+   Three kinds, each going to its own columns when a submission is staged:
      tech  - one of the 31 entries on the Technologies sheet
      theme - one of the seven value themes
      link  - an entity already in the graph, so it becomes a LinksTo
-   Picking a specific version is deliberate. "ISO 19650" matches six entities and names
-   none of them; ISO 19650-1 is the part the other five rest on. IFC 4.3 is the current
-   release, ISO 16739-1:2024 - IFC 5 is a development track, since renamed IFC X. */
+
+   The versions are chosen, not arbitrary. ISO 19650-1 is the part the other five rest
+   on rather than the newest. IFC 4.3 is the current release, approved by ISO in
+   January 2024 as ISO 16739-1:2024 - IFC 5 is a development track, since renamed
+   IFC X. */
 var ASPECTS=[
-  {v:'Building Information Modelling (BIM)',                    k:'tech'},
-  {v:'IFC 4.3.2 ADD 2',                                         k:'link'},
-  {v:'Digital Twin (DT)',                                       k:'tech'},
-  {v:'Digital Product Passport (DPP)',                          k:'tech'},
-  {v:'Material Passport (MP)',                                  k:'tech'},
-  {v:'Ecodesign for Sustainable Products Regulation (ESPR)',    k:'link'},
-  {v:'Construction Products Regulation (CPR)',                  k:'link'},
-  {v:'ISO 19650-1:2018',                                        k:'link'},
-  {v:'Ontologies',                                              k:'tech'},
-  {v:'Linked Data and semantic vocabularies',                   k:'tech'},
-  {v:'Internet of Things (IoT) networks',                       k:'tech'},
-  {v:'Digital Building Logbook (DBL)',                          k:'tech'},
-  {v:'Artificial Intelligence (AI) models',                     k:'tech'},
-  {v:'Sustainability and Circularity',                          k:'theme'},
-  {v:'Semantic Interoperability for Digital Product Passports', k:'link'}
+  {l:'BIM',                       v:'Building Information Modelling (BIM)',                    k:'tech'},
+  {l:'IFC 4.3.2',                 v:'IFC 4.3.2 ADD 2',                                         k:'link'},
+  {l:'DT',                        v:'Digital Twin (DT)',                                       k:'tech'},
+  {l:'DPP',                       v:'Digital Product Passport (DPP)',                          k:'tech'},
+  {l:'MP',                        v:'Material Passport (MP)',                                  k:'tech'},
+  {l:'ESPR',                      v:'Ecodesign for Sustainable Products Regulation (ESPR)',    k:'link'},
+  {l:'CPR',                       v:'Construction Products Regulation (CPR)',                  k:'link'},
+  {l:'ISO 19650-1',               v:'ISO 19650-1:2018',                                        k:'link'},
+  {l:'Ontologies',                v:'Ontologies',                                              k:'tech'},
+  {l:'Linked Data',               v:'Linked Data and semantic vocabularies',                   k:'tech'},
+  {l:'IoT',                       v:'Internet of Things (IoT) networks',                       k:'tech'},
+  {l:'DBL',                       v:'Digital Building Logbook (DBL)',                          k:'tech'},
+  {l:'AI',                        v:'Artificial Intelligence (AI) models',                     k:'tech'},
+  {l:'Sustainability & Circularity', v:'Sustainability and Circularity',                       k:'theme'},
+  {l:'Semantic Interoperability', v:'Semantic Interoperability for Digital Product Passports', k:'link'}
 ];
 var aWrap=document.getElementById('aspects');
 var FIELD={tech:document.getElementById('fTech'),theme:document.getElementById('fThemes'),link:document.getElementById('fRelated')};
@@ -595,8 +602,8 @@ function syncAspects(){
   });
 }
 ASPECTS.forEach(function(a,i){
-  var s=document.createElement('span');s.className='csc';s.textContent=a.v;
-  s.dataset.i=i;
+  var s=document.createElement('span');s.className='csc';s.textContent=a.l;
+  s.dataset.i=i;s.title=a.v;                    // the entity it stands for, on hover
   s.addEventListener('click',function(){s.classList.toggle('sel');syncAspects();});
   aWrap.appendChild(s);
 });
