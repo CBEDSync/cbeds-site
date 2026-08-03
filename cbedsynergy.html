@@ -39,6 +39,11 @@
   header.nav.solid nav a.lnk.active{color:var(--blue)}
   nav a.lnk.active::after{content:"";position:absolute;left:0;right:0;bottom:-3px;height:2px;background:var(--green);border-radius:2px}
   .nav-cta{background:var(--green);color:var(--blue-deeper)!important;padding:10px 20px;border-radius:9px;font-weight:600;font-size:14px;font-family:var(--display)}
+  /* The links are hidden on a narrow screen; without this there is nothing to replace
+     them and no way off the page on a phone. 44px tall so it is a real tap target. */
+  .burger{display:none;background:none;border:0;cursor:pointer;flex-direction:column;justify-content:center;gap:5px;padding:0 12px;margin:0 -12px;min-height:44px}
+  .burger span{width:24px;height:2px;background:#fff;display:block;transition:.3s}
+  header.nav.solid .burger span{background:var(--ink)}
 
   /* network hero — full screen, shared across all five pages via --hero-h.
      The copy sits at the top in normal flow and the canvas takes the height that is
@@ -152,7 +157,10 @@
   .foot-inner{display:flex;justify-content:space-between;align-items:center;gap:20px;flex-wrap:wrap}
   .foot-brand{display:flex;align-items:center;gap:11px;color:#fff;font-family:var(--display);font-weight:700}
   .foot-brand .mk{width:34px;height:34px;--a1:#9fe0d9;--a2:#7fc6cd;--a3:#5fadc2;--a4:#3f93b6;--ad:#bdeee9}
-  @media(max-width:860px){.org-grid{grid-template-columns:repeat(2,1fr)}nav ul{display:none}}
+  @media(max-width:860px){.org-grid{grid-template-columns:repeat(2,1fr)}nav ul{display:none}
+    .burger{display:flex}
+    nav.open ul{display:flex;position:fixed;top:var(--nav-h);left:0;right:0;flex-direction:column;background:#fff;border-bottom:1px solid var(--line);padding:22px 26px;gap:20px;box-shadow:0 20px 40px rgba(0,0,0,.12)}
+    nav.open ul a{display:block;padding:11px 0}nav.open ul a.lnk{color:var(--ink)}}
 </style>
 </head>
 <body>
@@ -167,7 +175,7 @@
       <svg class="mk"><use href="#cbeds-mark"/></svg>
       <span class="lock"><span class="wm">CBEDS</span><span class="sub">Centre for Built Environment Data Solutions</span></span>
     </a>
-    <nav>
+    <nav id="mainnav">
       <ul>
         <li><a class="lnk" href="cbeds.html">CBEDS</a></li>
         <li><a class="lnk" href="cbedstory.html">CBEDStory</a></li>
@@ -177,6 +185,9 @@
         <li><a class="nav-cta" href="https://www.linkedin.com/groups/13264190/" target="_blank" rel="noopener">Join us &#8594;</a></li>
       </ul>
     </nav>
+    <button class="burger" aria-label="Menu" onclick="document.getElementById('mainnav').classList.toggle('open')">
+      <span></span><span></span><span></span>
+    </button>
   </div>
 </header>
 

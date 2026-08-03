@@ -41,7 +41,8 @@
   nav a.lnk.active::after{content:"";position:absolute;left:0;right:0;bottom:-3px;height:2px;background:var(--green);border-radius:2px}
   .nav-cta{background:var(--green);color:var(--blue-deeper)!important;padding:10px 20px;border-radius:9px;font-weight:600;font-size:14px;font-family:var(--display)}
   .devtag{display:inline-block;margin-left:6px;font-family:var(--display);font-size:9px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#06202c;background:var(--green);border-radius:5px;padding:1px 5px;vertical-align:middle}
-  .burger{display:none;background:none;border:0;cursor:pointer;flex-direction:column;gap:5px;padding:6px}
+  /* 44px tall so it is a real tap target - it was 36x28 */
+  .burger{display:none;background:none;border:0;cursor:pointer;flex-direction:column;justify-content:center;gap:5px;padding:0 12px;margin:0 -12px;min-height:44px}
   .burger span{width:24px;height:2px;background:#fff;display:block}
   header.nav.solid .burger span{background:var(--ink)}
 
@@ -224,7 +225,7 @@
     .st:not(.active){display:none}   /* mobile: show only the current stage as a caption */
     nav ul{display:none}.burger{display:flex}
     nav.open ul{display:flex;position:fixed;top:76px;left:0;right:0;flex-direction:column;background:#fff;border-bottom:1px solid var(--line);padding:20px 26px;gap:18px;box-shadow:0 20px 40px rgba(0,0,0,.12)}
-    nav.open ul a.lnk{color:var(--ink)}
+    nav.open ul a{display:block;padding:11px 0}nav.open ul a.lnk{color:var(--ink)}
     .dirs{grid-template-columns:1fr}
     .roles{padding:44px 24px}
   }

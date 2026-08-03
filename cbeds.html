@@ -53,7 +53,8 @@
   .nav-cta{font-family:var(--display);background:var(--green);color:var(--blue-deeper)!important;padding:10px 20px;border-radius:9px;font-weight:600;font-size:14px;transition:transform .15s,box-shadow .2s}
   .devtag{display:inline-block;margin-left:6px;font-family:var(--display);font-size:9px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#06202c;background:var(--green);border-radius:5px;padding:1px 5px;vertical-align:middle}
   .nav-cta:hover{transform:translateY(-2px);box-shadow:0 10px 24px rgba(112,179,174,.4)}
-  .burger{display:none;background:none;border:0;cursor:pointer;flex-direction:column;gap:5px;padding:6px}
+  /* 44px tall so it is a real tap target - it was 36x28 */
+  .burger{display:none;background:none;border:0;cursor:pointer;flex-direction:column;justify-content:center;gap:5px;padding:0 12px;margin:0 -12px;min-height:44px}
   .burger span{width:24px;height:2px;background:#fff;display:block;transition:.3s}
   header.nav.solid .burger span{background:var(--ink)}
 
@@ -167,7 +168,8 @@
   .foot-inner{display:flex;justify-content:space-between;align-items:center;gap:24px;flex-wrap:wrap}
   .foot-brand{display:flex;align-items:center;gap:11px;color:#fff;font-family:var(--display);font-weight:700;font-size:19px}
   .foot-brand .mk{width:40px;height:40px;--a1:#9fe0d9;--a2:#7fc6cd;--a3:#5fadc2;--a4:#3f93b6;--ad:#bdeee9}
-  .foot-links{display:flex;gap:26px}
+  /* wraps, or five links in a row push the page 118px wider than a phone screen */
+  .foot-links{display:flex;flex-wrap:wrap;gap:14px 26px}
   .foot-links a:hover{color:var(--green-bright)}
 
   .mini{font-family:var(--display);font-size:15px;color:var(--muted);background:var(--bg-soft);border:1px solid var(--line);border-radius:100px;padding:11px 22px}
@@ -185,7 +187,7 @@
     nav ul{display:none}
     .burger{display:flex}
     nav.open ul{display:flex;position:fixed;top:76px;left:0;right:0;flex-direction:column;background:#fff;border-bottom:1px solid var(--line);padding:22px 26px;gap:20px;box-shadow:0 20px 40px rgba(0,0,0,.12)}
-    nav.open ul a.lnk{color:var(--ink)}
+    nav.open ul a{display:block;padding:11px 0}nav.open ul a.lnk{color:var(--ink)}
   }
   @media(max-width:560px){.why-grid{grid-template-columns:1fr}.band,.cta{padding:46px 26px}}
   /* on a 768-tall laptop the hero's own 120/80 padding put it 14px past one screen,
