@@ -175,6 +175,23 @@ def sheet_col(ws, head):
     return None
 
 
+def header_drift(ws, cols):
+    """Headings in this sheet that are not in the column the master keeps them in.
+
+    Worth checking every run, because a staged value is placed by looking its heading
+    up in this sheet. A header row left over from an older version of this script
+    would therefore put new values where that old row says, not where the master
+    wants them, and a row copied across would land a column short."""
+    bad = []
+    for i, head in enumerate(cols, start=1):
+        if not head:
+            continue
+        at = sheet_col(ws, head)
+        if at != i:
+            bad.append((head, at, i))
+    return bad
+
+
 def master_headers():
     """Row 1 of each master sheet, so the staging file mirrors it exactly."""
     if not MASTER.exists():
@@ -342,11 +359,21 @@ def main():
     heads = master_headers()
     if STAGING.exists():
         wb = openpyxl.load_workbook(STAGING)
-        for name in SHEETS:                   # pick up any new master column
-            ws = wb[name]
-            if [str(c.value or "") for c in ws[1]][:len(heads[name])] != heads[name]:
-                print("  note: %s columns changed in the master; new rows follow the "
-                      "new layout, older rows were left as they were" % name)
+        drift = []
+        for name in SHEETS:
+            for head, at, want in header_drift(wb[name], heads[name]):
+                drift.append("%s: %s is in column %s, the master has it in %s"
+                             % (name, head,
+                                get_column_letter(at) if at else "(missing)",
+                                get_column_letter(want)))
+        if drift:
+            sys.exit(
+                "%s does not match the master's columns:\n  %s\n\n"
+                "Delete draft/%s and run this again to rebuild it. Every submission\n"
+                "is fetched fresh from Netlify, so nothing is lost except anything\n"
+                "written by hand in the Review columns - copy that out first if you\n"
+                "want to keep it."
+                % (STAGING.name, "\n  ".join(drift[:6]), STAGING.name))
     else:
         wb = new_book(heads)
     already = staged_ids(wb)
