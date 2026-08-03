@@ -28,6 +28,7 @@ columns, which are not part of the master and are never copied across.
 
 import json
 import os
+import re
 import sys
 import urllib.error
 import urllib.request
@@ -142,6 +143,38 @@ def resolve_site(want, token):
              "Set NETLIFY_SITE in .env to one of those names." % (want, names))
 
 
+def col_of(cell):
+    """The column a header cell really sits in, taken from its reference: BM1 -> 65.
+
+    Not cell.column. A row with gaps in it - and the master has twenty between
+    LinksTo 16 and Source - has come back from read-only mode renumbered, which put
+    Source directly after the last heading instead of where it lives."""
+    ref = getattr(cell, "coordinate", None) or ""
+    m = re.match(r"([A-Z]+)", str(ref))
+    if not m:
+        return getattr(cell, "column", 0)
+    n = 0
+    for ch in m.group(1):
+        n = n * 26 + ord(ch) - 64
+    return n
+
+
+def sheet_col(ws, head):
+    """Column of a heading in this sheet's own row 1, or None.
+
+    Everything written into a staged row is placed through here rather than through
+    the list the header was built from. The sheet is then the single authority on
+    where a heading is, so a value cannot land under a different one."""
+    if not head:
+        return None
+    want = str(head).strip().lower()
+    for c in range(1, ws.max_column + 1):
+        v = ws.cell(row=1, column=c).value
+        if v is not None and str(v).strip().lower() == want:
+            return c
+    return None
+
+
 def master_headers():
     """Row 1 of each master sheet, so the staging file mirrors it exactly."""
     if not MASTER.exists():
@@ -159,20 +192,12 @@ def master_headers():
             for cell in row:
                 v = "" if cell.value is None else str(cell.value).strip()
                 if v:
-                    by_col[cell.column] = v          # 1-based, the true column
+                    by_col[col_of(cell)] = v         # 1-based, the true column
         width = max(by_col) if by_col else 0
         heads[name] = [by_col.get(i, "") for i in range(1, width + 1)]
     wb.close()
     heads["Posts"] = list(POST_COLS)
     return heads
-
-
-def head_index(heads, name):
-    """Index of a heading, case-insensitively, or None."""
-    for i, h in enumerate(heads):
-        if h.lower() == name.lower():
-            return i
-    return None
 
 
 def new_book(heads):
@@ -201,18 +226,11 @@ def write_header(ws, cols):
     ws.freeze_panes = "A2"
 
 
-def review_index(ws, name):
-    for c in range(1, ws.max_column + 1):
-        if str(ws.cell(row=1, column=c).value or "").strip() == name:
-            return c
-    return None
-
-
 def staged_ids(wb):
     """Every Netlify id already in the file, so nothing is staged twice."""
     seen = set()
     for ws in wb.worksheets:
-        col = review_index(ws, ID_COL)
+        col = sheet_col(ws, ID_COL)
         if not col:
             continue
         for r in range(2, ws.max_row + 1):
@@ -260,9 +278,9 @@ def stage(ws, heads, sub):
     def put_head(head, value):
         if not value:
             return
-        i = head_index(heads, head)
-        if i is not None:
-            ws.cell(row=row, column=i + 1, value=value)
+        c = sheet_col(ws, head)
+        if c is not None:
+            ws.cell(row=row, column=c, value=value)
 
     # the entity's name is always the sheet's first column
     ws.cell(row=row, column=1, value=entity_name(form, data))
@@ -281,7 +299,7 @@ def stage(ws, heads, sub):
             put_head(head, value)
         overflow += values[len(cols):]
     for theme in listed("themes"):
-        if head_index(heads, theme) is None:
+        if sheet_col(ws, theme) is None:
             overflow.append(theme)          # no column for it on this sheet
         else:
             put_head(theme, THEME_MARK)
@@ -304,7 +322,7 @@ def stage(ws, heads, sub):
         ID_COL: str(sub.get("id") or ""),
     }
     for head, value in values.items():
-        col = review_index(ws, head)
+        col = sheet_col(ws, head)
         if col and value:
             ws.cell(row=row, column=col, value=value)
 
