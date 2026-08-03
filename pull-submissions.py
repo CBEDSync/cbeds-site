@@ -30,6 +30,7 @@ import json
 import os
 import re
 import sys
+import zipfile
 import urllib.error
 import urllib.request
 from pathlib import Path
@@ -143,20 +144,61 @@ def resolve_site(want, token):
              "Set NETLIFY_SITE in .env to one of those names." % (want, names))
 
 
-def col_of(cell):
-    """The column a header cell really sits in, taken from its reference: BM1 -> 65.
-
-    Not cell.column. A row with gaps in it - and the master has twenty between
-    LinksTo 16 and Source - has come back from read-only mode renumbered, which put
-    Source directly after the last heading instead of where it lives."""
-    ref = getattr(cell, "coordinate", None) or ""
-    m = re.match(r"([A-Z]+)", str(ref))
-    if not m:
-        return getattr(cell, "column", 0)
+def col_of(ref):
+    """Column number from a cell reference: BM1 -> 65."""
     n = 0
-    for ch in m.group(1):
+    for ch in re.match(r"([A-Z]+)", ref).group(1):
         n = n * 26 + ord(ch) - 64
     return n
+
+
+def header_row_from_xlsx(path, sheet_names):
+    """Row 1 of each named sheet, read out of the file itself.
+
+    openpyxl is not asked for this. A row with gaps - the master has twenty columns
+    between LinksTo 16 and Source - comes back from read-only mode with its empty
+    cells dropped and the survivors renumbered, and neither cell.column nor
+    cell.coordinate survives that: Source arrived directly after the last heading
+    instead of in BM, twice. The cell references in the XML are the one thing that
+    cannot be renumbered, so they are what this reads."""
+    out = {}
+    with zipfile.ZipFile(path) as z:
+        book = z.read("xl/workbook.xml").decode("utf-8", "replace")
+        rels = z.read("xl/_rels/workbook.xml.rels").decode("utf-8", "replace")
+        target = dict(re.findall(r'Id="([^"]+)"[^>]*?Target="([^"]+)"', rels))
+        sheet_rid = dict((m.group(1), m.group(2)) for m in
+                         re.finditer(r'<sheet[^>]*name="([^"]*)"[^>]*r:id="([^"]+)"', book))
+
+        shared = []
+        if "xl/sharedStrings.xml" in z.namelist():
+            sx = z.read("xl/sharedStrings.xml").decode("utf-8", "replace")
+            for si in re.findall(r"<si>(.*?)</si>", sx, re.S):
+                shared.append("".join(re.findall(r"<t[^>]*>(.*?)</t>", si, re.S)))
+
+        for name in sheet_names:
+            rid = sheet_rid.get(name)
+            if not rid or rid not in target:
+                sys.exit('The master has no sheet called "%s".' % name)
+            part = "xl/" + target[rid].lstrip("/").replace("xl/", "", 1)
+            xml = z.read(part).decode("utf-8", "replace")
+            row1 = re.search(r"<row[^>]*\sr=\"1\"[^>]*>(.*?)</row>", xml, re.S)
+            by_col = {}
+            if row1:
+                for ref, attrs, body in re.findall(
+                        r'<c r="([A-Z]+\d+)"([^>]*)>(.*?)</c>', row1.group(1), re.S):
+                    v = re.search(r"<v>(.*?)</v>", body, re.S)
+                    t = re.search(r"<t[^>]*>(.*?)</t>", body, re.S)
+                    if 't="s"' in attrs and v:
+                        val = shared[int(v.group(1))] if int(v.group(1)) < len(shared) else ""
+                    else:
+                        val = t.group(1) if t else (v.group(1) if v else "")
+                    val = (val.replace("&amp;", "&").replace("&lt;", "<")
+                              .replace("&gt;", ">").replace("&quot;", '"')).strip()
+                    if val:
+                        by_col[col_of(ref)] = val
+            width = max(by_col) if by_col else 0
+            out[name] = [by_col.get(i, "") for i in range(1, width + 1)]
+    return out
 
 
 def sheet_col(ws, head):
@@ -196,23 +238,7 @@ def master_headers():
     """Row 1 of each master sheet, so the staging file mirrors it exactly."""
     if not MASTER.exists():
         sys.exit("Cannot find the master workbook: %s" % MASTER)
-    wb = openpyxl.load_workbook(MASTER, read_only=True, data_only=True)
-    heads = {}
-    for name in SHEETS:
-        # Each heading is placed by the cell's own column number rather than by its
-        # position in the row. The master has empty columns between LinksTo 16 and
-        # Source, and a row read positionally closes that gap - which would put
-        # Source nine columns to the left of where it really is, and every staged
-        # row out of step with the sheet it is meant to be pasted into.
-        by_col = {}
-        for row in wb[name].iter_rows(min_row=1, max_row=1):
-            for cell in row:
-                v = "" if cell.value is None else str(cell.value).strip()
-                if v:
-                    by_col[col_of(cell)] = v         # 1-based, the true column
-        width = max(by_col) if by_col else 0
-        heads[name] = [by_col.get(i, "") for i in range(1, width + 1)]
-    wb.close()
+    heads = header_row_from_xlsx(MASTER, SHEETS)
     heads["Posts"] = list(POST_COLS)
     return heads
 
