@@ -581,14 +581,29 @@ function bindNodeHover(el,t){
 var kgFilter={agent:true,project:true,output:true,tech:true,theme:'',tech2:''};
 var basePos={}, animId=null, curFocusIds=null, kgD1Count=0, kgD1LabelSet={};   // basePos = default spiral home; kgD1LabelSet = which 1st-connection names to show
 function hashFrac(s){var h=2166136261;for(var i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619);}return ((h>>>0)%1000)/1000;}
+/* Positions are held per node, under n.uid, not per id.
+
+   Thirty-four names belong to two entities each: a software company and the product
+   named after it - Revizto, dRofus, BIMeye and thirty more, plus one project. Keyed by
+   id, the second of a pair overwrote the first, so one of them lost its own place and
+   both drew wherever the survivor sat. Filter the graph to Agents and you saw it: a
+   tight disc of 395 and thirty-odd strays out in the Outputs region, which is exactly
+   what a name shared with a product does to an id-keyed map.
+
+   Relations still resolve by id, because that is what the workbook records - a link
+   naming "Revizto" reaches the first node with that name. What changed is only that
+   every node now has a place of its own to be drawn in. */
+function uidOf(id){var n=byId[id];return n?n.uid:null;}
+function posOfId(id){var u=uidOf(id);return u?layout[u]:null;}
 function computeLayout(){
   var kinds=['agent','project','output','tech'];
   var idxByKind={agent:0,project:0,output:0,tech:0};
   var local={}, maxR={agent:1,project:1,output:1,tech:1};
+  NODES.forEach(function(n,i){if(!n.uid)n.uid='u'+i;});
   NODES.forEach(function(n){
     var i=idxByKind[n.kind]++; var step=n.kind==='tech'?60:30;
     var r=step*Math.sqrt(i+1), a=(i+1)*2.39996;
-    local[n.id]={x:Math.cos(a)*r, y:Math.sin(a)*r};
+    local[n.uid]={x:Math.cos(a)*r, y:Math.sin(a)*r};
     if(r>maxR[n.kind]) maxR[n.kind]=r;
   });
   // place the four regions on a 2x2 grid, spaced so the biggest two never overlap
@@ -596,8 +611,8 @@ function computeLayout(){
   var centers={agent:[0,0], output:[cell,0], project:[0,cell], tech:[cell,cell]};
   // (the hero works out its own centres and radii from its caps, so nothing is
   //  published from here for it any more — this layout is the full graph's)
-  NODES.forEach(function(n){var c=centers[n.kind];layout[n.id]={x:c[0]+local[n.id].x, y:c[1]+local[n.id].y};});
-  basePos={}; for(var id in layout) basePos[id]={x:layout[id].x,y:layout[id].y};
+  NODES.forEach(function(n){var c=centers[n.kind];layout[n.uid]={x:c[0]+local[n.uid].x, y:c[1]+local[n.uid].y};});
+  basePos={}; for(var u in layout) basePos[u]={x:layout[u].x,y:layout[u].y};
 }
 // snap every node back to its spiral home instantly (used when re-opening clean)
 function restoreBase(){for(var id in basePos){if(layout[id]){layout[id].x=basePos[id].x;layout[id].y=basePos[id].y;}}curFocusIds=null;}
@@ -895,12 +910,17 @@ function radialFocusTargets(n){
   Object.keys(seen).forEach(function(id){var d=seen[id];(byDepth[d]=byDepth[d]||[]).push(id);});
   // each depth fills its own annular ZONE: 1st connections in a close inner zone,
   // 2nd in a wider band between two circles, 3rd wider still — nodes scattered within the band
-  var ZONE={1:[120,285],2:[325,525],3:[565,765]}, targets={}; targets[n.id]={x:0,y:0};
+  /* Keyed by uid, because that is what layout is keyed by. computeFocus walks the
+     relation graph, which is by name, so an id is turned into the node it names here
+     - the same one a link would reach. The jitter still hashes the name, so a focus
+     view lays out identically to before. */
+  var ZONE={1:[120,285],2:[325,525],3:[565,765]}, targets={}; targets[n.uid]={x:0,y:0};
   for(var d=1;d<=kgDepth;d++){var ids=byDepth[d]||[],m=ids.length,z=ZONE[Math.min(d,3)];ids.forEach(function(id,i){
+    var u=uidOf(id); if(!u) return;
     var f=hashFrac(id), f2=hashFrac(id+'#');
     var a=((i+(f-0.5)*0.85)/Math.max(1,m))*Math.PI*2 - Math.PI/2;         // spread around the ring with jitter
     var rr=z[0]+(z[1]-z[0])*f2;                                            // random radius within the zone band
-    targets[id]={x:Math.cos(a)*rr, y:Math.sin(a)*rr*0.94};
+    targets[u]={x:Math.cos(a)*rr, y:Math.sin(a)*rr*0.94};
   });}
   return targets;
 }
@@ -946,7 +966,7 @@ function initKG(){
   var drag=false,lx,ly,moved=0,dragNode=null;
   kgc.addEventListener('mousedown',function(e){lx=e.clientX;ly=e.clientY;moved=0;var h=nodeAt(e);if(h){dragNode=h;kgc.style.cursor='grabbing';}else{drag=true;}});
   window.addEventListener('mousemove',function(e){ if(!kg.classList.contains('open'))return;
-    if(dragNode){var p=layout[dragNode.id];p.x+=(e.clientX-lx)/view.s;p.y+=(e.clientY-ly)/view.s;lx=e.clientX;ly=e.clientY;moved+=Math.abs(e.movementX)+Math.abs(e.movementY);kgDraw();}
+    if(dragNode){var p=layout[dragNode.uid];p.x+=(e.clientX-lx)/view.s;p.y+=(e.clientY-ly)/view.s;lx=e.clientX;ly=e.clientY;moved+=Math.abs(e.movementX)+Math.abs(e.movementY);kgDraw();}
     else if(drag){view.tx+=e.clientX-lx;view.ty+=e.clientY-ly;lx=e.clientX;ly=e.clientY;moved+=Math.abs(e.movementX)+Math.abs(e.movementY);kgDraw();}
     else if(e.target!==kgc){                       // pointer is off the canvas
       if(entHover)return;                          // an answer link owns the spotlight — leave it alone
@@ -989,21 +1009,21 @@ function kgDraw(){
     for(var i=0;i<edgesU.length;i++){var a=edgesU[i][0],b=edgesU[i][1];if(!(a in kgFocus)||!(b in kgFocus))continue;var na=byId[a],nb=byId[b];if(!na||!nb||!visible(na)||!visible(nb))continue;
       var hl=(a===kgSel.id||b===kgSel.id);var deg=Math.max(kgFocus[a],kgFocus[b]);
       var col=hl?'rgba(159,224,217,0.9)':'rgba(134,205,199,'+(deg<=1?0.5:deg===2?0.3:0.16)+')';
-      var d=edgeDir(a,b),s0=layout[d[0]],t0=layout[d[1]];
+      var d=edgeDir(a,b),s0=posOfId(d[0]),t0=posOfId(d[1]);if(!s0||!t0)continue;
       kgx.strokeStyle=col;kgx.lineWidth=hl?1.9:1.1;
       kgx.beginPath();kgx.moveTo(X(s0.x),Y(s0.y));kgx.lineTo(X(t0.x),Y(t0.y));kgx.stroke();
       if(hl||deg<=1) kgArrow(X(s0.x),Y(s0.y),X(t0.x),Y(t0.y),col,nodeR(byId[d[1]]));
     }
   } else {
     kgx.strokeStyle=hoverNb?'rgba(134,205,199,0.05)':'rgba(134,205,199,0.13)';kgx.lineWidth=1;kgx.beginPath();var cnt=0;
-    for(var i=0;i<edgesU.length&&cnt<8000;i++){var a=edgesU[i][0],b=edgesU[i][1];var na=byId[a],nb=byId[b];if(!na||!nb||!visible(na)||!visible(nb))continue;if(onlyHighlight&&highlightSet&&(!highlightSet[a]||!highlightSet[b]))continue;if(hoverNb&&(a===kgHover.id||b===kgHover.id))continue;kgx.moveTo(X(layout[a].x),Y(layout[a].y));kgx.lineTo(X(layout[b].x),Y(layout[b].y));cnt++;}
+    for(var i=0;i<edgesU.length&&cnt<8000;i++){var a=edgesU[i][0],b=edgesU[i][1];var na=byId[a],nb=byId[b];if(!na||!nb||!visible(na)||!visible(nb))continue;if(onlyHighlight&&highlightSet&&(!highlightSet[a]||!highlightSet[b]))continue;if(hoverNb&&(a===kgHover.id||b===kgHover.id))continue;var pa=posOfId(a),pb=posOfId(b);if(!pa||!pb)continue;kgx.moveTo(X(pa.x),Y(pa.y));kgx.lineTo(X(pb.x),Y(pb.y));cnt++;}
     kgx.stroke();
-    if(hoverNb){for(var i=0;i<edgesU.length;i++){var a=edgesU[i][0],b=edgesU[i][1];if(a!==kgHover.id&&b!==kgHover.id)continue;var na=byId[a],nb=byId[b];if(!na||!nb||!visible(na)||!visible(nb))continue;var d=edgeDir(a,b),s0=layout[d[0]],t0=layout[d[1]];kgx.strokeStyle='rgba(159,224,217,0.85)';kgx.lineWidth=1.6;kgx.beginPath();kgx.moveTo(X(s0.x),Y(s0.y));kgx.lineTo(X(t0.x),Y(t0.y));kgx.stroke();kgArrow(X(s0.x),Y(s0.y),X(t0.x),Y(t0.y),'rgba(159,224,217,0.9)',nodeR(byId[d[1]]));}}
+    if(hoverNb){for(var i=0;i<edgesU.length;i++){var a=edgesU[i][0],b=edgesU[i][1];if(a!==kgHover.id&&b!==kgHover.id)continue;var na=byId[a],nb=byId[b];if(!na||!nb||!visible(na)||!visible(nb))continue;var d=edgeDir(a,b),s0=posOfId(d[0]),t0=posOfId(d[1]);if(!s0||!t0)continue;kgx.strokeStyle='rgba(159,224,217,0.85)';kgx.lineWidth=1.6;kgx.beginPath();kgx.moveTo(X(s0.x),Y(s0.y));kgx.lineTo(X(t0.x),Y(t0.y));kgx.stroke();kgArrow(X(s0.x),Y(s0.y),X(t0.x),Y(t0.y),'rgba(159,224,217,0.9)',nodeR(byId[d[1]]));}}
   }
   for(var k=0;k<NODES.length;k++){var n=NODES[k];if(!visible(n))continue;
     if(kgSel&&kgFocus&&!(n.id in kgFocus))continue;            // hide unconnected when something is selected
     if(onlyHighlight&&highlightSet&&!highlightSet[n.id])continue; // show only chatbot matches
-    var p=layout[n.id];var x=X(p.x),y=Y(p.y);
+    var p=layout[n.uid];if(!p)continue;var x=X(p.x),y=Y(p.y);
     if(x<-40||x>Wc+40||y<-40||y>Hc+40)continue;
     var deg=(kgSel&&kgFocus)?kgFocus[n.id]:0;
     var hlset=highlightSet&&highlightSet[n.id];
@@ -1035,7 +1055,7 @@ function kgDraw(){
 }
 var highlightSet=null;
 function nodeAt(e){var r=kgc.getBoundingClientRect();var mx=e.clientX-r.left,my=e.clientY-r.top;var best=null,bd=16;
-  for(var k=0;k<NODES.length;k++){var n=NODES[k];if(!visible(n))continue;if(kgSel&&kgFocus&&!(n.id in kgFocus))continue;if(onlyHighlight&&highlightSet&&!highlightSet[n.id])continue;var p=layout[n.id];var x=p.x*view.s+view.tx,y=p.y*view.s+view.ty;var d=Math.hypot(x-mx,y-my);if(d<bd){bd=d;best=n;}}
+  for(var k=0;k<NODES.length;k++){var n=NODES[k];if(!visible(n))continue;if(kgSel&&kgFocus&&!(n.id in kgFocus))continue;if(onlyHighlight&&highlightSet&&!highlightSet[n.id])continue;var p=layout[n.uid];if(!p)continue;var x=p.x*view.s+view.tx,y=p.y*view.s+view.ty;var d=Math.hypot(x-mx,y-my);if(d<bd){bd=d;best=n;}}
   return best;
 }
 function pickKG(e){var n=nodeAt(e);if(n)selectKG(n);}
@@ -1077,7 +1097,7 @@ function renderKGConn(n){
     if(t)c.onclick=function(){selectKG(t);};
     bindNodeHover(c,t);});   // rows for entities outside the graph get no hover, same as no click
 }
-function centerOn(n){var p=layout[n.id];view.tx=Wc/2-p.x*view.s;view.ty=Hc/2-p.y*view.s;kgDraw();}
+function centerOn(n){var p=layout[n.uid];view.tx=Wc/2-p.x*view.s;view.ty=Hc/2-p.y*view.s;kgDraw();}
 function setOnlyBtn(show){var b=document.getElementById('kgOnly');if(!b)return;b.style.display=show?'inline-flex':'none';if(!show){onlyHighlight=false;b.classList.remove('on');}}
 function resetKG(){
   highlightSet=null;kgHover=null;setOnlyBtn(false);
@@ -1118,7 +1138,7 @@ var assistant=CBEDSAssistant.create({
   onAnswer:function(r){                    // light up the matches on the canvas
     kgSel=null;kgFocus=null;
     highlightSet=r.sg.ids;
-    if(r.centerNode&&layout[r.centerNode.id])centerOn(r.centerNode); else kgDraw();
+    if(r.centerNode&&layout[r.centerNode.uid])centerOn(r.centerNode); else kgDraw();
     setOnlyBtn(true);
   },
   onNoMatch:function(){kgSel=null;kgFocus=null;highlightSet=null;setOnlyBtn(false);kgDraw();},

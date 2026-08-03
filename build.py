@@ -202,13 +202,24 @@ def build():
         "output": sum(1 for n in nodes if n["kind"] == "output"),
         "public": sum(1 for n in nodes if n.get("src") == "Public"),
     }
+    # A name used by two entries is legitimate - a software company and the product
+    # named after it - but anything that maps the graph by name has to expect it, and
+    # for a long time the drawing code did not: one of a pair silently took the other's
+    # place. Reported every run so a new one is noticed the day it appears.
+    seen_names = {}
+    for n in nodes:
+        seen_names.setdefault(n["id"], []).append(n["kind"])
+    shared = {k: v for k, v in seen_names.items() if len(v) > 1}
+
     return {"nodes": nodes, "themes": THEMES, "stages": STAGES,
-            "techcat": techcat, "counts": counts, "noSource": no_source}
+            "techcat": techcat, "counts": counts,
+            "noSource": no_source, "sharedNames": shared}
 
 
 def main():
     data = build()
     missing = data.pop("noSource")          # a message for you, not data for the site
+    shared = data.pop("sharedNames")
     payload = json.dumps(data, ensure_ascii=False, separators=(",", ":"))
     OUT.write_text("window.CBEDS_DATA=" + payload, encoding="utf-8")
     c = data["counts"]
@@ -222,6 +233,14 @@ def main():
         print('    note: no "%s" column on %s - add one at the far right of the '
               "sheet to record which entries came from the public"
               % (SOURCE_HEAD, ", ".join(missing)))
+    if shared:
+        pairs = sorted("%s (%s)" % (k, "+".join(sorted(set(v))))
+                       for k, v in shared.items())
+        print("    names shared by more than one entry=%d" % len(shared))
+        print("      %s" % "; ".join(pairs[:3])
+              + (" ..." if len(pairs) > 3 else ""))
+        print("      that is allowed - a company and its product often share a name -")
+        print("      but relations naming one of these reach only the first of the pair.")
 
 
 if __name__ == "__main__":
