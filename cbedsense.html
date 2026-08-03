@@ -553,38 +553,39 @@ typeWrap.addEventListener('change',function(){
   typeWrap.querySelectorAll('.type').forEach(function(l){l.classList.toggle('sel',l.querySelector('input').checked);});
 });
 // aspect chips (the different aspects of CBEDSync)
-/* Each chip keeps the short label people recognise but carries the exact name the
-   workbook uses, so an approved submission needs no translating:
+/* A chip is named for the thing it actually stands for, so what the reader picks and
+   what reaches the workbook are the same words. Three kinds, and each goes to its own
+   columns when a submission is staged:
      tech  - one of the 31 entries on the Technologies sheet
      theme - one of the seven value themes
      link  - an entity already in the graph, so it becomes a LinksTo
-   Picking a specific version is deliberate. "ISO 19650" matches six entities and
-   names none of them; ISO 19650-1 is the part the other five rest on. IFC 4.3 is the
-   current release, ISO 16739-1:2024 - IFC 5 is a development track, now IFC X. */
+   Picking a specific version is deliberate. "ISO 19650" matches six entities and names
+   none of them; ISO 19650-1 is the part the other five rest on. IFC 4.3 is the current
+   release, ISO 16739-1:2024 - IFC 5 is a development track, since renamed IFC X. */
 var ASPECTS=[
-  {l:'BIM',                       v:'Building Information Modelling (BIM)',                    k:'tech'},
-  {l:'IFC',                       v:'IFC 4.3.2 ADD 2',                                         k:'link'},
-  {l:'Digital Twins',             v:'Digital Twin (DT)',                                       k:'tech'},
-  {l:'DPP',                       v:'Digital Product Passport (DPP)',                          k:'tech'},
-  {l:'Material Passports',        v:'Material Passport (MP)',                                  k:'tech'},
-  {l:'ESPR',                      v:'Ecodesign for Sustainable Products Regulation (ESPR)',    k:'link'},
-  {l:'CPR',                       v:'Construction Products Regulation (CPR)',                  k:'link'},
-  {l:'ISO 19650',                 v:'ISO 19650-1:2018',                                        k:'link'},
-  {l:'Ontologies',                v:'Ontologies',                                              k:'tech'},
-  {l:'Linked Data',               v:'Linked Data and semantic vocabularies',                   k:'tech'},
-  {l:'IoT',                       v:'Internet of Things (IoT) networks',                       k:'tech'},
-  {l:'Digital Building Logbooks', v:'Digital Building Logbook (DBL)',                          k:'tech'},
-  {l:'AI',                        v:'Artificial Intelligence (AI) models',                     k:'tech'},
-  {l:'Circular Economy',          v:'Sustainability and Circularity',                          k:'theme'},
-  {l:'Semantic Interoperability', v:'Semantic Interoperability for Digital Product Passports', k:'link'}
+  {v:'Building Information Modelling (BIM)',                    k:'tech'},
+  {v:'IFC 4.3.2 ADD 2',                                         k:'link'},
+  {v:'Digital Twin (DT)',                                       k:'tech'},
+  {v:'Digital Product Passport (DPP)',                          k:'tech'},
+  {v:'Material Passport (MP)',                                  k:'tech'},
+  {v:'Ecodesign for Sustainable Products Regulation (ESPR)',    k:'link'},
+  {v:'Construction Products Regulation (CPR)',                  k:'link'},
+  {v:'ISO 19650-1:2018',                                        k:'link'},
+  {v:'Ontologies',                                              k:'tech'},
+  {v:'Linked Data and semantic vocabularies',                   k:'tech'},
+  {v:'Internet of Things (IoT) networks',                       k:'tech'},
+  {v:'Digital Building Logbook (DBL)',                          k:'tech'},
+  {v:'Artificial Intelligence (AI) models',                     k:'tech'},
+  {v:'Sustainability and Circularity',                          k:'theme'},
+  {v:'Semantic Interoperability for Digital Product Passports', k:'link'}
 ];
 var aWrap=document.getElementById('aspects');
 var FIELD={tech:document.getElementById('fTech'),theme:document.getElementById('fThemes'),link:document.getElementById('fRelated')};
 function chosen(){
   return [].slice.call(aWrap.querySelectorAll('.csc.sel')).map(function(x){return ASPECTS[+x.dataset.i];});
 }
-function chosenAspects(){                       // labels, for the confirmation the reader sees
-  return chosen().map(function(a){return a.l;});
+function chosenAspects(){                       // for the confirmation the reader sees
+  return chosen().map(function(a){return a.v;});
 }
 function syncAspects(){
   var picked=chosen();
@@ -594,8 +595,8 @@ function syncAspects(){
   });
 }
 ASPECTS.forEach(function(a,i){
-  var s=document.createElement('span');s.className='csc';s.textContent=a.l;
-  s.dataset.i=i;s.title=a.v;                    // the full name, on hover
+  var s=document.createElement('span');s.className='csc';s.textContent=a.v;
+  s.dataset.i=i;
   s.addEventListener('click',function(){s.classList.toggle('sel');syncAspects();});
   aWrap.appendChild(s);
 });
