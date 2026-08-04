@@ -19,6 +19,13 @@ The knowledge graph reads `cbedsync-data.js`, which is **generated** from
 `update-website.bat` (Windows) / `update-website.command` (Mac) rebuilds the
 data and publishes in one step. See `HOW-TO-HOST-AND-UPDATE.md` for full setup.
 
+## Submissions from the public
+Two forms — **Share your work** on CBEDSense and the **Alliance Charter** on
+CBEDSynergy — let people outside the team put entries forward. Nothing they send
+reaches the site on its own: `get-submissions.bat` collects them into
+`draft/Submissions.xlsx` to be checked, and only what someone copies into
+`draft/CBEDSync.xlsx` is ever published. The routine is in `SUBMISSIONS.md`.
+
 ## AI-written answers (optional)
 "Ask the graph" on `cbedsync.html` works with no setup — it writes answers from the
 graph itself. Set `GEMINI_API_KEY` in the Netlify dashboard (free tier, no card) and

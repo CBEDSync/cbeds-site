@@ -126,73 +126,13 @@ Repeat questions are cached, so asking the same thing twice costs nothing.
 
 ## Submissions from the public
 
-Two forms on the site collect things from outside the team:
+Two forms on the site let people outside the team put work forward: **Share your
+work** on CBEDSense, and the **CBEDS Alliance Charter** on CBEDSynergy. Nothing they
+send reaches the website on its own - it waits for someone to read it and decide.
 
-| Form | Where | What it collects |
-|------|-------|------------------|
-| **Share your work** | CBEDSense, "Put your work forward" | a candidate Agent / Project / Output for CBEDSync, or a post for CBEDSynergy |
-| **CBEDS Alliance Charter** | CBEDSynergy, "Join the network" | an organisation signing the Charter: organisation, named lead, date, and which commitments they chose |
-
-Nothing a visitor sends goes near the website or the Excel on its own. **You read it first, and only what you approve gets typed into `draft/CBEDSync.xlsx`.** That is the point of the setup: the workbook stays the single source of truth and nothing appears on the site that a person has not agreed to.
-
-### Turning it on (once)
-
-Netlify collects the submissions — there is nothing to install and no extra account.
-
-1. Netlify → **Site configuration → Forms**. Make sure form detection is **enabled**. After the next deploy the two forms appear by name: `cbedsense-submission` and `cbeds-charter`.
-2. Netlify → **Forms → Form notifications → Add notification → Email notification**. Add whoever should hear about new submissions, and do it once per form. Without this, submissions still arrive — you just have to remember to go and look.
-
-> Form detection reads the deployed pages, so a form only appears in the list **after a deploy that contains it**, and only once at least one submission has arrived does the list show anything under it.
-
-### The `Source` column
-
-Each of the Agent, Project and Output sheets has a **`Source`** column — currently `BM` on all three. It records where an entry came from:
-
-| Value | Meaning |
-|-------|---------|
-| *(blank)* | the team added it — this is nearly every row, and there is nothing to backfill |
-| `Public` | it arrived through a form on the website and was approved |
-
-Fill it in **at the moment you approve a submission**. It cannot be reconstructed later: once a row is in the workbook unmarked, there is no way to tell afterwards where it came from.
-
-Entries marked `Public` show a small **Contributed** badge on the CBEDSync page, in the entity panel and in the full knowledge graph. Leaving the cell blank simply means no badge.
-
-> This one column is found by its **heading**, not its position — unlike every other field on the sheet. So you can move it, and the three sheets do not have to agree on where it sits; keep the heading spelled `Source` and the build will find it. If it cannot, the update script says so instead of quietly recording nothing.
-
-### Collecting them into a spreadsheet
-
-Reading submissions one at a time in Netlify works, but it means retyping. `get-submissions.bat` does the transcription for you.
-
-**One-time setup.** Create a personal access token at [app.netlify.com/user/applications](https://app.netlify.com/user/applications) → **New access token**, and put it in the `.env` file next to `build.py`:
-
-    NETLIFY_TOKEN=your-token-here
-
-`.env` is git-ignored, so the token stays on your computer. Copy `.env.example` to `.env` if you do not have one yet.
-
-**Then, whenever you like,** double-click **`get-submissions.bat`**. It writes `draft/Submissions.xlsx` — one row per submission, on an **Agent**, **Project**, **Output** or **Posts** sheet according to what was submitted. Running it again only adds what is new; anything already staged, and any notes you have written, are left alone.
-
-That file is laid out so approving is a copy and paste:
-
-- **Columns A onwards match `CBEDSync.xlsx` exactly**, including `Source`, which already says `Public`. Select that part of a row, copy, and paste it as a new row on the matching sheet of the master.
-- After one **blank gutter column** come the green **`Review:`** columns — when it arrived, who sent it, their email, and for a Charter signature the named lead and the commitments they chose. These are for you. They are not part of the master and are not copied across.
-- `Review: Status` is yours to fill in — `approved`, `rejected`, or whatever suits.
-
-The staging file's columns are rebuilt from the master's own headings on every run, so if you add a column to `CBEDSync.xlsx` the staging file follows it. The script never writes to the master.
-
-### Reading and approving
-
-1. An email arrives with the submission in it. Nothing is public at this stage.
-2. To see them all: Netlify → **Forms** → pick the form. Each submission is one row, and **Download as CSV** on that page gives you the lot in a spreadsheet.
-3. If you want it on the site, open `draft/CBEDSync.xlsx` and add it as a row on the matching sheet — **Agent**, **Project** or **Output** — and put `Public` in that row's **`Source`** cell. Then double-click `update-website.bat`. That is the same update you already do; a submission is just a new row like any other.
-4. Check the script's last line: it prints `from public submissions=N`. If you approved one today and it still says 0, the `Source` cell is empty.
-
-   To look before you publish, double-click **`rebuild-only.bat`** instead. It does the same rebuild and then stops, so you can open the pages locally and check. `update-website.bat` publishes when you are happy.
-5. If you do not want it, delete it in Netlify. Nothing else happens.
-6. A **Charter signature** produces two things, not one. The signing organisation becomes an **Agent** row like any other approved submission, with `Public` in its `Source` cell — the Charter promises that new members are listed on CBEDSync, and this is how that happens. The rest of the signature — the named lead, the date, and which commitments they chose — has nowhere to live on the Agent sheet; keep that with whatever record the team holds of who has signed.
-
-Spam is filtered automatically, and each form carries a hidden trap field that bots fill in and people cannot see. Some junk will still get through — delete it and move on.
-
-> **On the free plan Netlify includes a limited number of form submissions per month** (around 100 at the time of writing — check *Billing → Usage* for the current figure). Well above what this site should see, but worth knowing the ceiling exists.
+That whole routine, from switching the forms on to publishing an approved entry, is
+in **[SUBMISSIONS.md](SUBMISSIONS.md)**. It is written for whoever manages the site
+rather than for whoever built it.
 
 ---
 
@@ -213,6 +153,7 @@ Spam is filtered automatically, and each form carries a hidden trap field that b
 | `Slide1-3.JPG`, `favicon.svg` | site images |
 | `netlify/functions/ask.mjs` | server code for AI answers — holds no key, reads it from Netlify |
 | `netlify.toml`, `package.json`, `package-lock.json` | settings so Netlify can run that server code |
+| `SUBMISSIONS.md` | how to handle what people send through the forms |
 
 ## If something looks wrong
 - Ran the script but no change on the si
