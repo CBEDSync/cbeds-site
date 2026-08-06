@@ -156,10 +156,6 @@
   .formnote{font-size:12.5px;color:#9fb1b6;margin-top:12px}
   .formnote.err{color:#c2564d}
   .hp{display:none}
-  .done{display:none;background:#eef7f1;border:1px solid #bfe3cd;border-radius:18px;padding:34px;text-align:center}
-  .done.show{display:block}
-  .done h4{font-size:19px;color:var(--ink);margin-bottom:7px}
-  .done p{font-size:14.5px;color:var(--muted);max-width:52ch;margin:0 auto}
   @media(max-width:720px){.sig-grid{grid-template-columns:1fr}}
 
   footer{background:var(--blue-deeper);color:#88a6af;padding:var(--foot-pad) 0;font-size:var(--fs-foot)}
@@ -254,8 +250,8 @@
     <p class="lead">A growing community of organisations sharing, aligning and building on one another's work across the built environment.</p>
     <div class="org-grid" id="orgGrid"></div>
     <div class="join">
-      <h3>Add your organisation</h3>
-      <p>If your organisation is working on data solutions in the built environment, there is a place for you in the network.</p>
+      <h3 id="joinHead">Add your organisation</h3>
+      <p id="joinLead">If your organisation is working on data solutions in the built environment, there is a place for you in the network.</p>
       <button class="btn" id="joinToggle">Join the network &#8594;</button>
     </div>
 
@@ -333,10 +329,6 @@
         </div>
       </form>
 
-      <div class="done" id="joinDone">
-        <h4>Thank you for signing</h4>
-        <p id="joinDoneMsg"></p>
-      </div>
     </div></div>
   </div>
 </section>
@@ -479,8 +471,8 @@ ORGS.slice(0,16).forEach(function(o,i){
    panel, swaps its own label, and scrolls the panel into view once it is open. */
 (function(){
   var wrap=document.getElementById('joinWrap'), toggle=document.getElementById('joinToggle');
-  var form=document.getElementById('joinForm'), done=document.getElementById('joinDone');
-  var doneMsg=document.getElementById('joinDoneMsg');
+  var form=document.getElementById('joinForm');
+  var head=document.getElementById('joinHead'), lead=document.getElementById('joinLead');
   var commits=document.getElementById('commits'), count=document.getElementById('commitCount');
   var btn=document.getElementById('joinSubmit'), note=document.getElementById('joinNote');
   if(!wrap||!toggle||!form) return;
@@ -503,9 +495,29 @@ ORGS.slice(0,16).forEach(function(o,i){
       });
   }
 
+  /* The confirmation takes over this block rather than appearing under it. "Add your
+     organisation" invites you to do the thing you have just done, so once the Charter
+     is signed the heading and the paragraph become the receipt, and the button becomes
+     the one thing left to do. Everything it replaces is kept here so Close can put the
+     section back exactly as it was found. */
+  var HEAD0=head.textContent, LEAD0=lead.textContent, BTN0=toggle.innerHTML, NOTE0=note.textContent;
+  var signed=false;
+
+  function resetJoin(){
+    wrap.classList.remove('open');
+    head.textContent=HEAD0; lead.textContent=LEAD0; toggle.innerHTML=BTN0;
+    form.style.display=''; form.reset();
+    [].forEach.call(commits.querySelectorAll('.commit'),function(l){l.classList.remove('sel');});
+    refresh();
+    note.classList.remove('err'); note.textContent=NOTE0;
+    btn.disabled=false;
+    signed=false;
+  }
+
   toggle.addEventListener('click',function(){
+    if(signed){ resetJoin(); return; }          // "Close" after signing: back to the start
     var open=wrap.classList.toggle('open');
-    toggle.innerHTML=open?'Close the Charter':'Join the network &#8594;';
+    toggle.innerHTML=open?'Close the Charter':BTN0;
     if(open) setTimeout(function(){wrap.scrollIntoView({behavior:'smooth',block:'start'});},120);
   });
 
@@ -533,13 +545,18 @@ ORGS.slice(0,16).forEach(function(o,i){
       return;
     }
     var org=form.elements.namedItem('organisation').value.trim()||'Your organisation';
-    var lead=form.elements.namedItem('lead').value.trim();
+    // not "lead" - that is the paragraph element this confirmation is written into
+    var named=form.elements.namedItem('lead').value.trim();
     var last=chosen.length>1?chosen.slice(0,-1).join(', ')+' and '+chosen[chosen.length-1]:chosen[0];
     postForm(function(){
-      doneMsg.textContent=org+' has signed the CBEDS Alliance Charter'
-        +(lead?', with '+lead+' as named lead':'')
+      head.textContent='Thank you for signing';
+      lead.textContent=org+' has signed the CBEDS Alliance Charter'
+        +(named?', with '+named+' as named lead':'')
         +', committing to '+last+'. Once the CBEDS team has checked it, you will be listed on CBEDSync and welcomed into the network.';
-      form.style.display='none'; done.classList.add('show');
+      toggle.textContent='Close';
+      form.style.display='none';
+      wrap.classList.remove('open');            // the Charter has nothing left to show
+      signed=true;
     });
   });
 })();
