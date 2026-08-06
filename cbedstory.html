@@ -168,7 +168,7 @@
 
   /* ---------- cycles ---------- */
   .col{min-width:0}
-  .chap{padding:26px 0 44px;opacity:0;transform:translateY(26px);transition:opacity .7s cubic-bezier(.2,.7,.2,1),transform .7s cubic-bezier(.2,.7,.2,1)}
+  .chap{scroll-margin-top:96px;padding:26px 0 44px;opacity:0;transform:translateY(26px);transition:opacity .7s cubic-bezier(.2,.7,.2,1),transform .7s cubic-bezier(.2,.7,.2,1)}
   .chap.in{opacity:1;transform:none}
   .chead{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;margin-bottom:6px}
   .cnum{font-family:var(--display);font-weight:700;font-size:13px;color:#fff;background:var(--cc,#70B3AE);border-radius:100px;padding:3px 12px}
@@ -451,7 +451,8 @@ var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isInter
 chaps.forEach(function(c){io.observe(c);});
 
 // click a stage to jump
-stages.forEach(function(s){s.addEventListener('click',function(){var t=chaps[+s.getAttribute('data-go')];if(t)t.scrollIntoView({behavior:'smooth',block:'start'});});});
+function scrollToChap(t){if(!t)return;var nav=document.getElementById('nav');var navH=nav?nav.offsetHeight:76;var map=document.querySelector('.map');var mapH=(map&&window.innerWidth<=900)?map.offsetHeight:0;var y=t.getBoundingClientRect().top+window.pageYOffset-navH-mapH-18;window.scrollTo({top:Math.max(0,y),behavior:'smooth'});}
+stages.forEach(function(s){s.addEventListener('click',function(){scrollToChap(chaps[+s.getAttribute('data-go')]);});});
 
 // lightbox
 var lb=document.getElementById('lb'),lbImg=lb.querySelector('img');

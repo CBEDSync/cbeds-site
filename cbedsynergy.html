@@ -51,7 +51,8 @@
      behind the text. build() reads the canvas's own clientWidth/clientHeight and
      derives its radius from whichever axis is tighter, which is what keeps the
      ellipses' proportions and holds the whole network inside the box. */
-  /* padding:0 overrides the generic section{padding:var(--sec-pad) 0} — inherited, it
+  /* padding:0 overrides the generic section{padding:var(--sec-pad) 0}
+  body>section:not(.nethero){padding-bottom:0} — inherited, it
      left 96px of dead space at the foot of the hero and squashed the canvas by that
      much again at the top. */
   .nethero{position:relative;height:var(--hero-h);min-height:680px;padding:0;display:flex;flex-direction:column;

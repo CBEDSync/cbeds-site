@@ -53,8 +53,7 @@
   .nav-cta{font-family:var(--display);background:var(--green);color:var(--blue-deeper)!important;padding:10px 20px;border-radius:9px;font-weight:600;font-size:14px;transition:transform .15s,box-shadow .2s}
   .devtag{display:inline-block;margin-left:6px;font-family:var(--display);font-size:9px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#06202c;background:var(--green);border-radius:5px;padding:1px 5px;vertical-align:middle}
   .nav-cta:hover{transform:translateY(-2px);box-shadow:0 10px 24px rgba(112,179,174,.4)}
-  /* 44px tall so it is a real tap target - it was 36x28 */
-  .burger{display:none;background:none;border:0;cursor:pointer;flex-direction:column;justify-content:center;gap:5px;padding:0 12px;margin:0 -12px;min-height:44px}
+  .burger{display:none;background:none;border:0;cursor:pointer;flex-direction:column;gap:5px;padding:6px}
   .burger span{width:24px;height:2px;background:#fff;display:block;transition:.3s}
   header.nav.solid .burger span{background:var(--ink)}
 
@@ -168,8 +167,7 @@
   .foot-inner{display:flex;justify-content:space-between;align-items:center;gap:24px;flex-wrap:wrap}
   .foot-brand{display:flex;align-items:center;gap:11px;color:#fff;font-family:var(--display);font-weight:700;font-size:19px}
   .foot-brand .mk{width:40px;height:40px;--a1:#9fe0d9;--a2:#7fc6cd;--a3:#5fadc2;--a4:#3f93b6;--ad:#bdeee9}
-  /* wraps, or five links in a row push the page 118px wider than a phone screen */
-  .foot-links{display:flex;flex-wrap:wrap;gap:14px 26px}
+  .foot-links{display:flex;gap:26px}
   .foot-links a:hover{color:var(--green-bright)}
 
   .mini{font-family:var(--display);font-size:15px;color:var(--muted);background:var(--bg-soft);border:1px solid var(--line);border-radius:100px;padding:11px 22px}
@@ -187,7 +185,7 @@
     nav ul{display:none}
     .burger{display:flex}
     nav.open ul{display:flex;position:fixed;top:76px;left:0;right:0;flex-direction:column;background:#fff;border-bottom:1px solid var(--line);padding:22px 26px;gap:20px;box-shadow:0 20px 40px rgba(0,0,0,.12)}
-    nav.open ul a{display:block;padding:11px 0}nav.open ul a.lnk{color:var(--ink)}
+    nav.open ul a.lnk{color:var(--ink)}
   }
   @media(max-width:560px){.why-grid{grid-template-columns:1fr}.band,.cta{padding:46px 26px}}
   /* on a 768-tall laptop the hero's own 120/80 padding put it 14px past one screen,
@@ -387,41 +385,41 @@ document.getElementById('yr').textContent=new Date().getFullYear();
 const nav=document.getElementById('nav');
 addEventListener('scroll',()=>{nav.classList.toggle('solid',scrollY>40);document.getElementById('mainnav').classList.remove('open');});
 
-/* ============ HERO NETWORK — ASSEMBLES ONCE, THEN FLOWS FREE ============
-   On load the dots gather into a single building (a nod to the built
-   environment), hold a beat, then disperse and settle into the decentralised,
-   free-drifting knowledge graph that carries the page's message. Same dots,
-   edges, pulses, hover and always-on labels throughout. */
+/* ============ HERO NETWORK THAT BUILDS ITSELF ============
+   The same dots, edges, pulses and hover as before, but the nodes settle into
+   the shape of a building and, every few seconds, drift on to form a different
+   one. Motion is the same gentle, floaty spring-and-breathe as the old drift. */
 (function(){
   const c=document.getElementById('graph'),ctx=c.getContext('2d');
-  let w,h,dpr,t=0,thr=140,keep=null,field=null,scattered=false,drifting=false;
-  const labels=["BIM","IFC","ISO 19650","CPR","ESPR","Uniclass","NRM","bSDD","COBie","Data Templates","Material Passports","DPP","Digital Twins","Ontologies","Linked Data","Data Dictionaries","CDE","Data Spaces","Classification","Interoperability","Golden Thread","Whole Life Carbon","EPCs","Working Groups","Case Studies","Horizon Projects","Research Centres","Hubs","Frameworks","Standards","Regulations","WeAreNima","Asset Data","Sensors","IoT","Geospatial","Open Data","Smart Buildings","LOIN","MMC","Circular Economy"];
-  let nodes=[],edges=[],pulses=[],builds=[];
-  const TFORM=2400, THOLD=1700, TDISP=2600;          // assemble, hold, disperse
-  const DISP_AT=TFORM+THOLD, FREE_AT=DISP_AT+TDISP;  // then free drift forever
+  let w,h,dpr,t=0,thr=140,keep=null,field=null;
+  const labels=["BIM","IFC","Digital Twins","Digital Building Logbooks","Digital Product Passports","IoT","Material Passports","ESPR","CPR","ISO 19650","Working Groups","Ontologies","Linked Data","Research Projects","Regulations","Standards","Asset Data","Sensors","Geospatial","Classification","Open Data","Interoperability","COBie","Uniclass","bSDD","Data Dictionaries","Common Data Environment","Golden Thread","Whole Life Carbon","EPCs","Smart Buildings","Facility Management","Level of Information Need","Product Data Templates","Data Spaces","Machine Learning","Digital Building Permits","Semantic Web","APIs & Middleware","Data Trust","Carbon Data","Asset Management"];
+  let nodes=[],edges=[],pulses=[],builds=[],curB=0,morphAt=0;
+  const CYCLE=Math.round(9000/16);   // ~9s holding each building before it reforms
+  // Each building is a facade grid of window-dots; proximity edges draw the floors
+  // and columns, so the network itself reads as the structure.
   function makeBuildings(N,box){
-    const specs=[{C:3,wf:0.40,hf:0.96,roof:'flat'}];
+    const specs=[
+      {C:3,wf:0.36,hf:0.98,roof:'flat'},   // slim tower
+      {C:5,wf:0.94,hf:0.54,roof:'flat'},   // wide low-rise
+      {C:4,wf:0.60,hf:0.82,roof:'gable'},  // pitched-roof block
+      {C:4,wf:0.64,hf:0.92,roof:'step'}    // stepped / set-back tower
+    ];
     const H=box.ground-box.top;
     return specs.map(s=>{
       const C=s.C,R=Math.ceil(N/C),bw=box.maxW*s.wf,bh=H*s.hf,x0=box.cx-bw/2,yb=box.ground;
       const pts=[];
-      for(let idx=0;idx<N;idx++){const row=Math.floor(idx/C),col=idx%C;const fx=C>1?col/(C-1):0.5,fy=R>1?row/(R-1):0;pts.push({x:x0+fx*bw,y:yb-fy*bh});}
+      for(let idx=0;idx<N;idx++){
+        const row=Math.floor(idx/C),col=idx%C;
+        const fx=C>1?col/(C-1):0.5, fy=R>1?row/(R-1):0;   // row 0 = ground
+        let px=x0+fx*bw, py=yb-fy*bh;
+        if(s.roof==='gable'){const a=0.66; if(fy>a){const k=(fy-a)/(1-a); px=box.cx+(px-box.cx)*(1-0.9*k);}}
+        else if(s.roof==='step'){const sh=fy<0.5?1:(fy<0.8?0.66:0.4); px=box.cx+(px-box.cx)*sh;}
+        pts.push({x:px,y:py});
+      }
       return pts;
     });
   }
   function inKeep(x,y){return keep && x>keep.x0 && x<keep.x1 && y>keep.y0 && y<keep.y1;}
-  function assignLanes(){                              // building phase: left / above / right
-    var mn=1e9,mx=-1e9;for(const n of nodes){if(n.hx<mn)mn=n.hx;if(n.hx>mx)mx=n.hx;}
-    var span=Math.max(1,mx-mn);
-    for(const n of nodes){var f=(n.hx-mn)/span; var s=f<0.34?'l':(f>0.66?'r':'t');
-      if(n.hx>field.x1-150)s='l'; else if(n.hx<field.x0+120)s='r'; n.side=s;}
-  }
-  function sideFrom(x){var cx=(field.x0+field.x1)/2;var s=x>=cx?'r':'l';if(x>field.x1-150)s='l';else if(x<field.x0+120)s='r';return s;}
-  function scatterTargets(){                           // random spread across the field, clear of the copy
-    for(const n of nodes){var x,y,tries=0;
-      do{x=field.x0+Math.random()*Math.max(60,field.x1-field.x0);y=50+Math.random()*(h-100);tries++;}while(inKeep(x,y)&&tries<40);
-      n.tx=x;n.ty=y;n.side=sideFrom(x);}
-  }
   function build(){
     dpr=Math.min(devicePixelRatio||1,2);
     w=c.clientWidth;h=c.clientHeight;c.width=w*dpr;c.height=h*dpr;ctx.setTransform(dpr,0,0,dpr,0,0);
@@ -429,59 +427,39 @@ addEventListener('scroll',()=>{nav.classList.toggle('solid',scrollY>40);document
     field = w>=980 ? {x0:0,x1:colR} : {x0:0,x1:w};
     keep  = w>=980 ? {x0:0,x1:colL+Math.min(560,wrapW)+56,y0:h*0.10,y1:h*0.92} : null;
     field.x0 = keep ? keep.x1 : 40;
-    const N=Math.min(labels.length, w<620?22:41);
-    const box={cx:(field.x0+field.x1)/2, ground:h-70, top:h*0.13, maxW:Math.min(field.x1-field.x0-30,520)};
+    const N=Math.min(labels.length, w<620?24:41);
+    const box={cx:(field.x0+field.x1)/2, ground:h-70, top:h*0.13, maxW:Math.min(field.x1-field.x0-30, 520)};
     builds=makeBuildings(N,box);
     if(nodes.length!==N){
       nodes=[];
       for(let i=0;i<N;i++){const p=builds[0][i];
-        nodes.push({lab:labels[i],x:p.x+(Math.random()-.5)*150,y:p.y+(Math.random()-.5)*150,vx:0,vy:0,hx:p.x,hy:p.y,tx:p.x,ty:p.y,ph:Math.random()*6.28,side:'r'});}
-      scattered=false; drifting=false; t=0;            // (re)build restarts the intro
-      assignLanes();
-    } else if(!scattered){
-      for(let i=0;i<N;i++){nodes[i].hx=builds[0][i].x;nodes[i].hy=builds[0][i].y;}
-      assignLanes();
-    } else {
-      for(const n of nodes){n.x=Math.min(Math.max(n.x,field.x0+6),field.x1-14);n.y=Math.min(Math.max(n.y,30),h-30);n.side=sideFrom(n.x);}
-    }
+        nodes.push({lab:labels[i],x:p.x+(Math.random()-.5)*140,y:p.y+(Math.random()-.5)*140,vx:0,vy:0,hx:p.x,hy:p.y,ph:Math.random()*6.28,side:1});}
+    } else { for(let i=0;i<N;i++){nodes[i].hx=builds[curB][i].x;nodes[i].hy=builds[curB][i].y;} }
+    assignSides();
   }
   const mouse={x:null,y:null};
   c.addEventListener('mousemove',e=>{const r=c.getBoundingClientRect();mouse.x=e.clientX-r.left;mouse.y=e.clientY-r.top;});
   c.addEventListener('mouseleave',()=>{mouse.x=mouse.y=null;});
+  function retarget(){curB=(curB+1)%builds.length;for(let i=0;i<nodes.length;i++){nodes[i].hx=builds[curB][i].x;nodes[i].hy=builds[curB][i].y;}assignSides();}
+  // Fix which side each label sits on once per building (from its home vs the
+  // building's centre), so drifting dots never flip their text back and forth.
+  function assignSides(){var m=0;for(const n of nodes)m+=n.hx;m/=nodes.length||1;
+    for(const n of nodes){var s=n.hx>=m?1:-1; if(n.hx>field.x1-160)s=-1; else if(n.hx<field.x0+120)s=1; n.side=s;}}
   function physics(){
-    if(t<DISP_AT){                                      // assemble into the building, then hold
-      for(const n of nodes){
-        const bx=n.hx+Math.sin(t*0.0011+n.ph)*4.5, by=n.hy+Math.cos(t*0.0009+n.ph)*4.5;
-        n.vx+=(bx-n.x)*0.02; n.vy+=(by-n.y)*0.02; n.vx*=0.9; n.vy*=0.9;
-        const s=Math.hypot(n.vx,n.vy); if(s>2.4){n.vx*=2.4/s;n.vy*=2.4/s;}
-        n.x+=n.vx; n.y+=n.vy;
-      }
-    } else if(t<FREE_AT){                               // disperse: ease out to scattered spots
-      if(!scattered){scatterTargets();scattered=true;}
-      for(const n of nodes){
-        n.vx+=(n.tx-n.x)*0.011; n.vy+=(n.ty-n.y)*0.011; n.vx*=0.9; n.vy*=0.9;
-        const s=Math.hypot(n.vx,n.vy); if(s>2.0){n.vx*=2.0/s;n.vy*=2.0/s;}
-        n.x+=n.vx; n.y+=n.vy;
-      }
-    } else {                                            // the decentralised free drift
-      if(!drifting){for(const n of nodes){n.vx=(Math.random()-.5)*0.09;n.vy=(Math.random()-.5)*0.09;}drifting=true;}
-      for(const n of nodes){
-        n.x+=n.vx; n.y+=n.vy;
-        var lo=field.x0+6, hi=field.x1-14;
-        if(n.x<lo){n.x=lo;n.vx=Math.abs(n.vx);} if(n.x>hi){n.x=hi;n.vx=-Math.abs(n.vx);}
-        if(n.y<30){n.y=30;n.vy=Math.abs(n.vy);} if(n.y>h-30){n.y=h-30;n.vy=-Math.abs(n.vy);}
-        if(inKeep(n.x,n.y)){const push=(keep.x1-n.x);n.vx+=0.006+push*0.00002;}
-        const s=Math.hypot(n.vx,n.vy); if(s>0.14){n.vx*=0.14/s;n.vy*=0.14/s;}
-      }
+    for(const n of nodes){
+      // ease toward the current building's window, with a slow breathing wobble so
+      // the structure stays alive rather than frozen
+      const bx=n.hx+Math.sin(t*0.0011+n.ph)*4.5, by=n.hy+Math.cos(t*0.0009+n.ph)*4.5;
+      n.vx+=(bx-n.x)*0.011; n.vy+=(by-n.y)*0.011;
+      n.vx*=0.9; n.vy*=0.9;
+      const s=Math.hypot(n.vx,n.vy); if(s>1.6){n.vx*=1.6/s;n.vy*=1.6/s;}
+      n.x+=n.vx; n.y+=n.vy;
     }
   }
   function computeEdges(){
-    edges=[];
-    if(t<DISP_AT){
-      const nn=[];
-      for(let i=0;i<nodes.length;i++){const a=nodes[i];let m=1e9;for(let j=0;j<nodes.length;j++){if(j===i)continue;const b=nodes[j];const d=Math.hypot(a.x-b.x,a.y-b.y);if(d<m)m=d;}nn.push(m);}
-      const sorted=nn.slice().sort((p,q)=>p-q);const med=sorted[sorted.length>>1]||60;thr=med*1.85;
-    } else { thr=Math.hypot(w,h)*0.11; }
+    edges=[];const nn=[];
+    for(let i=0;i<nodes.length;i++){const a=nodes[i];let m=1e9;for(let j=0;j<nodes.length;j++){if(j===i)continue;const b=nodes[j];const d=Math.hypot(a.x-b.x,a.y-b.y);if(d<m)m=d;}nn.push(m);}
+    const sorted=nn.slice().sort((p,q)=>p-q);const med=sorted[sorted.length>>1]||60;thr=med*1.85;
     for(let i=0;i<nodes.length;i++){const a=nodes[i];const near=[];
       for(let j=0;j<nodes.length;j++){if(j===i)continue;const b=nodes[j];near.push([j,Math.hypot(a.x-b.x,a.y-b.y)]);}
       near.sort((p,q)=>p[1]-q[1]);
@@ -491,13 +469,14 @@ addEventListener('scroll',()=>{nav.classList.toggle('solid',scrollY>40);document
   function spawn(){if(pulses.length<12&&Math.random()<0.05&&edges.length){const e=edges[(Math.random()*edges.length)|0];pulses.push({e,p:0,sp:0.0026+Math.random()*0.003});}}
   function draw(){
     t+=16;ctx.clearRect(0,0,w,h);
+    if(t-morphAt>CYCLE*16){morphAt=t;retarget();}
     physics();computeEdges();
     let hi=-1;
     if(mouse.x!=null){let best=44;nodes.forEach((n,i)=>{const d=Math.hypot(n.x-mouse.x,n.y-mouse.y);if(d<best){best=d;hi=i;}});}
     for(const e of edges){
       const a=nodes[e.a],b=nodes[e.b];
       const lit=(hi===e.a||hi===e.b);
-      const o=lit?0.7:(1-Math.min(1,e.d/thr))*0.26+0.05;
+      const o=lit?0.7:(1-Math.min(1,e.d/thr))*0.3+0.06;
       ctx.strokeStyle=lit?'rgba(159,224,217,'+o+')':'rgba(150,205,210,'+o+')';
       ctx.lineWidth=lit?1.4:0.9;
       ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke();
@@ -517,8 +496,9 @@ addEventListener('scroll',()=>{nav.classList.toggle('solid',scrollY>40);document
       ctx.beginPath();ctx.arc(n.x,n.y,hov?4.4:2.9,0,7);ctx.fill();
       ctx.font=(hov?'600 12.5px ':'500 11px ')+'-apple-system,"Helvetica Neue",Inter,sans-serif';
       ctx.fillStyle=hov?'#f0fffb':'rgba(208,233,233,.72)';
-      if(n.side==='t'){ctx.textAlign='center';ctx.fillText(n.lab,n.x,n.y-11);}
-      else{var right=n.side==='r';ctx.textAlign=right?'left':'right';ctx.fillText(n.lab,n.x+(right?9:-9),n.y);}
+      var right=n.side>0;
+      ctx.textAlign=right?'left':'right';
+      ctx.fillText(n.lab,n.x+(right?9:-9),n.y);
     });
     requestAnimationFrame(draw);
   }

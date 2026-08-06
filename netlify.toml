@@ -7,3 +7,8 @@
 [functions]
   directory = "netlify/functions"
   node_bundler = "esbuild"
+
+[[headers]]
+  for = "/cbedsync-data.js"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
