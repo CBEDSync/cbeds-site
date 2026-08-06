@@ -171,6 +171,40 @@
     nav.open ul{display:flex;position:fixed;top:var(--nav-h);left:0;right:0;flex-direction:column;background:#fff;border-bottom:1px solid var(--line);padding:22px 26px;gap:20px;box-shadow:0 20px 40px rgba(0,0,0,.12)}
     nav.open ul a{display:block;padding:11px 0}nav.open ul a.lnk{color:var(--ink)}}
 </style>
+<script>
+/* Pin the hero height on phones.
+
+   --hero-h is 100svh, and svh is meant to be the viewport with the browser's chrome
+   showing - a constant. On the phones this was tested on it is not: the address bar
+   collapses as you scroll, the viewport grows, and everything measured from it grows
+   with it. The homepage node field and the CBEDSense chip cloud fill their hero, so
+   they were redrawing larger mid-scroll.
+
+   So svh is measured once, here, and written back as a pixel value. Same size the
+   design asks for, but a number, which nothing can then stretch. Re-measured only
+   when the width changes - an orientation change - never on a scroll. Runs in the
+   head so it lands before the first paint rather than as a jump afterwards. */
+(function(){
+  var root = document.documentElement, lastW = -1;
+  function svhPx(){
+    var probe = document.createElement('div');
+    probe.style.cssText = 'position:absolute;top:0;left:0;width:0;height:100svh;visibility:hidden;pointer-events:none';
+    root.appendChild(probe);
+    var h = probe.getBoundingClientRect().height;
+    probe.remove();
+    return h > 0 ? h : window.innerHeight;      // svh unsupported: fall back
+  }
+  function pin(){
+    if (window.innerWidth === lastW) return;     // height-only change is the address bar
+    lastW = window.innerWidth;
+    if (window.matchMedia('(max-width:640px)').matches) root.style.setProperty('--hero-h', svhPx() + 'px');
+    else root.style.removeProperty('--hero-h');
+  }
+  pin();
+  addEventListener('resize', pin, {passive:true});
+  addEventListener('orientationchange', function(){ lastW = -1; pin(); });
+})();
+</script>
 </head>
 <body>
 
