@@ -69,6 +69,14 @@
      organisations sat outside the column every other element lines up to. */
   .net-art>.wrap{height:100%}
   #net{display:block;width:100%;height:100%}
+  /* Phones. Same reason as the CBEDStory ripple: the canvas takes the height the hero
+     has left, and on a phone that height changes as the address bar collapses, so the
+     network redrew larger mid-scroll. A definite height keeps it still. */
+  @media(max-width:640px){
+    .nethero{height:auto;min-height:100svh}
+    .net-art{flex:0 0 auto;height:300px;padding-bottom:64px}
+    .net-legend{bottom:70px;font-size:12px}
+  }
   .net-intro{flex:0 0 auto;position:relative;z-index:3;text-align:center;padding:calc(var(--nav-h) + 40px) 26px 0}
   .net-intro .tag{font-family:var(--display);font-size:12.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--green-bright);font-weight:600}
   .devpill{display:inline-block;font-family:var(--display);font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#06202c;background:var(--green-bright);border-radius:100px;padding:4px 11px;vertical-align:middle}

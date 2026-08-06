@@ -175,6 +175,10 @@
      guidance rather than competing with the graph. Keywords lift to near-white, not accent. */
   .kg-hint{font-size:12px;font-weight:500;color:#9fc1c9;font-family:var(--display);background:rgba(6,32,44,.55);padding:7px 11px;border-radius:9px}
   .kg-hint b{color:#dbe9ec;font-weight:600}
+  /* Half of that hint is meaningless on a touch screen - there is no hover and no
+     scroll wheel - and at four instructions it wrapped to two lines over the graph. */
+  .kg-hint .coarse{display:none}
+  @media(pointer:coarse){.kg-hint .fine{display:none}.kg-hint .coarse{display:inline}}
   .kg-only{position:absolute;right:14px;top:14px;z-index:4;display:none;align-items:center;gap:7px;background:rgba(6,32,44,.72);border:1px solid rgba(134,205,199,.42);color:#dbe9ec;font-family:var(--display);font-weight:600;font-size:12.5px;padding:8px 13px;border-radius:10px;cursor:pointer;transition:.15s}
   .kg-only:hover{background:rgba(6,32,44,.92)}
   .kg-only.on{background:var(--green);color:#06202c;border-color:var(--green)}
@@ -287,6 +291,18 @@
      rather than a preview. Better to let the section run a little long and give the
      artwork a floor. The rest is tap targets - 44px is the smallest comfortable
      touch, and these were between 17 and 35. */
+  /* The knowledge graph on a phone. Stacked into one column, the three panes shared
+     the height evenly and the graph - the thing you opened - came out a thumbnail
+     under two thirds of a screen of search box. It is now a scrolling column with the
+     canvas pinned at the top, given half the screen and put first, ahead of the panels
+     that read from it. Safe to use svh here: the page behind is locked while the
+     overlay is open, so the address bar cannot collapse under it. */
+  @media(max-width:640px){
+    .kg-body{display:flex;flex-direction:column;height:auto;overflow:auto;grid-template-columns:none}
+    .kg-canvas-wrap{order:-1;flex:0 0 auto;height:52svh;min-height:320px}
+    .kg-left,.kg-right{border-left:0;border-right:0;border-top:1px solid rgba(255,255,255,.08);overflow:visible;flex:0 0 auto}
+    .kg-hint{font-size:11.5px;padding:6px 9px}
+  }
   @media(max-width:640px){
     .synchero{height:auto;min-height:100svh}
     /* a definite height, not min-height: the canvas is height:100%, and a percentage
@@ -402,7 +418,7 @@
       <canvas id="kgcanvas"></canvas>
       <button class="kg-only" id="kgOnly" title="Show only the chatbot matches"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 5h18l-7 8v6l-4-2v-4z"/></svg><span>Only matches</span></button>
       <div class="kg-overlays">
-        <div class="kg-hint"><b>Click</b> a node to explore &middot; <b>hover</b> to spotlight &middot; <b>scroll</b> to zoom &middot; <b>drag</b> to pan</div>
+        <div class="kg-hint"><span class="fine"><b>Click</b> a node to explore &middot; <b>hover</b> to spotlight &middot; <b>scroll</b> to zoom &middot; <b>drag</b> to pan</span><span class="coarse"><b>Tap</b> a node &middot; <b>drag</b> to pan</span></div>
       </div>
     </div>
     <div class="kg-right">
