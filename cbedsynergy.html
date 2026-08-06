@@ -15,7 +15,7 @@
     --body:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue","Inter",Helvetica,Arial,sans-serif;
   }
   *{box-sizing:border-box;margin:0;padding:0}
-  html{scroll-behavior:smooth}
+  html{scroll-behavior:smooth;background:var(--blue-deeper)}
   body{font-family:var(--body);color:var(--ink);background:var(--bg);line-height:var(--lh);-webkit-font-smoothing:antialiased}
   a{color:inherit;text-decoration:none}
   .wrap{max-width:var(--maxw);margin:0 auto;padding:0 26px}
@@ -46,7 +46,8 @@
      behind the text. build() reads the canvas's own clientWidth/clientHeight and
      derives its radius from whichever axis is tighter, which is what keeps the
      ellipses' proportions and holds the whole network inside the box. */
-  /* padding:0 overrides the generic section{padding:var(--sec-pad) 0} — inherited, it
+  /* padding:0 overrides the generic section{padding:var(--sec-pad) 0}
+  body>section:not(.nethero){padding-bottom:0} — inherited, it
      left 96px of dead space at the foot of the hero and squashed the canvas by that
      much again at the top. */
   .nethero{position:relative;height:var(--hero-h);min-height:680px;padding:0;display:flex;flex-direction:column;
@@ -90,7 +91,7 @@
   .org-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:40px}
   .org{background:var(--bg-soft);border:1px solid var(--line);border-radius:14px;padding:22px;display:flex;align-items:center;justify-content:center;
     text-align:center;font-family:var(--display);font-weight:600;color:var(--blue);min-height:96px;font-size:15px}
-  .join{margin-top:44px;background:radial-gradient(120% 140% at 50% 0%,#10566f,#072330);border-radius:22px;padding:54px 40px;text-align:center;color:#fff}
+  .join{margin-top:44px;background:radial-gradient(120% 140% at 50% 0%,#10566f,#072330);border-radius:22px 22px 0 0;padding:54px 40px;text-align:center;color:#fff}
   .join h3{font-size:clamp(24px,3vw,34px);margin-bottom:12px}
   .join p{color:#c5dade;max-width:52ch;margin:0 auto 26px;font-size:17px}
   .btn{font-family:var(--display);display:inline-block;background:var(--green);color:var(--blue-deeper);padding:14px 28px;border-radius:11px;font-weight:600}
