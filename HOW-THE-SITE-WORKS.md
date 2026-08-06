@@ -1,5 +1,10 @@
 # How the site works
 
+> **Reading this in Word?** Open **`How the site works.docx`** instead — same text, with
+> the diagrams as pictures. Word can't draw the diagrams below, so it shows their code.
+> This file stays the master; after editing it, mirror the change and re-run
+> [`docs/make-docs.py`](docs/make-docs.py).
+
 Five HTML pages, no build step, no database, no server. Everything a visitor sees is
 a static file. The one exception is a single function that keeps an API key secret.
 

@@ -1,5 +1,10 @@
 # Handling submissions
 
+> **Reading this in Word?** Open **`Handling submissions.docx`** instead — same text, with
+> the flowchart as a picture. Word can't draw the diagram below, so it shows its code.
+> This file stays the master; after editing it, mirror the change and re-run
+> [`docs/make-docs.py`](docs/make-docs.py).
+
 Two forms let people outside the team put entries forward: **Share your work**
 (CBEDSense) and the **Alliance Charter** (CBEDSynergy).
 
