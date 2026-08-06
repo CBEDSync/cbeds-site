@@ -164,10 +164,6 @@
   .formnote{font-size:12.5px;color:#9fb1b6;margin-top:12px}
   .formnote.err{color:#c2564d}
   .hp{display:none}
-  .done{display:none;background:#eef7f1;border:1px solid #bfe3cd;border-radius:18px;padding:30px;text-align:center}
-  .done.show{display:block}
-  .done h4{font-size:19px;color:var(--ink);margin-bottom:7px}
-  .done p{font-size:14.5px;color:var(--muted);max-width:46ch;margin:0 auto}
   @media(max-width:720px){.types{grid-template-columns:repeat(2,1fr)}}
 
   /* the space: ask + insight */
@@ -398,9 +394,9 @@
   <div class="wrap">
     <div class="sharehead">
       <div>
-        <span class="tag2">Add your work</span>
-        <h2 style="margin-bottom:10px">Put your work forward</h2>
-        <p class="lead">Tell us what you are sharing and where it fits, and we will help it find its place in the ecosystem.</p>
+        <span class="tag2" id="shTag">Add your work</span>
+        <h2 style="margin-bottom:10px" id="shHead">Put your work forward</h2>
+        <p class="lead" id="shLead">Tell us what you are sharing and where it fits, and we will help it find its place in the ecosystem.</p>
       </div>
       <button class="shbtn" id="shToggle">Share your work &#8594;</button>
     </div>
@@ -454,10 +450,6 @@
         <div style="margin-top:24px"><button type="submit" class="submit" id="shSubmit">Submit for review</button></div>
         <p class="formnote" id="shNote">The CBEDS team reads every submission before anything is added to the ecosystem. Your email goes to them so they can come back to you about it, and is not published.</p>
       </form>
-      <div class="done" id="shDone">
-        <h4>Thanks, that is in!</h4>
-        <p id="doneMsg"></p>
-      </div>
     </div></div>
   </div>
 </section>
@@ -601,6 +593,7 @@ if(window.ResizeObserver){new ResizeObserver(relayoutChips).observe(heroCard);}
 // share-your-work form
 var fw=document.getElementById('formwrap'),shToggle=document.getElementById('shToggle');
 shToggle.addEventListener('click',function(){
+  if(shSent){ resetShare(); return; }        // "Close" after sending: back to the start
   var open=fw.classList.toggle('open');
   shToggle.textContent=open?'Close form':'Share your work →';
   if(window.__kgsize)setTimeout(window.__kgsize,560);
@@ -683,8 +676,32 @@ function postForm(form,btn,note,ok){
     });
 }
 // submit
-var shForm=document.getElementById('shForm'),shDone=document.getElementById('shDone'),doneMsg=document.getElementById('doneMsg'),
-    shSubmit=document.getElementById('shSubmit'),shNote=document.getElementById('shNote');
+var shForm=document.getElementById('shForm'),
+    shSubmit=document.getElementById('shSubmit'),shNote=document.getElementById('shNote'),
+    shTag=document.getElementById('shTag'),shHead=document.getElementById('shHead'),shLead=document.getElementById('shLead');
+
+/* The confirmation takes over this block rather than appearing under it. "Put your
+   work forward" invites you to do the thing you have just done, so once something is
+   submitted the eyebrow, heading and paragraph become the receipt and the button
+   becomes the one thing left to do. Everything replaced is kept so Close can put the
+   section back as it was found - read from the page, not written out a second time. */
+var SH_TAG0=shTag.textContent, SH_HEAD0=shHead.textContent, SH_LEAD0=shLead.textContent,
+    SH_BTN0=shToggle.textContent, SH_NOTE0=shNote.textContent;
+var shSent=false;
+
+function resetShare(){
+  fw.classList.remove('open');
+  shTag.textContent=SH_TAG0; shHead.textContent=SH_HEAD0; shLead.textContent=SH_LEAD0;
+  shToggle.textContent=SH_BTN0;
+  shForm.style.display=''; shForm.reset();
+  // the radio cards and the aspect chips carry their state in classes, which reset() does not touch
+  [].forEach.call(typeWrap.querySelectorAll('.type'),function(l){l.classList.remove('sel');});
+  [].forEach.call(aWrap.querySelectorAll('.csc'),function(c){c.classList.remove('sel');});
+  syncAspects();                              // clears the three hidden fields with them
+  shNote.classList.remove('err'); shNote.textContent=SH_NOTE0;
+  shSubmit.disabled=false;
+  shSent=false;
+}
 shForm.addEventListener('submit',function(e){
   e.preventDefault();
   /* The form now carries a name attribute of its own, for Netlify. shForm.name still
@@ -699,8 +716,13 @@ shForm.addEventListener('submit',function(e){
   postForm(shForm,shSubmit,shNote,function(){
     var dest=(type==='Post')?'shared to the CBEDSynergy network':('added to CBEDSync as a'+(/^[AEIOU]/.test(type)?'n ':' ')+type.toLowerCase()+' node');
     var asp=picked.length?(' It will be linked to: '+picked.join(', ')+'.'):'';
-    doneMsg.textContent='“'+name+'” will be reviewed and, once approved, '+dest+'.'+asp;
-    shForm.style.display='none';shDone.classList.add('show');
+    shTag.textContent='Submitted';
+    shHead.textContent='Thanks, that is in!';
+    shLead.textContent='“'+name+'” will be reviewed and, once approved, '+dest+'.'+asp;
+    shToggle.textContent='Close';
+    shForm.style.display='none';
+    fw.classList.remove('open');              // the form has nothing left to show
+    shSent=true;
   });
 });
 
