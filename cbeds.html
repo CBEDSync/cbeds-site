@@ -196,7 +196,18 @@
      crossing 860 re-pads the hero by 52px, which is the node field growing mid-scroll
      that pinning --hero-h alone did not stop. Phones get their own padding below. */
   @media(max-height:860px) and (min-width:641px){.hero-inner{padding:96px 26px 52px}}
-  @media(max-width:640px){.hero-inner{padding:104px 26px 56px}}
+  @media(max-width:640px){
+    .hero-inner{padding:104px 26px 56px}
+    /* The copy is a left-hand column on a desktop, and the scrim is a left-to-right
+       fade that darkens the ground under it. On a phone the copy is full width, so
+       that fade does nothing for it and the labels drifted straight through the
+       headline. Text over a moving field is the one thing that reliably fails at this
+       size, so here the scrim runs top to bottom instead: heavy through the band the
+       words occupy, easing off at both ends so the field is still visible around
+       them rather than hidden. */
+    .hero-scrim{background:linear-gradient(to bottom,
+      rgba(7,35,48,.55) 0%,rgba(7,35,48,.90) 18%,rgba(7,35,48,.92) 72%,rgba(7,35,48,.58) 100%)}
+  }
 </style>
 <script>
 /* Pin the hero height on phones.
@@ -475,6 +486,12 @@ addEventListener('scroll',()=>{nav.classList.toggle('solid',scrollY>40);document
       for(let i=0;i<N;i++){const p=builds[0][i];
         nodes.push({lab:labels[i],x:p.x+(Math.random()-.5)*150,y:p.y+(Math.random()-.5)*150,vx:0,vy:0,hx:p.x,hy:p.y,tx:p.x,ty:p.y,ph:Math.random()*6.28,side:'r'});}
       scattered=false; drifting=false; t=0;            // (re)build restarts the intro
+      /* Skip the building on a phone. It is three columns over whatever height the
+         hero has, and at this width that is a 120px-wide, 590px-tall grid - which
+         reads as three straight vertical lines, not a building. Starting at the
+         disperse step gives the same easing-into-place entrance without the shape
+         that only works on a wide screen. */
+      if(w<980) t=DISP_AT;
       assignLanes();
     } else if(!scattered){
       for(let i=0;i<N;i++){nodes[i].hx=builds[0][i].x;nodes[i].hy=builds[0][i].y;}
@@ -560,7 +577,14 @@ addEventListener('scroll',()=>{nav.classList.toggle('solid',scrollY>40);document
     });
     requestAnimationFrame(draw);
   }
-  addEventListener('resize',build);build();draw();
+  /* Rebuild on a width change only. On a phone the address bar collapsing fires a
+     resize, and build() re-lays the whole field from the new height - so the nodes
+     jumped back into formation every time you scrolled. Width changing is an
+     orientation change, which does want a rebuild. */
+  var lastGraphW=-1;
+  function onGraphResize(){ if(c.clientWidth===lastGraphW) return; lastGraphW=c.clientWidth; build(); }
+  addEventListener('resize',onGraphResize);
+  build(); lastGraphW=c.clientWidth; draw();
 })();
 
 /* ============ small ambient networks (challenge / band / cta) ============ */
