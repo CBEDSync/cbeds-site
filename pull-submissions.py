@@ -165,9 +165,25 @@ def header_row_from_xlsx(path, sheet_names):
     with zipfile.ZipFile(path) as z:
         book = z.read("xl/workbook.xml").decode("utf-8", "replace")
         rels = z.read("xl/_rels/workbook.xml.rels").decode("utf-8", "replace")
-        target = dict(re.findall(r'Id="([^"]+)"[^>]*?Target="([^"]+)"', rels))
-        sheet_rid = dict((m.group(1), m.group(2)) for m in
-                         re.finditer(r'<sheet[^>]*name="([^"]*)"[^>]*r:id="([^"]+)"', book))
+
+        def attr(tag, name):
+            m = re.search(r'\b%s="([^"]*)"' % name, tag)
+            return m.group(1) if m else None
+
+        # Each attribute is read on its own rather than in a fixed order. Excel does
+        # not commit to one: the workbook this was written against put Id before
+        # Target, the next one it saved put Target first, and a pattern expecting the
+        # first order silently matched nothing and lost every sheet.
+        target = {}
+        for tag in re.findall(r"<Relationship\b[^>]*>", rels):
+            rid, tgt = attr(tag, "Id"), attr(tag, "Target")
+            if rid and tgt:
+                target[rid] = tgt
+        sheet_rid = {}
+        for tag in re.findall(r"<sheet\b[^>]*>", book):
+            nm, rid = attr(tag, "name"), attr(tag, "r:id")
+            if nm and rid:
+                sheet_rid[nm] = rid
 
         shared = []
         if "xl/sharedStrings.xml" in z.namelist():
@@ -179,7 +195,9 @@ def header_row_from_xlsx(path, sheet_names):
             rid = sheet_rid.get(name)
             if not rid or rid not in target:
                 sys.exit('The master has no sheet called "%s".' % name)
-            part = "xl/" + target[rid].lstrip("/").replace("xl/", "", 1)
+            # targets come both ways too: "/xl/worksheets/sheet1.xml" and "worksheets/sheet1.xml"
+            tgt = target[rid].lstrip("/")
+            part = tgt if tgt.startswith("xl/") else "xl/" + tgt
             xml = z.read(part).decode("utf-8", "replace")
             row1 = re.search(r"<row[^>]*\sr=\"1\"[^>]*>(.*?)</row>", xml, re.S)
             by_col = {}
