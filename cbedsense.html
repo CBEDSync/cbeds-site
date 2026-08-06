@@ -221,6 +221,9 @@
   /* two columns plus 28px of padding each does not fit a phone - the right-hand card
      hung 26px past the screen edge and took the whole page sideways with it */
   @media(max-width:640px){.spacegrid{grid-template-columns:1fr}.insight{padding:22px}
+    /* two 118px columns gave each type card five lines of wrapped description for a
+       one-line label - one per row reads, and they are choices, not a gallery */
+    .types{grid-template-columns:1fr}
     /* 44px is the smallest comfortable touch; the aspect chips were 37 */
     .csc{padding:11px 16px}
     /* input and button side by side need 349px of a 323px bar, and the button hung
