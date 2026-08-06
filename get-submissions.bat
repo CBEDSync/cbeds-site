@@ -22,11 +22,12 @@ echo.
 echo ------------------------------------------------------------
 echo Open draft\Submissions.xlsx to review.
 echo.
-echo   Columns A onwards match CBEDSync.xlsx exactly. To approve a
-echo   row, copy that part of it and paste it as a new row on the
-echo   matching sheet in CBEDSync.xlsx - Source already says Public.
-echo   The green "Review:" columns are notes for you and are not
-echo   part of the master; do not copy them across.
+echo   Columns A onwards match CBEDSync.xlsx exactly. The amber cell
+echo   in row 1 says where they stop, e.g. "copy A:BM only" - that
+echo   range moves if a column is added to the master, so read it
+echo   rather than remembering it. Paste it as a new row on the
+echo   matching sheet in CBEDSync.xlsx; Source already says Public.
+echo   The green "Review:" columns are notes for you, not the master.
 echo.
 echo   Then double-click rebuild-only.bat to see it on the site.
 echo ------------------------------------------------------------

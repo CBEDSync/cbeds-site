@@ -270,14 +270,29 @@ def new_book(heads):
 
 
 def write_header(ws, cols):
-    """Master columns, a blank gutter, then the review columns."""
+    """Master columns, a gutter naming the range to copy, then the review columns."""
     grey = PatternFill("solid", fgColor="EFF4F5")
     green = PatternFill("solid", fgColor="E4F0EE")
+    amber = PatternFill("solid", fgColor="FFF3D6")
     for i, h in enumerate(cols, start=1):
         c = ws.cell(row=1, column=i, value=h)
         c.font = Font(bold=True)
         c.fill = grey
-    start = len(cols) + 2                        # +2 leaves one empty gutter column
+
+    # The gutter used to be blank, which left the copy range to be remembered - and it
+    # is not a fixed range. It is however wide the master happens to be, so when the
+    # master lost a column the review block slid left and Review: Form landed in BM,
+    # the very cell people had been told to copy up to. The gutter now names the range
+    # itself, so the sheet is the thing that knows and nobody has to.
+    gut = len(cols) + 1
+    g = ws.cell(row=1, column=gut,
+                value="← copy A:%s only" % get_column_letter(len(cols)))
+    g.font = Font(bold=True, color="8A6100")
+    g.fill = amber
+    g.alignment = Alignment(wrap_text=True)
+    ws.column_dimensions[get_column_letter(gut)].width = 16
+
+    start = gut + 1
     for j, h in enumerate(REVIEW):
         c = ws.cell(row=1, column=start + j, value=h)
         c.font = Font(bold=True)

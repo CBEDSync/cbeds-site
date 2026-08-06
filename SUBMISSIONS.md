@@ -113,7 +113,11 @@ The row is in two halves:
 
 For each row you want on the site:
 
-1. Select **columns A to BM** of that row in `Submissions.xlsx` and copy.
+1. Select the master's columns of that row in `Submissions.xlsx` and copy. **The
+   amber cell in row 1 tells you where they stop** — it reads something like
+   `← copy A:BM only`. Do not work from a remembered letter: the range is however
+   wide `CBEDSync.xlsx` currently is, so it moves whenever a column is added to or
+   removed from the master.
 2. Paste it as a new row at the bottom of the matching sheet in `draft/CBEDSync.xlsx`.
 3. Do **not** copy the green `Review:` columns. Leaving them out is why there is a
    blank column between the two halves.
