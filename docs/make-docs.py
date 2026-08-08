@@ -207,6 +207,11 @@ for t in [
     "**A Charter signature is two things.** The organisation becomes an Agent row; the "
     "named lead, date and commitments have no home there - keep those with your "
     "signatory record.",
+    "**Clearing Netlify is safe; deleting a staged row is not.** What has already been "
+    "collected is remembered in `Review: Netlify id` inside `draft/Submissions.xlsx`, "
+    "so emptying the Netlify list changes nothing there and nothing comes back. But "
+    "delete a row *by hand* while it is still in Netlify and the next run re-adds it - "
+    "and once Netlify is cleared, `draft/Submissions.xlsx` is the only copy left.",
     "`draft/Submissions.xlsx` holds names and emails and is **kept out of GitHub**.",
     "Free Netlify allows ~100 submissions/month (*Billing > Usage*).",
 ]:
