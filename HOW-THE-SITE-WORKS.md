@@ -64,7 +64,21 @@ flowchart LR
 
 Fields are read **by position**, so a column inserted mid-sheet shifts everything after
 it and the build will publish a wrong graph without complaining. New columns go at the
-far right. (`Source` is the one exception — found by its heading.)
+far right. (`Source` and `Show/Hide` are the exceptions — found by their headings, so
+they can sit anywhere.)
+
+### Taking something off the site
+
+Don't delete the row. Put **`Hide`** in its `Show/Hide` column, at the far right of
+Agent, Project and Output. Blank or `Show` publishes as normal, so an untouched sheet
+behaves exactly as it did before the column existed.
+
+The rebuild prints `hidden=N`. If it says 0 after you hid something, the cell didn't
+take. Anything it doesn't recognise — a typo — is listed and **published as usual**,
+because showing one row too many is a smaller problem than silently losing one.
+
+Hiding a row doesn't rewrite the rows that named it, so a `LinksTo` pointing at it now
+points at nothing. The build reports that too.
 
 ---
 
