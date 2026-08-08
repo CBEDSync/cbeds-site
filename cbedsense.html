@@ -95,6 +95,7 @@
   .tag2{display:inline-block;font-family:var(--display);font-size:12.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--green);font-weight:600;margin-bottom:14px}
   h2{font-size:var(--fs-h2);color:var(--ink);margin-bottom:16px}
   .lead{font-size:18px;color:var(--muted);max-width:64ch}
+  .lead+.lead{margin-top:14px}   /* margins are reset globally, so stacked leads need one */
 
   /* feature cards */
   .feats{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:42px}
@@ -462,7 +463,8 @@
   <div class="wrap">
     <span class="tag2">The space</span>
     <h2>Make sense of the ecosystem</h2>
-    <p class="lead">Ask what you want to understand and get data to explore, see today's insight drawn from CBEDSync, and catch the latest from the community.</p>
+    <p class="lead">An acronym comes up in a meeting and everyone nods. Afterwards you try to pin it down: standard or product, who is behind it, who else uses it. The answers exist, scattered across websites and slide decks.</p>
+    <p class="lead">That is what this space is for. Ask in your own words and the answer is assembled from CBEDSync itself, not the open web. Under it sits today's insight from the same data, and the latest from the community.</p>
 
     <div class="ask">
       <div class="askbar">
