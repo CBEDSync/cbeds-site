@@ -149,7 +149,11 @@
   .field textarea{min-height:92px;resize:vertical}
   .field input:focus,.field textarea:focus{outline:none;border-color:var(--green)}
   .types{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
-  .type{cursor:pointer;border:1px solid var(--line);border-radius:12px;padding:14px;background:#fff;transition:.2s;display:block}
+  /* position:relative so the hidden radio below is contained by its own label.
+     Without it the input's containing block is the body, so it escaped .fwin's
+     overflow:hidden while the form was closed and left blank page under the footer.
+     It has no offsets, so this moves nothing. */
+  .type{position:relative;cursor:pointer;border:1px solid var(--line);border-radius:12px;padding:14px;background:#fff;transition:.2s;display:block}
   .type:hover{border-color:var(--c)}
   .type input{position:absolute;opacity:0;pointer-events:none}
   .type .tn{font-family:var(--display);font-weight:700;font-size:15px;color:var(--ink);display:flex;align-items:center;gap:8px}

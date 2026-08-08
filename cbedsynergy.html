@@ -133,7 +133,11 @@
   .charter ul li b{color:var(--ink);font-weight:600}
   /* the five commitments, picked like the CBEDSense type cards but multi-select */
   .commits{display:grid;grid-template-columns:repeat(auto-fit,minmax(184px,1fr));gap:10px;margin-top:4px}
-  .commit{cursor:pointer;border:1px solid var(--line);border-radius:12px;padding:14px;background:#fff;transition:.2s;display:block}
+  /* position:relative so the hidden checkbox below is contained by its own label.
+     Without it the input's containing block is the body, so it escaped .fwin's
+     overflow:hidden while the form was closed and left 1,737px of blank page under
+     the footer. It has no offsets, so this moves nothing. */
+  .commit{position:relative;cursor:pointer;border:1px solid var(--line);border-radius:12px;padding:14px;background:#fff;transition:.2s;display:block}
   .commit:hover{border-color:var(--green)}
   .commit input{position:absolute;opacity:0;pointer-events:none}
   .commit .tn{font-family:var(--display);font-weight:700;font-size:15px;color:var(--ink);display:flex;align-items:center;gap:8px}
