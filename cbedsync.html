@@ -313,6 +313,25 @@
     .depth button{padding:9px 14px;font-size:13px}
     .d-meta a{display:inline-block;padding:6px 0}
     .cchip{padding:11px 15px}
+    /* The results list. Below 920 it stops being its own scroller and runs down the
+       page, so 120 entries at 92px each was 12,000px of thumb.
+
+       Two things made each card tall. The chip and the class sat in a flex row, so the
+       class had a narrow column of its own to wrap in; flowing the chip inline with the
+       text hands it the full width. And four nested paddings took 120px of a 375px
+       screen, which left "Developers and Technology Providers" five pixels short of one
+       line - so 80 of the 120 cards wrapped for want of those five pixels. */
+    .explorer .wrap{padding-left:18px;padding-right:18px}
+    .ex-grid>*{min-width:0}   /* a long name was pushing the panel past its own column */
+    .panel.filters{padding:14px}
+    .results{gap:6px;padding-right:0}
+    .item{padding:8px 11px;border-radius:10px}
+    .item .nm{font-size:14px;line-height:1.25;overflow-wrap:anywhere}
+    .item .mt{display:block;margin-top:2px}
+    /* the chip is the tallest thing on the meta line, so its padding sets the line
+       box for all 120 cards whatever the text does */
+    .item .mt .kind{display:inline-block;font-size:9.5px;padding:2px 6px;margin-right:5px}
+    .item .sub{font-size:12px;line-height:1.4}
   }
 </style>
 <script>
