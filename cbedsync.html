@@ -250,6 +250,10 @@
   .msg.writing{position:relative}
   .msg.writing::after{content:"writing…";position:absolute;right:10px;bottom:4px;font-family:var(--display);font-size:10px;color:#7fa6b0;opacity:.9}
   .ai-note{font-family:var(--display);font-size:10px;letter-spacing:.04em;color:#7fa6b0;margin-top:10px}
+  /* general background, not CBEDS data - set apart so the two are never read as
+     one. Left rule rather than a box: it should sit quieter than the answer. */
+  .ai-context{font-size:13.5px;line-height:1.6;color:#b9d2d8;border-left:2px solid rgba(134,205,199,.35);
+    padding:2px 0 2px 12px;margin:0 0 16px}
 
   /* themed scrollbars — the OS default breaks the dark palette */
   .chat-log,.kg-left,.kg-right,.kg-sugg,.results{scrollbar-width:thin;scrollbar-color:rgba(134,205,199,.38) transparent}

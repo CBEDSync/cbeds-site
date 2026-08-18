@@ -194,6 +194,10 @@
   .askres .narr .more{color:#8aa2a9;cursor:pointer;border-bottom:1px dotted #c2d2d6}
   .askres .narr .more:hover{color:var(--blue);border-bottom-color:var(--blue)}
   .askres .ai-note{font-family:var(--display);font-size:10.5px;letter-spacing:.04em;color:#9fb1b6;margin-top:14px}
+  /* general background, not CBEDS data - set apart so the two are never read as
+     one. Left rule rather than a box: it should sit quieter than the answer. */
+  .askres .ai-context{font-size:14px;line-height:1.6;color:var(--muted);
+    border-left:2px solid rgba(21,96,130,.22);padding:2px 0 2px 12px;margin:0 0 16px}
   .askres .msg.writing{position:relative}
   .askres .msg.writing::after{content:"writing…";position:absolute;right:0;bottom:-16px;
                               font-family:var(--display);font-size:10.5px;color:#9fb1b6}

@@ -114,7 +114,24 @@ experts — projects, outputs and value themes the site retrieved, plus the
 managedBy / producedBy links between them), and SECTIONS: the headings the site has
 already laid out, each with the facts it is about to list under that heading.
 
-Write ONE short paragraph for each section, in the order given. Each paragraph
+You write two different things, and they must not be confused with each other.
+
+FIRST, a CONTEXT of 2-3 sentences answering the question from your own general
+knowledge, to orient a reader who does not know the subject. This one is NOT drawn
+from the subgraph. Its own rules:
+
+  C1. Explain the idea in plain terms: what it is, why it matters, what it is for.
+  C2. Name NOTHING specific. No organisation, product, standard, version number,
+      date, statistic or place. If you cannot make the point without naming one,
+      make a more general point. This is absolute - the site presents everything
+      else as verified CBEDS data, and an unverifiable name here would be read as
+      part of it.
+  C3. 60 words maximum. No asterisks, no markdown, no headings.
+  C4. If the question is too vague to explain anything useful, return "" and the
+      site will simply not show a context.
+
+SECOND, the section paragraphs. Write ONE short paragraph for each section, in the
+order given. Each paragraph
 introduces its section: it says what the reader should take from those facts and
 why they hang together. The facts themselves are already on screen directly below
 your paragraph, so do not re-list them.
@@ -144,13 +161,14 @@ Rules, in order of importance:
 Reply with JSON only — no markdown fence, no commentary — in exactly this shape,
 echoing each heading back exactly as given:
 
-{"sections":[{"heading":"<heading exactly as given>","paragraph":"<your paragraph>"}]}`;
+{"context":"<your 2-3 general sentences, or \"\">","sections":[{"heading":"<heading exactly as given>","paragraph":"<your paragraph>"}]}`;
 
 /* Claude supports a response schema outright; Gemini gets the shape via JSON mode
    plus the instruction above, which keeps the request surface small. */
 const CLAUDE_SCHEMA = {
   type: "object",
   properties: {
+    context: { type: "string" },
     sections: {
       type: "array",
       items: {
@@ -164,7 +182,7 @@ const CLAUDE_SCHEMA = {
       },
     },
   },
-  required: ["sections"],
+  required: ["context", "sections"],
   additionalProperties: false,
 };
 
@@ -248,7 +266,7 @@ async function callClaude(userText) {
 }
 
 // tolerant: models occasionally wrap JSON in a markdown fence even when told not to
-function parseSections(text) {
+function parseSections(text, question) {
   let t = (text || "").trim();
   const fence = t.match(/^```(?:json)?\s*([\s\S]*?)\s*```$/);
   if (fence) t = fence[1].trim();
@@ -266,7 +284,46 @@ function parseSections(text) {
       heading: s.heading.slice(0, 120),
       paragraph: s.paragraph.trim().split(/\s+/).slice(0, 60).join(" "),
     }));
-  return out.length ? out : null;
+  if (!out.length) return null;
+  return { context: cleanContext(parsed.context, question), sections: out };
+}
+
+/* The context is the one thing here written from the model's own knowledge rather
+   than from the workbook, so it is checked rather than trusted. Rule C2 says name
+   nothing specific; a model that ignores it would put an unverifiable organisation
+   on a page where everything else is verified CBEDS data, so anything that looks
+   like a name or a figure costs the whole block. Dropping it is free - the site
+   simply shows no context. */
+const NAMEY = [
+  /\b\d/,                                  // any digit: years, versions, statistics
+  /\*/,                                     // markdown emphasis, i.e. an entity link
+  /\b(?:ISO|IEC|EN|BS|IFC|BIM|CEN|ETIM|GS1|UNECE|EU|UK|US)\b/,
+  /\b[A-Z]{2,}\b/,                          // any other acronym
+  /\b(?:Ltd|LLC|plc|GmbH|University|Institute|Council|Commission|Consortium)\b/i,
+];
+function cleanContext(v, question) {
+  if (typeof v !== "string") return "";
+  const t = v.replace(/\s+/g, " ").trim();
+  if (!t) return "";
+  if (t.split(" ").length > 70) return "";          // C3, with a little slack
+
+  /* Words the reader typed are theirs, not the model's. Without this the checks fire
+     on the subject of the question itself - ask about IFC or DPPs and the answer
+     cannot say "IFC" - which suppressed the background on exactly the acronym
+     questions the ask box says it understands. Echoing someone's own term back is
+     not an unverifiable claim; inventing a new one still is, so only the words
+     actually asked about are exempt. */
+  const asked = new Set(
+    String(question || "").toLowerCase().match(/[a-z0-9][a-z0-9.\-]*/g) || [],
+  );
+  const probe = t.replace(/[A-Za-z0-9][A-Za-z0-9.\-]*/g, (w) =>
+    asked.has(w.toLowerCase()) ? "thing" : w,
+  );
+
+  if (NAMEY.some((re) => re.test(probe))) return "";
+  // a capitalised word mid-sentence is very likely a proper noun
+  if (/[a-z,] [A-Z][a-z]{2,}/.test(probe)) return "";
+  return t;
 }
 
 export default async (req) => {
@@ -310,7 +367,7 @@ export default async (req) => {
   const cached = cacheGet(key);
   if (cached) {
     return Response.json(
-      { sections: cached, cached: true },
+      { ...cached, cached: true },
       { headers: { "cache-control": "no-store" } },
     );
   }
@@ -319,11 +376,11 @@ export default async (req) => {
     const text = PROVIDER === "claude" ? await callClaude(userText) : await callGemini(userText);
     if (!text) return Response.json({ error: "empty" }, { status: 502 });
 
-    const out = parseSections(text);
+    const out = parseSections(text, question);
     if (!out) return Response.json({ error: "bad_model_output" }, { status: 502 });
 
     cacheSet(key, out);
-    return Response.json({ sections: out }, { headers: { "cache-control": "no-store" } });
+    return Response.json(out, { headers: { "cache-control": "no-store" } });
   } catch (err) {
     // Never leak key material or internals to the page.
     console.error("ask failed:", PROVIDER, err?.status, err?.message);

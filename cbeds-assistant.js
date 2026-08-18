@@ -484,7 +484,7 @@
     }
     function cacheGet(k) { try { var v = sessionStorage.getItem("kgllm:" + k); return v ? JSON.parse(v) : null; } catch (e) { return null; } }
     function cacheSet(k, v) { try { sessionStorage.setItem("kgllm:" + k, JSON.stringify(v)); } catch (e) { /* full or blocked */ } }
-    function applyGloss(el, head, narr, sections) {
+    function applyGloss(el, head, narr, sections, context) {
       var paras = {}, known = {};
       narr.secs.forEach(function (x) { known[x.t] = 1; });
       sections.forEach(function (sec) {   // ignore headings we didn't ask for
@@ -492,8 +492,15 @@
       });
       if (!Object.keys(paras).length) return;
       if (onEntityHover) onEntityHover(null, false);   // links are about to be replaced under the pointer
-      el.innerHTML = head + renderNarrative(narr, paras) +
-        '<div class="ai-note">Section notes written by AI from the data shown</div>';
+      /* The context is the one block not drawn from the workbook, so it is kept
+         visibly apart and never passed through bindEnts: an entity link here would
+         make general background look like a claim about a CBEDS entry. Escaped,
+         not mdToHtml'd - it is plain prose by construction. */
+      var ctx = context ? '<p class="ai-context">' + esc(context) + '</p>' : '';
+      el.innerHTML = head + ctx + renderNarrative(narr, paras) +
+        '<div class="ai-note">' +
+        (ctx ? 'Background written by AI from general knowledge; section notes' : 'Section notes') +
+        ' written by AI from the data shown</div>';
       bindEnts(el);
       followReveal(revealMs(el));
     }
@@ -505,7 +512,11 @@
         sections: narr.secs.map(function (x) { return { heading: x.t, facts: stripTags(x.h).slice(0, 500) }; }),
       };
       var payload = JSON.stringify(body), key = hashStr(payload), hit = cacheGet(key);
-      if (hit) { applyGloss(el, head, narr, hit); return; }    // asked before — no request needed
+      // older cache entries are a bare array of sections, with no context alongside
+      if (hit) {
+        applyGloss(el, head, narr, hit.sections || hit, hit.context || "");
+        return;                                               // asked before — no request needed
+      }
       el.classList.add("writing");
       fetch(ENDPOINT, { method: "POST", headers: { "Content-Type": "application/json" }, body: payload })
         .then(function (r) {
@@ -515,8 +526,8 @@
         })
         .then(function (d) {
           if (!d || !Array.isArray(d.sections) || !d.sections.length) return;
-          cacheSet(key, d.sections);
-          applyGloss(el, head, narr, d.sections);
+          cacheSet(key, { sections: d.sections, context: d.context || "" });
+          applyGloss(el, head, narr, d.sections, d.context || "");
         })
         .catch(function () { /* keep the template answer already on screen */ })
         .then(function () { el.classList.remove("writing"); });
