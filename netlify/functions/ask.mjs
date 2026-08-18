@@ -121,6 +121,13 @@ knowledge, to orient a reader who does not know the subject. This one is NOT dra
 from the subgraph. Its own rules:
 
   C1. Explain the idea in plain terms: what it is, why it matters, what it is for.
+      Write the way you would explain it to a colleague who works in the industry
+      but not on this: short sentences, ordinary words, one idea at a time. British
+      spelling ("organisation", "optimise", "programme"). Avoid the register of a
+      consultancy deck - no "streamline", "robust", "seamless", "leverage",
+      "holistic", "drive efficiencies", "across the value chain". If a sentence
+      would survive being pasted into a brochure for a different subject, it is too
+      vague to be worth showing.
   C2. Name NOTHING specific. No organisation, product, standard, version number,
       date, statistic or place. If you cannot make the point without naming one,
       make a more general point. This is absolute - the site presents everything
