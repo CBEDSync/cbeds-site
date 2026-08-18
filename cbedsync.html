@@ -116,6 +116,11 @@
   .kind.k-pub{background:none;color:var(--muted);box-shadow:inset 0 0 0 1px currentColor}
   .kg .kind.k-pub{color:#9fc1c9}
   .item .sub{font-size:12.5px;color:var(--muted)}
+  /* only ever appears on a phone, where the list is not its own scroller */
+  .moreres{display:none;width:100%;min-height:44px;margin-top:2px;padding:12px;
+    border:1px dashed var(--line);border-radius:10px;background:#fff;color:var(--blue);
+    font-family:var(--display);font-weight:600;font-size:13.5px;cursor:pointer}
+  .moreres:hover{border-color:var(--green);background:var(--bg-soft)}
 
   .detail{padding:26px 28px;min-height:60vh}
   .empty{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;height:56vh;color:var(--muted)}
@@ -553,18 +558,56 @@ function matches(n){
   if(state.q){var s=n.id.toLowerCase();if(s.indexOf(state.q)<0&&!((n.desc||'').toLowerCase().indexOf(state.q)>=0))return false;}
   return true;
 }
+/* Below 920 the list stops being its own scroller and runs down the page, so 120 cards
+   put the footer 8,600px away and everything under the explorer was unreachable without
+   scrolling past all of them. On a phone it shows a screenful and asks. Desktop keeps
+   the full 120, where the list has its own scrollbar and costs the page nothing. */
+var PAGE=12, shown=PAGE, lastKey=null;
+function phone(){return window.matchMedia('(max-width:640px)').matches;}
 function render(){
   var list=NODES.filter(matches);
-  rcountEl.textContent=list.length+' result'+(list.length!==1?'s':'')+(list.length>120?' (showing first 120)':'');
+  var key=state.kind+'|'+state.theme+'|'+state.tech+'|'+state.q;
+  if(key!==lastKey){lastKey=key;shown=PAGE;}   // a new filter starts again from the top
+
+  /* Strictly the first `shown`. An earlier version widened this to keep the selected
+     entry in the list, which quietly defeated the cap: the page selects an entry on
+     load and it sits 620 rows down, so the first render drew 621 cards. The detail
+     panel is what carries the selection anyway - the list highlight is a nicety. */
+  var cap=phone()?Math.min(list.length,shown):Math.min(list.length,120);
+  var more=list.length-cap;
+
+  var count=list.length+' result'+(list.length!==1?'s':'');
+  if(more>0) count+=phone()?' · showing '+cap:' (showing first 120)';
+  rcountEl.textContent=count;
+
   resultsEl.innerHTML='';
-  list.slice(0,120).forEach(function(n){
+  list.slice(0,cap).forEach(function(n){
     var d=document.createElement('div');d.className='item'+(current&&current.id===n.id?' sel':'');
     d.innerHTML='<div class="nm">'+esc(n.id)+'</div><div class="mt"><span class="kind k-'+n.kind+'">'+kindLabel[n.kind]+'</span><span class="sub">'+esc(n.sub||'')+'</span></div>';
     d.onclick=function(){select(n);};
     resultsEl.appendChild(d);
   });
+  if(phone()&&more>0){
+    var b=document.createElement('button');
+    b.type='button'; b.className='moreres'; b.style.display='block';
+    b.textContent=more<=20?'Show the last '+more:'Show 20 more';
+    b.onclick=function(){shown=cap+20;render();};
+    resultsEl.appendChild(b);
+  }
   if(!list.length) resultsEl.innerHTML='<div style="color:var(--muted);font-size:14px;padding:14px">No matches. Try clearing a filter.</div>';
 }
+/* Rotating a phone crosses the 640 breakpoint, and without this the list keeps
+   whichever cap was in force when it last drew. Width only: a height-only change is
+   the address bar collapsing, and redrawing on that would throw away the reader's
+   place mid-scroll. */
+(function(){
+  var lastW=window.innerWidth;
+  addEventListener('resize',function(){
+    if(window.innerWidth===lastW) return;
+    lastW=window.innerWidth;
+    render();
+  },{passive:true});
+})();
 
 /* Rows whose Source column says Public came in through a form and were approved by
    the team; everything else the team entered itself, and carries no badge. */
