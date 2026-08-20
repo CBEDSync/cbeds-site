@@ -137,19 +137,41 @@ from the subgraph. Its own rules:
   C4. If the question is too vague to explain anything useful, return "" and the
       site will simply not show a context.
 
-SECOND, the section paragraphs. Write ONE short paragraph for each section, in the
-order given. Each paragraph
-introduces its section: it says what the reader should take from those facts and
-why they hang together. The facts themselves are already on screen directly below
-your paragraph, so do not re-list them.
+SECOND, the section paragraphs. These are NOT separate introductions to separate
+sections. They are consecutive beats of ONE story answering what was asked, and the
+reader meets them one after another with the facts listed in between. Write them in
+the order given. The facts are already on screen directly below each paragraph, so
+do not re-list them.
+
+The site has already worked out which story this is and passes it as NARRATIVE
+SHAPE. Follow that arc:
+
+  trail     - what is being built here and what has come of it. Open on the work
+              itself, move to who is behind it, then to what it has produced, and
+              close on what that amounts to or what is conspicuously absent.
+  landscape - who occupies this field and how the sectors meet. Open on who is
+              here, move to where they actually come into contact, and close on
+              what that pattern of contact means.
+  web       - what two or more subjects have in common. Open on what each is doing
+              separately, move to where they touch, and close on what the overlap
+              makes possible that neither manages alone.
 
 Rules, in order of importance:
 
+0. Continuity is what makes this a story rather than a list.
+   - Take up what an earlier beat established rather than reintroducing it: "those
+     same standards bodies", "that gap", "the group behind it". A reader has just
+     read the previous paragraph.
+   - Never make a point an earlier beat has already made.
+   - The LAST paragraph must land. It is the only one allowed to generalise, and it
+     has to say what the whole thing adds up to, or name what is missing from it.
+     Do not close on another list of names.
 1. Use ONLY entities and relationships present in the subgraph and that section's
    facts. Never introduce an organisation, project, output, date or number that is
    not there. If a section is thin, say so plainly rather than padding.
 2. **Name at least two specific entities in every paragraph — three where the facts
-   allow.** Wrap each in **double asterisks**, spelled exactly as it appears in the
+   allow.** The closing paragraph is the exception: it may name one, or none, if
+   that is what it takes to say what the whole thing amounts to. Wrap each in **double asterisks**, spelled exactly as it appears in the
    data: the site turns these into clickable graph links, and a misspelling silently
    breaks the link. Naming nobody is a failed paragraph. Write concretely:
    "**University of Cambridge** works alongside **Connected Places Catapult**",
@@ -364,10 +386,18 @@ export default async (req) => {
     return Response.json({ error: "bad_request" }, { status: 400 });
   }
 
+  /* The client already decides which of the three stories fits the question, and
+     used to ship that decision buried in the subgraph JSON where the prompt never
+     looked at it. Stated plainly here instead, and only ever one of the three the
+     prompt defines - it arrives from the page, so it is not pasted in unchecked. */
+  const SHAPES = ["trail", "landscape", "web"];
+  const shape = SHAPES.includes(subgraph?.narrative_shape) ? subgraph.narrative_shape : "landscape";
+
   const userText =
     `Question: ${question}\n\n` +
+    `NARRATIVE SHAPE: ${shape}\n\n` +
     `SUBGRAPH:\n${JSON.stringify(subgraph)}\n\n` +
-    `SECTIONS (write one paragraph for each, in this order):\n` +
+    `SECTIONS — these are the beats of one story, in order. The last one closes it:\n` +
     JSON.stringify(sections);
 
   const key = hashKey(`${PROVIDER}|${GEMINI_MODELS.join(",")}|${CLAUDE_MODEL}|${userText}`);
