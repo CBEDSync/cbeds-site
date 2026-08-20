@@ -162,7 +162,14 @@
     ("what which where when whose why how who does did do is are was were be been the "
      + "a an of in on for to and or with about from at as by that this it its can could "
      + "would should tell me you please explain define mean means give show find list "
-     + "any some more most work works working used use using"
+     + "any some more most work works working used use using "
+     // filler that carries no subject. Without these a question like "nothing like this
+     // exists" scored top marks: each of those words happens to appear in exactly one
+     // entry out of 1,596, and rarity alone reads as relevance.
+     + "come comes came coming like likes nothing something anything everything exists "
+     + "exist need needs want wants know knows get gets got make makes made new old "
+     + "other others many much way ways thing things help helps there their them they "
+     + "have has had will just also only than then when out into over under between"
     ).split(" ").forEach(function (w) { STOP[w] = 1; });
 
     function sigWords(t) {
@@ -214,16 +221,21 @@
         texts.push(t);
         qw.forEach(function (w) { if (t.indexOf(w) >= 0) df[w]++; });
       });
+      /* Rarity alone is not relevance: a word can be rare here simply because it is
+         ordinary English nobody writes in a description. So an entry has to earn its
+         place - either two different words of the question land on it, or one lands in
+         its NAME. One ordinary word buried in one blurb is a coincidence, not a match. */
       var scored = [];
       NODES.forEach(function (n, i) {
-        var t = texts[i], score = 0;
+        var t = texts[i], name = n.id.toLowerCase(), score = 0, hits = 0, inName = false;
         qw.forEach(function (w) {
           if (!df[w] || t.indexOf(w) < 0) return;
+          hits++;
           var weight = Math.log(NODES.length / df[w]);
-          if (n.id.toLowerCase().indexOf(w) >= 0) weight *= 2;
+          if (name.indexOf(w) >= 0) { weight *= 2; inName = true; }
           score += weight;
         });
-        if (score > 0) scored.push({ n: n, score: score });
+        if (score > 0 && (hits >= 2 || inName)) scored.push({ n: n, score: score });
       });
       if (!scored.length) return [];
       scored.sort(function (a, b) {
