@@ -112,6 +112,15 @@ The key lives only in Netlify's environment variables — **never in a page**, b
 every `.html` and `.js` file is public. Without a key the page falls back to its own
 answers, so nothing breaks.
 
+### What people asked for and didn't get
+
+When a question matches nothing, the page records the question text — and only that,
+no address or identifier — so the gaps are visible instead of guessed at.
+
+Read them at **Netlify → Functions → `ask` → Logs**, looking for lines beginning
+`ask miss:`. A term that keeps appearing is worth adding to the workbook, or worth
+knowing the site can't answer.
+
 ---
 
 ## Submissions

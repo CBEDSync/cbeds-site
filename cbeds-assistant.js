@@ -194,6 +194,62 @@
       });
       return best;
     }
+    /* Last resort before giving up. This used to look for the ENTIRE question inside a
+       name or description, which no sentence ever satisfies, so anything not naming a
+       topic outright died here. It now scores entries word by word.
+
+       Rare words carry the query: "steel" narrows to a handful of entries, "data"
+       narrows to nothing, so each word is worth log(total / how many entries use it),
+       and double that when it lands in the name rather than the blurb. The floor stops
+       one very common word dragging back half the graph. 1,256 of the 1,596 entries
+       carry a description, so there is real text here to search. */
+    var MISS_FLOOR = 2.0;
+    function searchText(s) {
+      var qw = sigWords(s);
+      if (!qw.length) return [];
+      var df = {}, texts = [];
+      qw.forEach(function (w) { df[w] = 0; });
+      NODES.forEach(function (n) {
+        var t = (n.id + " " + (n.desc || "")).toLowerCase();
+        texts.push(t);
+        qw.forEach(function (w) { if (t.indexOf(w) >= 0) df[w]++; });
+      });
+      var scored = [];
+      NODES.forEach(function (n, i) {
+        var t = texts[i], score = 0;
+        qw.forEach(function (w) {
+          if (!df[w] || t.indexOf(w) < 0) return;
+          var weight = Math.log(NODES.length / df[w]);
+          if (n.id.toLowerCase().indexOf(w) >= 0) weight *= 2;
+          score += weight;
+        });
+        if (score > 0) scored.push({ n: n, score: score });
+      });
+      if (!scored.length) return [];
+      scored.sort(function (a, b) {
+        return b.score - a.score || (degOf[b.n.id] || 0) - (degOf[a.n.id] || 0);
+      });
+      if (scored[0].score < MISS_FLOOR) return [];
+      return scored.slice(0, 40).map(function (x) { return x.n; });
+    }
+
+    /* When even that finds nothing, name the nearest topics rather than repeating the
+       same generic hint. A dead end the reader can act on. */
+    function nearestTopics(s) {
+      var qw = sigWords(s), out = [];
+      if (!qw.length) return out;
+      var cands = TECH.map(function (t) { return t.id; }).concat(D.themes || []);
+      cands.forEach(function (name) {
+        var tw = sigWords(name.replace(/\s*\([^)]*\)/, " ")), hit = 0;
+        tw.forEach(function (w) {
+          qw.forEach(function (q) { if (w.slice(0, 6) === q.slice(0, 6)) hit++; });
+        });
+        if (hit) out.push({ name: name, hit: hit });
+      });
+      out.sort(function (a, b) { return b.hit - a.hit; });
+      return out.slice(0, 3).map(function (x) { return x.name; });
+    }
+
     function resolveLoose(s) {
       var asked = {}, n = 0;
       sigWords(s).forEach(function (w) { asked[w] = 1; n++; });
@@ -578,6 +634,22 @@
       bindEnts(el);
       followReveal(revealMs(el));
     }
+    /* A question that matches nothing never reaches the function, so until now there
+       was no record anywhere of what people ask for and do not get - leaving the only
+       evidence of a gap in the resolver the chance that someone mentions it. Sends the
+       question text and nothing else, and does not care whether it arrives. */
+    function reportMiss(q) {
+      if (llmOff || !global.fetch || location.protocol === "file:") return;
+      try {
+        global.fetch(ENDPOINT, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ miss: String(q).slice(0, 300) }),
+          keepalive: true,
+        }).catch(noop);
+      } catch (e) { /* recording a miss must never break the answer */ }
+    }
+
     function askLLM(q, sg, tp, el, head, narr) {
       if (llmOff || !global.fetch || location.protocol === "file:") return;  // offline / local file
       var body = {
@@ -630,12 +702,16 @@
           sg = subgraphFromNodes((adj[topic.id] || []).map(function (e) { return byId[e.id]; }).filter(Boolean), [topic]);
           centerNode = topic;
         } else {
-          sg = subgraphFromNodes(NODES.filter(function (n) { return (n.id + " " + (n.desc || "")).toLowerCase().indexOf(s) >= 0; }), []);
+          sg = subgraphFromNodes(searchText(s), []);
         }
       }
       if (!(sg.agent.length + sg.project.length + sg.output.length + sg.tech.length)) {
         onNoMatch();
-        botMsg("No matches for that. Try an acronym (DPP, BIM, DT), a theme, or part of a name.");
+        reportMiss(q);
+        var near = nearestTopics(s);
+        botMsg(near.length
+          ? "No matches for that. Did you mean " + near.map(esc).join(", ") + "?"
+          : "No matches for that. Try an acronym (DPP, BIM, DT), a theme, or part of a name.");
         return;
       }
       var shape = pickShape(sg, tp, s);              // the question decides which story gets told

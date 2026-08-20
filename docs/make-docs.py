@@ -148,6 +148,13 @@ para(d, "The key lives only in Netlify's environment variables - **never in a pa
         "because every `.html` and `.js` file is public. Without a key the page falls "
         "back to its own answers, so nothing breaks.")
 
+d.add_heading("What people asked for and didn't get", 2)
+para(d, "When a question matches nothing, the page records the question text - and only "
+        "that, no address or identifier - so the gaps are visible instead of guessed at.")
+para(d, "Read them at **Netlify > Functions > `ask` > Logs**, looking for lines "
+        "beginning `ask miss:`. A term that keeps appearing is worth adding to the "
+        "workbook, or worth knowing the site cannot answer.")
+
 d.add_heading("Submissions", 1)
 para(d, "Two forms collect entries from outside the team. Nothing they send reaches the "
         "site without a person copying it into the Excel - see **Handling "

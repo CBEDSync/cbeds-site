@@ -379,6 +379,17 @@ export default async (req) => {
     return Response.json({ error: "bad_request" }, { status: 400 });
   }
 
+  /* A question the page could not match never gets this far as a normal request -
+     there is no subgraph to gloss - so the only record that anyone asked it is this
+     line. Text only: no address, no identifier, nothing joined to anything. Read it
+     under Netlify > Functions > ask > Logs, or `netlify logs:function ask`. Behind
+     the origin and rate-limit guards above, so it cannot be written from elsewhere. */
+  const miss = String(body?.miss || "").replace(/\s+/g, " ").trim().slice(0, 300);
+  if (miss) {
+    console.log("ask miss:", JSON.stringify(miss));
+    return new Response(null, { status: 204 });
+  }
+
   const question = String(body?.question || "").slice(0, 500);
   const subgraph = body?.subgraph;
   const sections = Array.isArray(body?.sections) ? body.sections.slice(0, 8) : [];
