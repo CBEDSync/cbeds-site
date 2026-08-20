@@ -141,6 +141,8 @@
           if (w.length > 6 && s.indexOf(w) >= 0) return { theme: D.themes[j] };
         }
       }
+      var stem = themeByStem(s);
+      if (stem) return { theme: stem };
       var nm2 = null;
       NODES.forEach(function (n) {
         if (n.kind !== "tech") {
@@ -148,7 +150,73 @@
           if (id.length > 5 && s.indexOf(id) >= 0 && (!nm2 || id.length > nm2.id.length)) nm2 = n;
         }
       });
-      return nm2;
+      return nm2 || resolveLoose(s);
+    }
+
+    /* Every pass above needs the question to contain a name outright, and the last
+       resort in respond() looks for the whole question inside a name, which is worse.
+       So "what is digital passport?" found nothing: the entry is "Digital Product
+       Passport (DPP)" and nobody says the middle word. This scores each name by how
+       much of it the question actually said, which is the way people ask. */
+    var STOP = {};
+    ("what which where when whose why how who does did do is are was were be been the "
+     + "a an of in on for to and or with about from at as by that this it its can could "
+     + "would should tell me you please explain define mean means give show find list "
+     + "any some more most work works working used use using"
+    ).split(" ").forEach(function (w) { STOP[w] = 1; });
+
+    function sigWords(t) {
+      var out = [], seen = {};
+      t.toLowerCase().split(/[^a-z0-9]+/).forEach(function (w) {
+        if (w.length > 2 && !STOP[w] && !seen[w]) { seen[w] = 1; out.push(w); }
+      });
+      return out;
+    }
+    /* "circular economy" is how people say the Sustainability and Circularity theme,
+       and the containment pass above cannot see it: the theme's word is the LONGER of
+       the two, so the question never contains it. Comparing stems catches that pair,
+       and interoperable/interoperability, and sustainable/sustainability. Where a
+       question touches two themes the earlier word wins, on the grounds that people
+       lead with their subject - "circular economy in construction" is about the first.
+       Six characters is short enough to stem and long enough not to collide. */
+    function themeByStem(s) {
+      var qw = sigWords(s), best = null, bestAt = 1e9;
+      (D.themes || []).forEach(function (theme) {
+        theme.toLowerCase().split(/ and |,/).forEach(function (part) {
+          var tw = part.trim();
+          if (tw.length < 6) return;
+          for (var i = 0; i < qw.length; i++) {
+            if (qw[i].length >= 5 && qw[i].slice(0, 6) === tw.slice(0, 6) && i < bestAt) {
+              bestAt = i; best = theme;
+            }
+          }
+        });
+      });
+      return best;
+    }
+    function resolveLoose(s) {
+      var asked = {}, n = 0;
+      sigWords(s).forEach(function (w) { asked[w] = 1; n++; });
+      if (!n) return null;
+      var best = null, bestCover = 0, bestDeg = -1;
+      NODES.forEach(function (node) {
+        var t = sigWords(node.id.replace(/\s*\([^)]*\)/, " "));
+        if (!t.length) return;
+        var hit = 0;
+        t.forEach(function (w) { if (asked[w]) hit++; });
+        if (!hit) return;
+        // how much of the NAME was said, not how much of the question was used: asking
+        // a long question about one thing should still find that thing
+        var cover = hit / t.length;
+        if (cover < 0.6) return;                 // "digital" alone must not summon Digital Twin
+        // a single word carries a name only when the name is that one word
+        if (hit === 1 && !(t.length === 1 && t[0].length > 5)) return;
+        var deg = degOf[node.id] || 0;
+        if (cover > bestCover || (cover === bestCover && deg > bestDeg)) {
+          bestCover = cover; bestDeg = deg; best = node;
+        }
+      });
+      return best;
     }
     function resolveTopics(s) {
       var found = [], ids = {};
