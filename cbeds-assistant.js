@@ -246,6 +246,8 @@
       if (lens === "organisations & experts") return "landscape";
       // "produce" spelled out rather than produc\w* — otherwise "Digital Product Passport" matches
       if (/\b(produce[sd]?|producing|production|deliver\w*|publish\w*|outcome\w*|result\w*|achiev\w*|built|made)\b/.test(s)) return "trail";
+      // the plainest way to ask for a trail, and the list above misses all of it
+      if (/\b(?:come|comes|came|coming)\s+(?:out\s+)?(?:of|from)\b/.test(s)) return "trail";
       var f = shapeSignals(sg);
       if (f.anchor === "agent" || f.anchor === "project") return "trail";  // a body: the story is what it delivers
       if (f.a >= 4 && f.roles >= 2) return "landscape";                    // a real spread of sectors to describe
@@ -308,8 +310,8 @@
         if (f.g.standards.length) { span.push("standards"); body += "<p><b>Standards bodies and regulators:</b> " + joinEnts(f.g.standards, 4) + ".</p>"; }
         if (!body && f.g.other.length) body = "<p>" + joinEnts(f.g.other, 5) + ".</p>";
         if (span.length > 1) body = "<p>The " + A.length + " organisations here span " + listPhrase(span) + ".</p>" + body;
-        secs.push({ t: "Who is involved", h: body });
-      } else if (A.length) secs.push({ t: "Who is involved", h: "<p>" + joinEnts(A, 5) + ".</p>" });
+        secs.push({ t: "Who is here", h: body });
+      } else if (A.length) secs.push({ t: "Who is here", h: "<p>" + joinEnts(A, 5) + ".</p>" });
       var meet = "";
       if (sg.project.length) {
         var p = sg.project[0], a = f.runBy[p.id];
@@ -319,26 +321,30 @@
         var o = f.dated[0];
         meet += "<p>The newest thing to come out of it is " + entLink(o) + " (" + esc(o.year) + (f.prodBy[o.id] ? ", from " + entLink(f.prodBy[o.id]) : "") + ").</p>";
       }
-      if (meet) secs.push({ t: "Where they meet", h: meet });
-      if (f.themes.length) secs.push({ t: "Value themes", h: "<p>Most of this work is tagged under " + themePhrase(f.themes) + ".</p>" });
+      if (meet) secs.push({ t: "Where they actually meet", h: meet });
+      if (f.themes.length) secs.push({ t: "What that adds up to", h: "<p>Most of this work is tagged under " + themePhrase(f.themes) + ".</p>" });
       return secs;
     }
 
     /* B — Impact & delivery trail: why the field exists here, then what it has shipped */
     function narrTrail(sg, tp, f) {
       var secs = [];
-      if (f.themes.length) secs.push({ t: "The core challenge", h: "<p>This work is tagged against " + themePhrase(f.themes) + " — that is what it is trying to move.</p>" });
+      if (f.themes.length) secs.push({ t: "What this is trying to move", h: "<p>This work is tagged against " + themePhrase(f.themes) + " — that is what it is trying to move.</p>" });
       if (sg.project.length) {
         var p = sg.project[0], a = f.runBy[p.id];
         var h = "<p>" + entLink(p) + (a ? ", run by " + entLink(a) + "," : "") + " is the most connected initiative here, with " + countOf(degOf[p.id] || 0, "link") + " into the rest of the graph.</p>";
         if (sg.project.length > 1) h += "<p>Also under way: " + projectList(sg, f, 1) + ".</p>";
-        secs.push({ t: "Active initiatives", h: h });
+        secs.push({ t: "What is being built", h: h });
       }
       var players = [], seen = {};
       sg.chains.forEach(function (c) { if (!seen[c.agent.id]) { seen[c.agent.id] = 1; players.push(c.agent); } });
-      if (players.length) secs.push({ t: "Who is delivering", h: "<p>" + joinEnts(players, 5) + (players.length === 1 ? " is" : " are") + " named as running or producing the items above.</p>" });
-      else if (sg.agent.length) secs.push({ t: "Who is involved", h: "<p>" + joinEnts(sg.agent, 5) + ".</p>" });
-      if (sg.output.length) secs.push({ t: "Tangible outcomes", h: "<p>The record so far: " + listPhrase(f.mix) + ".</p>" + outputTail(sg, tp, f) });
+      if (players.length) secs.push({ t: "Who is behind it", h: "<p>" + joinEnts(players, 5) + (players.length === 1 ? " is" : " are") + " named as running or producing the items above.</p>" });
+      else if (sg.agent.length) secs.push({ t: "Who is behind it", h: "<p>" + joinEnts(sg.agent, 5) + ".</p>" });
+      /* A trail has to end on what came of it. Where nothing has, saying so IS the
+         ending - without this the last beat was "Who is behind it", and no prompt can
+         make a story land on a roll call of names. */
+      if (sg.output.length) secs.push({ t: "What has come out", h: "<p>The record so far: " + listPhrase(f.mix) + ".</p>" + outputTail(sg, tp, f) });
+      else secs.push({ t: "What has not come out yet", h: "<p>Nothing here is recorded as having produced a published output — what the graph holds is the organisations and the work under way, not results.</p>" });
       return secs;
     }
 
@@ -349,13 +355,13 @@
         body = "<p>Research and delivery meet here: " + joinEnts(f.g.academic, 3) + " on the academic side, " + joinEnts(f.g.industry, 3) + " on the commercial side.</p>";
       else if (sg.agent.length) body = "<p>" + joinEnts(sg.agent, 5) + " appear on every side of this.</p>";
       if (f.g.standards.length) body += "<p>Working to frameworks from " + joinEnts(f.g.standards, 3) + ".</p>";
-      if (body) secs.push({ t: "Primary partnerships", h: body });
+      if (body) secs.push({ t: "Who is on each side", h: body });
       if (sg.tech.length) secs.push({ t: "Enabling technologies", h: "<p>" + joinEnts(sg.tech, 5) + " run through these entries as well.</p>" });
       var overlap = "";
       if (sg.project.length) overlap += "<p>Shared projects: " + projectList(sg, f, 0) + ".</p>";
       if (sg.output.length) overlap += "<p>Shared outputs: " + expandable(sg.output.map(function (o) { return entLink(o) + (o.year ? " (" + esc(o.year) + ")" : ""); }), 3, "semi") + ".</p>";
-      if (overlap) secs.push({ t: "Where they overlap", h: overlap });
-      if (f.themes.length) secs.push({ t: "Value themes", h: "<p>Most of this work is tagged under " + themePhrase(f.themes) + ".</p>" });
+      if (overlap) secs.push({ t: "Where they touch", h: overlap });
+      if (f.themes.length) secs.push({ t: "What the overlap makes possible", h: "<p>Most of this work is tagged under " + themePhrase(f.themes) + ".</p>" });
       return secs;
     }
 
