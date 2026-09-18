@@ -21,14 +21,6 @@ except ImportError:
 HERE = Path(__file__).resolve().parent
 XLSX = HERE / "draft" / "CBEDSync.xlsx"
 OUT = HERE / "cbedsync-data.js"
-
-# Partner logos: drop image files into "Logos of partners/" and they are copied into
-# partners/ (served by the site) and listed in partners-data.js, which CBEDSynergy reads
-# to fill the community grid. The display name is derived from each file's name.
-PARTNERS_SRC = HERE / "Logos of partners"
-PARTNERS_DIR = HERE / "partners"
-PARTNERS_OUT = HERE / "partners-data.js"
-PARTNER_EXT = {".png", ".jpg", ".jpeg", ".svg", ".webp", ".gif"}
 DESC_MAX = 240
 SUB_MAX = 60
 WEB_MAX = 300
@@ -290,98 +282,6 @@ def build():
             "hiddenCount": hidden_count, "danglingToHidden": dangling}
 
 
-def _partner_name(stem):
-    import re
-    return re.sub(r"\s+", " ", re.sub(r"[_-]+", " ", re.sub(r"^\d+[-_.) ]+", "", stem))).strip()
-
-
-def build_partners():
-    """Read partner logos from "Logos of partners/" plus the Organisations.xlsx beside
-    them, copy the images into partners/, and write partners-data.js (src, name, url,
-    person, date) that CBEDSynergy reads for the community grid. Order comes from the
-    number each image name starts with, matched to the Order column in the sheet. If the
-    source folder is absent, the committed files are left untouched."""
-    import re, shutil
-    from datetime import datetime, date as _date
-    if not PARTNERS_SRC.is_dir():
-        print("    partner logos: no 'Logos of partners/' folder - left partners-data.js as is")
-        return
-
-    MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"]
-    def fmt_date(v):
-        if isinstance(v, (datetime, _date)):
-            return "%d %s %d" % (v.day, MONTHS[v.month - 1], v.year)
-        s = str(v).strip() if v is not None else ""
-        return s.split(" ")[0] if s else ""
-
-    meta = {}                                # keyed by Order number
-    xlsx = PARTNERS_SRC / "Organisations.xlsx"
-    if xlsx.exists():
-        try:
-            ws = openpyxl.load_workbook(xlsx, data_only=True).worksheets[0]
-            rows = list(ws.iter_rows(values_only=True))
-            hdr = [str(h).strip().lower() if h else "" for h in (rows[0] if rows else [])]
-            def col(*names):
-                for i, h in enumerate(hdr):
-                    if any(n in h for n in names):
-                        return i
-                return None
-            ci = {"order": col("order"), "name": col("name"),
-                  "url": col("website", "url", "link"),
-                  "person": col("person", "contact", "signed"),
-                  "date": col("date")}
-            for r in rows[1:]:
-                oi = ci["order"]
-                if oi is None or oi >= len(r) or r[oi] in (None, ""):
-                    continue
-                try:
-                    order = int(str(r[oi]).strip())
-                except ValueError:
-                    continue
-                def g(k):
-                    i = ci[k]
-                    return r[i] if (i is not None and i < len(r)) else None
-                meta[order] = {
-                    "name": (str(g("name")).strip() if g("name") else ""),
-                    "url": (str(g("url")).strip() if g("url") else ""),
-                    "person": (str(g("person")).strip() if g("person") else ""),
-                    "date": fmt_date(g("date")),
-                }
-        except Exception as e:
-            print("    partner logos: could not read Organisations.xlsx (%s)" % e)
-
-    PARTNERS_DIR.mkdir(exist_ok=True)
-    files = [p for p in PARTNERS_SRC.iterdir()
-             if p.is_file() and p.suffix.lower() in PARTNER_EXT
-             and not p.name.startswith(("~$", "."))]
-    items, keep = [], set()
-    for p in files:
-        m = re.match(r"\s*(\d+)", p.name)
-        order = int(m.group(1)) if m else 10 ** 6
-        md = meta.get(order, {})
-        safe = re.sub(r"[^A-Za-z0-9._-]+", "-", p.name)
-        keep.add(safe)
-        shutil.copyfile(p, PARTNERS_DIR / safe)
-        items.append({"order": order, "src": "partners/" + safe,
-                      "name": md.get("name") or _partner_name(p.stem),
-                      "url": md.get("url", ""), "person": md.get("person", ""),
-                      "date": md.get("date", "")})
-    items.sort(key=lambda x: (x["order"], x["name"].lower()))
-    for it in items:
-        it.pop("order", None)
-    for stale in PARTNERS_DIR.glob("*"):
-        if stale.is_file() and stale.name not in keep:
-            try:
-                stale.unlink()               # best-effort; the Cowork bridge blocks deletes
-            except OSError:
-                pass
-    PARTNERS_OUT.write_text(
-        "window.CBEDS_PARTNERS=" + json.dumps(items, ensure_ascii=False,
-                                              separators=(",", ":")),
-        encoding="utf-8")
-    print("    partner logos=%d  (from 'Logos of partners/' -> partners/)" % len(items))
-
-
 def main():
     data = build()
     missing = data.pop("noSource")          # a message for you, not data for the site
@@ -392,7 +292,6 @@ def main():
     dangling = data.pop("danglingToHidden")
     payload = json.dumps(data, ensure_ascii=False, separators=(",", ":"))
     OUT.write_text("window.CBEDS_DATA=" + payload, encoding="utf-8")
-    build_partners()
     c = data["counts"]
     print("OK  wrote %s" % OUT.name)
     print("    agents=%d  projects=%d  outputs=%d  total=%d"

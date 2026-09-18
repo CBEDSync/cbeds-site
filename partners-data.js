@@ -1,0 +1,1 @@
+window.CBEDS_PARTNERS=[{"src":"partners/1--BSSC.png","name":"BSCC","url":"https://www.ucl.ac.uk/bartlett/construction","person":"Karim Farghaly","date":"1 Sep 2026"}]

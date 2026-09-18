@@ -170,13 +170,6 @@
     .burger{display:flex}
     nav.open ul{display:flex;position:fixed;top:var(--nav-h);left:0;right:0;flex-direction:column;background:#fff;border-bottom:1px solid var(--line);padding:22px 26px;gap:20px;box-shadow:0 20px 40px rgba(0,0,0,.12)}
     nav.open ul a{display:block;padding:11px 0}nav.open ul a.lnk{color:var(--ink)}}
-  .org.logo{position:relative;overflow:hidden;padding:0;background:#fff;min-height:104px}
-  .org.logo>.lk{flex:1;align-self:stretch;display:flex;align-items:center;justify-content:center;padding:14px}
-  .org.logo .orgmeta{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;background:rgba(7,35,48,.93);opacity:0;transition:opacity .2s;padding:12px;text-align:center;pointer-events:none;font-family:var(--display)}
-  .org.logo:hover .orgmeta{opacity:1}
-  .org.logo .orgmeta .nm{font-size:12px;color:#86cdc7;font-weight:700;text-transform:uppercase;letter-spacing:.05em}
-  .org.logo .orgmeta .who{font-size:14.5px;color:#eafffb;font-weight:600}
-  .org.logo .orgmeta .dt{font-size:12px;color:#bcd6dc}
 </style>
 <script>
 /* Pin the hero height on phones.
@@ -212,7 +205,6 @@
   addEventListener('orientationchange', function(){ lastW = -1; pin(); });
 })();
 </script>
-<script src="partners-data.js"></script>
 </head>
 <body>
 
@@ -357,8 +349,8 @@ var nav=document.getElementById('nav');
 addEventListener('scroll',function(){nav.classList.toggle('solid',scrollY>40);});
 
 // ===== ORGANISATIONS (replace with the real list) =====
-var ORGS=(window.CBEDS_PARTNERS&&window.CBEDS_PARTNERS.length)?window.CBEDS_PARTNERS.map(function(p){return p.name;}):[];
-if(!ORGS.length){for(var i=1;i<=32;i++){ORGS.push('Organisation '+(i<10?'0'+i:i));}}
+var ORGS=[];
+for(var i=1;i<=32;i++){ORGS.push('Organisation '+(i<10?'0'+i:i));}
 // distribute across rings (inner -> outer)
 var RING_COUNTS=[5,7,9,11];
 
@@ -468,32 +460,15 @@ if(window.ResizeObserver){new ResizeObserver(build).observe(c);}
 else{addEventListener('resize',build);}
 build();draw();
 
-// org grid - driven by partner logos in partners-data.js (built by build.py from the
-// "Logos of partners" folder). Falls back to placeholder tiles until logos are added.
+// org grid (first tile = the Bartlett School logo; rest are placeholders for now)
 var grid=document.getElementById('orgGrid');
-var PARTNERS=(window.CBEDS_PARTNERS||[]);
-if(PARTNERS.length){
-  function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
-  PARTNERS.forEach(function(p){
-    var d=document.createElement('div');d.className='org logo';
-    var img='<img src="'+p.src+'" alt="'+esc(p.name)+'" loading="lazy" style="max-width:100%;max-height:72px;width:auto;height:auto;display:block">';
-    var lk=p.url?'<a class="lk" href="'+p.url+'" target="_blank" rel="noopener">'+img+'</a>':'<span class="lk">'+img+'</span>';
-    var meta='';
-    if(p.name||p.person||p.date){
-      meta='<span class="orgmeta">'+(p.name?'<span class="nm">'+esc(p.name)+'</span>':'')+(p.person?'<span class="who">'+esc(p.person)+'</span>':'')+(p.date?'<span class="dt">'+esc(p.date)+'</span>':'')+'</span>';
-    }
-    d.innerHTML=lk+meta;
-    grid.appendChild(d);
-  });
-} else {
-  ORGS.slice(0,16).forEach(function(o,i){
-    var d=document.createElement('div');d.className='org';
-    if(i===0){ d.style.background='#fff'; d.style.padding='14px';
-      d.innerHTML='<a href="https://www.ucl.ac.uk/bartlett/" target="_blank" rel="noopener" style="display:flex;align-items:center;justify-content:center;width:100%"><img src="bartlett-logo.png" alt="The Bartlett School of Sustainable Construction, UCL" style="max-width:100%;max-height:72px;width:auto;height:auto;display:block"></a>'; }
-    else { d.textContent=o; }
-    grid.appendChild(d);
-  });
-}
+ORGS.slice(0,16).forEach(function(o,i){
+  var d=document.createElement('div');d.className='org';
+  if(i===0){ d.style.background='#fff'; d.style.padding='14px';
+    d.innerHTML='<a href="https://www.ucl.ac.uk/bartlett/" target="_blank" rel="noopener" style="display:flex;align-items:center;justify-content:center;width:100%"><img src="bartlett-logo.png" alt="The Bartlett School of Sustainable Construction, UCL" style="max-width:100%;max-height:72px;width:auto;height:auto;display:block"></a>'; }
+  else { d.textContent=o; }
+  grid.appendChild(d);
+});
 
 /* ---------- the Alliance Charter form ----------
    Opens and closes the way "Share your work" does on CBEDSense: the button toggles the
